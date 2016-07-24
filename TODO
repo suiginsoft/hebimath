@@ -13,4 +13,5 @@ Integer Functions:
 
 Other:
 
+* make use of C11 static assert on user configuration values
 * add a special invalid allocator id value for zinit_buffer functions
