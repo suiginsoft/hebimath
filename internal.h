@@ -305,12 +305,31 @@ HEBI_NORETURN void hebi_hwcaps_fatal__(void);
 
 #endif /* HEBI_MULTI_VERSIONING */
 
-/* compute |log2(x)| */
-static inline HEBI_ALWAYSINLINE
-size_t hebi_floorlog2(size_t x)
+/* ⌈log2(x)⌉ */
+static inline HEBI_ALWAYSINLINE HEBI_CONST
+size_t
+hebi_ceillog2(size_t x)
 {
 #if __has_builtin(__builtin_clzl)
-	return (size_t)__builtin_clzl(x | 1) ^ (CHAR_BIT * sizeof(size_t) - 1);
+	return ((size_t)__builtin_clzl(x | 1) ^
+		(CHAR_BIT * sizeof(size_t) - 1)) +
+		(!!(x & (x - 1)));
+#else
+	size_t r = 0;
+	if (LIKELY(x))
+		for (x--; x > 0; x >>= 1, r++) ;
+	return r;
+#endif
+}
+
+/* ⌊log2(x)⌋ */
+static inline HEBI_ALWAYSINLINE HEBI_CONST
+size_t
+hebi_floorlog2(size_t x)
+{
+#if __has_builtin(__builtin_clzl)
+	return (size_t)__builtin_clzl(x | 1) ^
+		(CHAR_BIT * sizeof(size_t) - 1);
 #else
 	size_t r = 0;
 	for ( ; x >>= 1; r++) ;
@@ -319,8 +338,9 @@ size_t hebi_floorlog2(size_t x)
 }
 
 /* count leading-zeros of hebi_hword */
-static inline HEBI_ALWAYSINLINE
-int hebi_hclz(hebi_hword x)
+static inline HEBI_ALWAYSINLINE HEBI_CONST
+int
+hebi_hclz(hebi_hword x)
 {
 #if __has_builtin(__builtin_clz)
 	return __builtin_clz(x);
@@ -332,8 +352,9 @@ int hebi_hclz(hebi_hword x)
 }
 
 /* count trailing-zeros of hebi_hword */
-static inline HEBI_ALWAYSINLINE
-int hebi_hctz(hebi_hword x)
+static inline HEBI_ALWAYSINLINE HEBI_CONST
+int
+hebi_hctz(hebi_hword x)
 {
 #if __has_builtin(__builtin_ctz)
 	return __builtin_ctz(x);
@@ -345,8 +366,9 @@ int hebi_hctz(hebi_hword x)
 }
 
 /* count leading-zeros of hebi_word */
-static inline HEBI_ALWAYSINLINE
-int hebi_wclz(hebi_word x)
+static inline HEBI_ALWAYSINLINE HEBI_CONST
+int
+hebi_wclz(hebi_word x)
 {
 #if __has_builtin(__builtin_clzll)
 	return __builtin_clzll(x);
@@ -358,8 +380,9 @@ int hebi_wclz(hebi_word x)
 }
 
 /* count trailing-zeros of hebi_word */
-static inline HEBI_ALWAYSINLINE
-int hebi_wctz(hebi_word x)
+static inline HEBI_ALWAYSINLINE HEBI_CONST
+int
+hebi_wctz(hebi_word x)
 {
 #if __has_builtin(__builtin_ctzll)
 	return __builtin_ctzll(x);
@@ -371,7 +394,8 @@ int hebi_wctz(hebi_word x)
 }
 
 static inline HEBI_ALWAYSINLINE
-int hebi_pcmpgtui64max(const hebi_packet *a)
+int
+hebi_pcmpgtui64max(const hebi_packet *a)
 {
 #if defined HEBI_SIMD && defined __SSE2__
 
