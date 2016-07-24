@@ -309,11 +309,11 @@ vscheckbc(const char *restrict hres, const char *restrict bcop, va_list ap)
 		}
 	} else if (check_verbose) {
 		(void)printf(
-			"iteration:%ld\n"
+			"iteration:%ld pass: %ld\n"
 			"hebi:\n%s\n"
 			"bc:\n%s\n"
 			"operation:\n%s\n\n",
-			check_iter, hres, bcres, bcopbuf);
+			check_iter, check_pass, hres, bcres, bcopbuf);
 	}
 
 	free(bcres);

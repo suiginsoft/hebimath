@@ -19,7 +19,10 @@ zcheckbinop(
 		check_max_perm = 128;
 	check_max_iter = check_max_perm * check_max_perm;
 
-	for (check_iter = 0; check_iter < check_max_iter; check_iter++) {
+	for (check_iter = check_start_iter;
+			check_iter < check_max_iter;
+			check_iter++) {
+		/* generate test inputs */
 		zpermutation(check_iter, check_max_perm, 2, a, b);
 		if ((flags & LHS_NONZERO) && hebi_zzero(a))
 			continue;
@@ -27,16 +30,19 @@ zcheckbinop(
 			continue;
 
 		/* read-only inputs */
+		check_pass = 0;
 		(*f)(r, a, b);
 		zcheckbc(r, "%Z %s %Z", a, op, b);
 
 		/* inplace operation on lhs input */
+		check_pass = 1;
 		hebi_zset(r, a);
 		(*f)(a, a, b);
 		zcheckbc(a, "%Z %s %Z", r, op, b);
 		hebi_zset(a, r);
 
 		/* inplace operation on rhs input */
+		check_pass = 2;
 		hebi_zset(r, b);
 		(*f)(b, a, b);
 		zcheckbc(b, "%Z %s %Z", a, op, r);

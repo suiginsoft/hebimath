@@ -40,7 +40,9 @@ const long check_num_i64values =
 	(long)(sizeof(check_i64values) / sizeof(int64_t));
 
 char *argv0;
+long check_pass;
 long check_iter;
+long check_start_iter;
 long check_max_iter;
 long check_max_perm;
 int check_skip_error;
@@ -50,8 +52,21 @@ void
 checkinit(int argc, char *argv[])
 {
 	ARGBEGIN {
-	case 's':
+	case 'i':
 		check_skip_error = 1;
+		break;
+	case 's':
+		if (argc-- <= 1) {
+			perror("missing start iteration");
+			abort();
+		}
+		argv++;
+		errno = 0;
+		check_start_iter = strtol(*argv, NULL, 0);
+		if (check_start_iter <= 0 || errno) {
+			perror("invalid start iteration");
+			abort();
+		}
 		break;
 	case 'v':
 		check_verbose++;
@@ -60,7 +75,7 @@ checkinit(int argc, char *argv[])
 	
 	if (argc >= 1) {
 		errno = 0;
-		check_max_perm = strtol(*argv++, NULL, 0);
+		check_max_perm = strtol(*argv, NULL, 0);
 		if (check_max_perm <= 0 || errno) {
 			perror("invalid max number of permutations");
 			abort();

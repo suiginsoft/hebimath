@@ -22,7 +22,9 @@ enum {
 extern const int64_t check_i64values[];
 extern const long check_num_i64values;
 
+extern long check_pass;
 extern long check_iter;
+extern long check_start_iter;
 extern long check_max_iter;
 extern long check_max_perm;
 extern int check_skip_error;
