@@ -1,0 +1,759 @@
+/*
+ * hebimath - arbitrary precision arithmetic library
+ * See LICENSE file for copyright and license details
+ */
+
+#ifndef HEBIMATH_H__
+#define HEBIMATH_H__
+
+#include <setjmp.h>
+#include <stddef.h>
+#include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifdef __GNUC__
+#define HEBI_IMPORT
+#define HEBI_EXPORT __attribute__((__visibility__("default")))
+#else
+#define HEBI_IMPORT
+#define HEBI_EXPORT
+#endif
+
+#ifdef HEBI_EXPORT_SYMBOLS
+#define HEBI_API HEBI_EXPORT
+#else
+#define HEBI_API HEBI_IMPORT
+#endif
+
+#if defined __GNUC__
+#define HEBI_INLINE __extension__ __inline__ HEBI_API
+#elif defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
+#define HEBI_INLINE inline HEBI_API
+#elif defined __cplusplus
+#define HEBI_INLINE inline HEBI_API
+#else
+#define HEBI_INLINE static
+#endif
+
+#if defined __GNUC__
+#define HEBI_RESTRICT __restrict__
+#elif defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
+#define HEBI_RESTRICT restrict
+#else
+#define HEBI_RESTRICT
+#endif
+
+#if defined __GNUC__
+#define HEBI_ALIGNAS(A) __attribute__((__aligned__(A)))
+#define HEBI_NORETURN __attribute__((__noreturn__))
+#elif defined __STDC_VERSION__ && __STDC_VERSION__ >= 201112L
+#define HEBI_ALIGNAS(A) _Alignas(A)
+#define HEBI_NORETURN _Noreturn
+#else
+#define HEBI_ALIGNAS(A)
+#define HEBI_NORETURN
+#endif
+
+#if defined __GNUC__
+#define HEBI_ALWAYSINLINE __attribute__((__always_inline__))
+#define HEBI_CONST __attribute__((__const__))
+#define HEBI_PURE __attribute__((__pure__))
+#define HEBI_ALLOC __attribute__((__malloc__))
+#define HEBI_NOTHROW __attribute__((__nothrow__))
+#define HEBI_WARNUNUSED __attribute__((__warn_unused_result__))
+#define HEBI_LIKELY(E) __builtin_expect(!!(E),1)
+#define HEBI_UNLIKELY(E) __builtin_expect(!!(E),0)
+#else
+#define HEBI_ALWAYSINLINE
+#define HEBI_CONST
+#define HEBI_PURE
+#define HEBI_ALLOC
+#define HEBI_NOTHROW
+#define HEBI_WARNUNUSED
+#define HEBI_LIKELY(E) (E)
+#define HEBI_UNLIKELY(E) (E)
+#endif
+
+#define HEBI_WORD_BIT 64
+#define HEBI_HWORD_BIT 32
+#define HEBI_WORD_C UINT64_C
+#define HEBI_HWORD_C UINT32_C
+#define HEBI_WORD_MAX UINT64_MAX
+#define HEBI_HWORD_MAX UINT32_MAX
+typedef uint64_t hebi_word;
+typedef uint32_t hebi_hword;
+
+>>> simd
+#if !defined __PCC__ && (defined __GNUC__ && __GNUC__ >= 4)
+#define HEBI_SIMD
+__extension__ typedef long long int hebi_v2di __attribute__((__vector_size__(16)));
+__extension__ typedef int hebi_v4si __attribute__((__vector_size__(16)));
+__extension__ typedef short hebi_v8hi __attribute__((__vector_size__(16)));
+__extension__ typedef char hebi_v16qi __attribute__((__vector_size__(16)));
+__extension__ typedef unsigned long long int hebi_v2du __attribute__((__vector_size__(16)));
+__extension__ typedef unsigned int hebi_v4su __attribute__((__vector_size__(16)));
+__extension__ typedef unsigned short hebi_v8hu __attribute__((__vector_size__(16)));
+__extension__ typedef unsigned char hebi_v16qu __attribute__((__vector_size__(16)));
+#endif
+<<< simd
+
+enum hebi_errdom {
+	HEBI_ERRDOM_HEBI = 0,
+	HEBI_ERRDOM_ERRNO = 1
+};
+
+enum {
+	HEBI_EDIVZERO = 1,
+	HEBI_EZERODIVZERO = 2,
+	HEBI_EZEROPOWZERO = 3,
+	HEBI_EBADALLOCID = 4,
+	HEBI_EBADVALUE = 5,
+	HEBI_EBADRANGE = 6,
+	HEBI_ENOHWCAPS = 7,
+	HEBI_ENOMEM = 8,
+	HEBI_ENOSLOTS = 9
+};
+
+struct hebi_error {
+	enum hebi_errdom he_domain;
+	int he_code;
+};
+
+typedef void (* hebi_errhandler)(void *, const struct hebi_error *);
+
+struct hebi_errstate {
+	hebi_errhandler hebi_handler__;
+	void *hebi_arg__;
+	int hebi_longjmp__;
+	int hebi_val__;
+	jmp_buf hebi_env__;
+};
+
+HEBI_API void hebi_error_handler(hebi_errhandler, void *);
+HEBI_API void hebi_error_jmp(jmp_buf, int);
+HEBI_API void hebi_error_save(struct hebi_errstate *);
+HEBI_API void hebi_error_restore(const struct hebi_errstate *);
+HEBI_API HEBI_NOTHROW int hebi_error_last(struct hebi_error *);
+HEBI_API HEBI_NORETURN void hebi_error_raise(enum hebi_errdom, int);
+
+struct hebi_alloc_callbacks {
+	void *(* hac_alloc)(void *, size_t, size_t);
+	void (* hac_free)(void *, void *, size_t);
+	void *hac_arg;
+};
+
+typedef struct hebi_alloc_tag *hebi_alloc_id;
+
+#define HEBI_ALLOC_DEFAULT ((hebi_alloc_id)((intptr_t)0))
+#define HEBI_ALLOC_SCRATCH ((hebi_alloc_id)((intptr_t)-1))
+#define HEBI_ALLOC_STDLIB  ((hebi_alloc_id)((intptr_t)-2))
+#define HEBI_ALLOC_INVALID ((hebi_alloc_id)((intptr_t)-3))
+
+HEBI_API hebi_alloc_id hebi_alloc_get_default(void);
+HEBI_API hebi_alloc_id hebi_alloc_set_default(hebi_alloc_id);
+HEBI_API hebi_alloc_id hebi_alloc_get_scratch(void);
+HEBI_API hebi_alloc_id hebi_alloc_set_scratch(hebi_alloc_id);
+HEBI_API hebi_alloc_id hebi_alloc_add(const struct hebi_alloc_callbacks *);
+HEBI_API void hebi_alloc_remove(hebi_alloc_id);
+HEBI_API const struct hebi_alloc_callbacks *hebi_alloc_query(hebi_alloc_id *, hebi_alloc_id);
+HEBI_API HEBI_NOTHROW int hebi_alloc_valid(hebi_alloc_id);
+
+HEBI_INLINE HEBI_ALLOC HEBI_WARNUNUSED
+void *
+hebi_alloc_cb(const struct hebi_alloc_callbacks *c__, size_t a__, size_t s__)
+{
+	void *p__ = (*c__->hac_alloc)(c__->hac_arg, a__, s__);
+	if (HEBI_UNLIKELY(!p__))
+		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
+	return p__;
+}
+
+HEBI_INLINE
+void
+hebi_free_cb(const struct hebi_alloc_callbacks *c__, void *p__, size_t s__)
+{
+	(*c__->hac_free)(c__->hac_arg, p__, s__);
+}
+
+HEBI_INLINE HEBI_ALLOC HEBI_WARNUNUSED
+void *
+hebi_alloc(hebi_alloc_id i__, size_t a__, size_t s__)
+{
+	return hebi_alloc_cb(hebi_alloc_query(NULL, i__), a__, s__);
+}
+
+HEBI_INLINE
+void
+hebi_free(hebi_alloc_id i__, void *p__, size_t s__)
+{
+	hebi_free_cb(hebi_alloc_query(NULL, i__), p__, s__);
+}
+
+struct hebi_kiss {
+	uint64_t hebi_xorshift__;
+	uint64_t hebi_congruential__;
+	uint64_t hebi_carry__;
+	size_t hebi_length__;
+	union {
+		uint64_t hebi_single__;
+		struct {
+			uint64_t *hebi_values__;
+			size_t hebi_index__;
+		} hebi_multi__;
+	} hebi_data__;
+};
+
+#define HEBI_KISS_INIT { \
+	UINT64_C(362436069362436069), \
+	UINT64_C(123456789987654321), \
+	0, 1, { UINT64_C(4261283300534326642) } }
+
+#if SIZE_MAX >= UINT64_MAX || defined __LP64__ || defined __ILP32__
+#define HEBI_PACKET_ALIGNMENT 32
+#define HEBI_PACKET_BIT 256
+#define HEBI_PACKET_HWORDS 8
+#define HEBI_PACKET_WORDS 4
+>>> simd
+#ifdef HEBI_SIMD
+#define HEBI_PACKET_VECTORS 2
+#endif
+<<< simd
+#else
+#define HEBI_PACKET_ALIGNMENT 16
+#define HEBI_PACKET_BIT 128
+#define HEBI_PACKET_HWORDS 4
+#define HEBI_PACKET_WORDS 2
+>>> simd
+#ifdef HEBI_SIMD
+#define HEBI_PACKET_VECTORS 1
+#endif
+<<< simd
+#endif
+
+typedef union hebi_packet {
+	HEBI_ALIGNAS(HEBI_PACKET_ALIGNMENT)
+	hebi_word hp_words[HEBI_PACKET_WORDS];
+	hebi_hword hp_hwords[HEBI_PACKET_HWORDS];
+>>> simd
+#ifdef HEBI_SIMD
+	hebi_v2di hp_v2di[HEBI_PACKET_VECTORS];
+	hebi_v2du hp_v2du[HEBI_PACKET_VECTORS];
+	hebi_v4si hp_v4si[HEBI_PACKET_VECTORS];
+	hebi_v4su hp_v4su[HEBI_PACKET_VECTORS];
+	hebi_v8hi hp_v8hi[HEBI_PACKET_VECTORS];
+	hebi_v8hu hp_v8hu[HEBI_PACKET_VECTORS];
+	hebi_v16qi hp_v16qi[HEBI_PACKET_VECTORS];
+	hebi_v16qu hp_v16qu[HEBI_PACKET_VECTORS];
+#endif
+<<< simd
+} hebi_packet;
+
+>>> dynamic
+#define HEBI_MULTI_VERSIONING
+#define HEBI_MVFUNC(R,N,P,A) extern HEBI_API R (* N##_ptr__) P; HEBI_INLINE R N P { return (*N##_ptr__) A; }
+#define HEBI_MVFUNC_VOID(N,P,A) extern HEBI_API void (* N##_ptr__) P; HEBI_INLINE void N P { (*N##_ptr__) A; }
+
+HEBI_MVFUNC(hebi_packet *, hebi_pcopy, (hebi_packet *HEBI_RESTRICT r__, const hebi_packet *HEBI_RESTRICT a__, size_t n__), (r__, a__, n__))
+HEBI_MVFUNC(hebi_packet *, hebi_pmove, (hebi_packet *r__, const hebi_packet *a__, size_t n__), (r__, a__, n__))
+HEBI_MVFUNC(hebi_packet *, hebi_pzero, (hebi_packet *r__, size_t n__), (r__, n__))
+HEBI_MVFUNC(int, hebi_pcmp, (const hebi_packet *a__, const hebi_packet *b__, size_t n__), (a__, b__, n__))
+HEBI_MVFUNC(size_t, hebi_pnorm, (const hebi_packet *a__, size_t n__), (a__, n__))
+HEBI_MVFUNC(size_t, hebi_pclz, (const hebi_packet *a__, size_t n__), (a__, n__))
+HEBI_MVFUNC(size_t, hebi_pctz, (const hebi_packet *a__, size_t n__), (a__, n__))
+HEBI_MVFUNC(size_t, hebi_pshl, (hebi_packet *r__, const hebi_packet *a__, size_t b__, size_t n__), (r__, a__, b__, n__))
+HEBI_MVFUNC(size_t, hebi_pshr, (hebi_packet *r__, const hebi_packet *a__, size_t b__, size_t n__), (r__, a__, b__, n__))
+HEBI_MVFUNC(hebi_word, hebi_paddu, (hebi_packet *r__, const hebi_packet *a__, hebi_word b__, size_t n__), (r__, a__, b__, n__))
+HEBI_MVFUNC(hebi_word, hebi_psubu, (hebi_packet *r__, const hebi_packet *a__, hebi_word b__, size_t n__), (r__, a__, b__, n__))
+HEBI_MVFUNC(hebi_word, hebi_pmulu, (hebi_packet *r__, const hebi_packet *a__, hebi_word b__, size_t n__), (r__, a__, b__, n__))
+HEBI_MVFUNC(hebi_word, hebi_pdivmodu, (hebi_packet *r__, const hebi_packet *a__, hebi_word b__, size_t n__), (r__, a__, b__, n__))
+HEBI_MVFUNC(hebi_word, hebi_padd, (hebi_packet *r__, const hebi_packet *a__, const hebi_packet *b__, size_t m__, size_t n__), (r__, a__, b__, m__, n__))
+HEBI_MVFUNC(hebi_word, hebi_psub, (hebi_packet *r__, const hebi_packet *a__, const hebi_packet *b__, size_t m__, size_t n__), (r__, a__, b__, m__, n__))
+HEBI_MVFUNC_VOID(hebi_pmul, (hebi_packet *HEBI_RESTRICT r__, const hebi_packet *a__, const hebi_packet *b__, size_t m__, size_t n__), (r__, a__, b__, m__, n__))
+HEBI_MVFUNC_VOID(hebi_psqr, (hebi_packet *HEBI_RESTRICT r__, const hebi_packet *HEBI_RESTRICT a__, size_t n__), (r__, a__, n__))
+HEBI_MVFUNC(size_t, hebi_pdivmod_norm, (hebi_packet *HEBI_RESTRICT q__, hebi_packet *HEBI_RESTRICT r__, const hebi_packet *HEBI_RESTRICT a__, size_t m__, size_t n__), (q__, r__, a__, m__, n__))
+<<< dynamic
+>>> fixed
+HEBI_API hebi_packet *hebi_pcopy(hebi_packet *HEBI_RESTRICT, const hebi_packet *HEBI_RESTRICT, size_t);
+HEBI_API hebi_packet *hebi_pmove(hebi_packet *, const hebi_packet *, size_t);
+HEBI_API hebi_packet *hebi_pzero(hebi_packet *, size_t);
+HEBI_API int hebi_pcmp(const hebi_packet *, const hebi_packet *, size_t);
+HEBI_API size_t hebi_pnorm(const hebi_packet *, size_t);
+HEBI_API size_t hebi_pclz(const hebi_packet *, size_t);
+HEBI_API size_t hebi_pctz(const hebi_packet *, size_t);
+HEBI_API size_t hebi_pshl(hebi_packet *, const hebi_packet *, size_t, size_t);
+HEBI_API size_t hebi_pshr(hebi_packet *, const hebi_packet *, size_t, size_t);
+HEBI_API hebi_word hebi_paddu(hebi_packet *, const hebi_packet *, hebi_word, size_t);
+HEBI_API hebi_word hebi_psubu(hebi_packet *, const hebi_packet *, hebi_word, size_t);
+HEBI_API hebi_word hebi_pmulu(hebi_packet *, const hebi_packet *, hebi_word, size_t);
+HEBI_API hebi_word hebi_pdivmodu(hebi_packet *, const hebi_packet *, hebi_word, size_t);
+HEBI_API hebi_word hebi_padd(hebi_packet *, const hebi_packet *, const hebi_packet *, size_t, size_t);
+HEBI_API hebi_word hebi_psub(hebi_packet *, const hebi_packet *, const hebi_packet *, size_t, size_t);
+HEBI_API void hebi_pmul(hebi_packet *HEBI_RESTRICT, const hebi_packet *, const hebi_packet *, size_t, size_t);
+HEBI_API void hebi_psqr(hebi_packet *HEBI_RESTRICT, const hebi_packet *HEBI_RESTRICT, size_t);
+HEBI_API size_t hebi_pdivmod_norm(hebi_packet *HEBI_RESTRICT, hebi_packet *HEBI_RESTRICT, const hebi_packet *HEBI_RESTRICT, size_t, size_t);
+<<< fixed
+HEBI_API void hebi_pmul_karatsuba(hebi_packet *HEBI_RESTRICT, hebi_packet *HEBI_RESTRICT, const hebi_packet *, const hebi_packet *, size_t, size_t);
+HEBI_API HEBI_CONST size_t hebi_pmul_karatsuba_space(size_t, size_t);
+HEBI_API void hebi_psqr_karatsuba(hebi_packet *HEBI_RESTRICT, hebi_packet *HEBI_RESTRICT, const hebi_packet *, size_t);
+HEBI_API HEBI_CONST size_t hebi_psqr_karatsuba_space(size_t);
+HEBI_API size_t hebi_pdivmod(hebi_packet *HEBI_RESTRICT, hebi_packet *HEBI_RESTRICT, hebi_packet *HEBI_RESTRICT, size_t *HEBI_RESTRICT, const hebi_packet *, const hebi_packet *, size_t, size_t);
+HEBI_API void hebi_prand_kiss(hebi_packet *HEBI_RESTRICT, size_t, size_t, struct hebi_kiss *HEBI_RESTRICT);
+
+HEBI_INLINE
+void
+hebi_psetu(hebi_packet *r__, hebi_word a__)
+{
+>>> simd
+#ifdef HEBI_SIMD
+	r__->hp_v2du[0] = __extension__ (hebi_v2du){ a__, 0 };
+#if HEBI_PACKET_VECTORS == 2
+	r__->hp_v2du[1] = __extension__ (hebi_v2du){ 0, 0 };
+#endif
+#else
+<<< simd
+	int i__;
+	r__->hp_words[0] = a__;
+	for (i__ = 1; i__ < HEBI_PACKET_WORDS; i__++)
+		r__->hp_words[i__] = 0;
+>>> simd
+#endif
+<<< simd
+}
+
+HEBI_INLINE
+void
+hebi_psetzero(hebi_packet *r__)
+{
+>>> simd
+#ifdef HEBI_SIMD
+	r__->hp_v2du[0] = __extension__ (hebi_v2du){ 0, 0 };
+#if HEBI_PACKET_VECTORS == 2
+	r__->hp_v2du[1] = __extension__ (hebi_v2du){ 0, 0 };
+#endif
+#else
+<<< simd
+	int i__;
+	for (i__ = 0; i__ < HEBI_PACKET_WORDS; i__++)
+		r__->hp_words[i__] = 0;
+>>> simd
+#endif
+<<< simd
+}
+
+HEBI_INLINE HEBI_ALLOC HEBI_WARNUNUSED
+hebi_packet *
+hebi_palloc_cb(const struct hebi_alloc_callbacks *c__, size_t n__)
+{
+	size_t s__ = n__ * sizeof(hebi_packet);
+	if (HEBI_UNLIKELY(s__ / sizeof(hebi_packet) != n__))
+		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
+	return hebi_alloc_cb(c__, HEBI_PACKET_ALIGNMENT, s__);
+}
+
+HEBI_INLINE
+void
+hebi_pfree_cb(const struct hebi_alloc_callbacks *c__, hebi_packet *p__, size_t n__)
+{
+	hebi_free_cb(c__, p__, n__ * sizeof(hebi_packet));
+}
+
+HEBI_INLINE HEBI_ALLOC HEBI_WARNUNUSED
+hebi_packet *
+hebi_palloc(hebi_alloc_id i__, size_t n__)
+{
+	return hebi_palloc_cb(hebi_alloc_query(NULL, i__), n__);
+}
+
+HEBI_INLINE
+void
+hebi_pfree(hebi_alloc_id i__, hebi_packet *p__, size_t n__)
+{
+	hebi_pfree_cb(hebi_alloc_query(NULL, i__), p__, n__);
+}
+
+struct hebi_integer {
+	hebi_packet *hebi_packs__;
+	size_t hebi_capacity__;
+	size_t hebi_used__;
+#if SIZE_MAX >= UINT64_MAX
+	int hebi_sign__;
+	int hebi_allocator__;
+#else
+	int hebi_sign__:8;
+	int hebi_allocator__:24;
+#endif
+};
+
+typedef struct hebi_integer hebi_z[1];
+typedef struct hebi_integer *hebi_zptr;
+typedef const struct hebi_integer *hebi_zsrcptr;
+
+#define HEBI_Z_INIT {{NULL,0,0,0,((int)(intptr_t)HEBI_ALLOC_DEFAULT)}}
+
+HEBI_API void hebi_zinits(hebi_zptr, ...);
+HEBI_API void hebi_zinitn(hebi_zptr, size_t);
+HEBI_API void hebi_zinit_buffer(hebi_zptr HEBI_RESTRICT, void *HEBI_RESTRICT, size_t);
+HEBI_API void hebi_zinit_extra(hebi_zptr, size_t, hebi_alloc_id);
+HEBI_API void hebi_zinit_copy(hebi_zptr HEBI_RESTRICT, hebi_zsrcptr HEBI_RESTRICT);
+HEBI_API void hebi_zinit_copy_buffer(hebi_zptr HEBI_RESTRICT, hebi_zsrcptr HEBI_RESTRICT, void *HEBI_RESTRICT, size_t);
+HEBI_API void hebi_zinit_copy_extra(hebi_zptr HEBI_RESTRICT, hebi_zsrcptr HEBI_RESTRICT, size_t, hebi_alloc_id);
+HEBI_API void hebi_zdestroy(hebi_zptr);
+HEBI_API void hebi_zdestroys(hebi_zptr, ...);
+HEBI_API void hebi_zdestroyn(hebi_zptr, size_t);
+HEBI_API void hebi_zrealloc(hebi_zptr, size_t);
+HEBI_API void hebi_zrealloczero(hebi_zptr, size_t);
+HEBI_API size_t hebi_zsetstr(hebi_zptr HEBI_RESTRICT, const char *HEBI_RESTRICT, char **HEBI_RESTRICT, int);
+HEBI_API int64_t hebi_zgetsi(hebi_zsrcptr);
+HEBI_API uint64_t hebi_zgetsu(hebi_zsrcptr);
+HEBI_API size_t hebi_zgetstr(char *HEBI_RESTRICT, size_t, hebi_zsrcptr HEBI_RESTRICT, int);
+HEBI_API void hebi_zadd(hebi_zptr, hebi_zsrcptr, hebi_zsrcptr);
+HEBI_API void hebi_zsub(hebi_zptr, hebi_zsrcptr, hebi_zsrcptr);
+HEBI_API void hebi_zmul(hebi_zptr, hebi_zsrcptr, hebi_zsrcptr);
+HEBI_API void hebi_zsqr(hebi_zptr, hebi_zsrcptr);
+//HEBI_INLINE void hebi_zdiv(hebi_zptr, hebi_zsrcptr, hebi_zsrcptr);
+HEBI_API void hebi_zdivmod(hebi_zptr, hebi_zptr, hebi_zsrcptr, hebi_zsrcptr);
+HEBI_API void hebi_zaddu(hebi_zptr, hebi_zsrcptr, uint64_t);
+HEBI_API void hebi_zsubu(hebi_zptr, hebi_zsrcptr, uint64_t);
+HEBI_API void hebi_zmulu(hebi_zptr, hebi_zsrcptr, uint64_t);
+HEBI_API uint64_t hebi_zdivmodu(hebi_zptr, hebi_zsrcptr, uint64_t);
+//HEBI_INLINE void hebi_zmod(hebi_zptr, hebi_zsrcptr, hebi_zsrcptr);
+HEBI_API void hebi_zshl(hebi_zptr, hebi_zsrcptr, size_t);
+HEBI_API void hebi_zshr(hebi_zptr, hebi_zsrcptr, size_t);
+HEBI_API void hebi_zrand_kiss(hebi_zptr HEBI_RESTRICT, size_t, struct hebi_kiss *HEBI_RESTRICT);
+
+HEBI_INLINE
+void
+hebi_zinit_allocator(hebi_zptr r__, hebi_alloc_id id__)
+{
+	r__->hebi_packs__ = NULL;
+	r__->hebi_capacity__ = 0;
+	r__->hebi_used__ = 0;
+	r__->hebi_sign__ = 0;
+	r__->hebi_allocator__ = (int)(intptr_t)id__;
+}
+
+HEBI_INLINE
+void
+hebi_zinit(hebi_zptr r__)
+{
+	hebi_zinit_allocator(r__, HEBI_ALLOC_DEFAULT);
+}
+
+HEBI_INLINE
+void
+hebi_zinit_move(hebi_zptr HEBI_RESTRICT r__, hebi_zptr HEBI_RESTRICT s__)
+{
+	*r__ = *s__;
+	hebi_zinit(s__);
+}
+
+HEBI_INLINE
+void
+hebi_zreserve(hebi_zptr r__, size_t n__)
+{
+	if (n__ > r__->hebi_capacity__)
+		hebi_zrealloc(r__, n__);
+}
+
+HEBI_INLINE
+void
+hebi_zshrink(hebi_zptr r__)
+{
+	if (r__->hebi_sign__ && r__->hebi_used__ < r__->hebi_capacity__)
+		hebi_zrealloc(r__, r__->hebi_used__);
+}
+
+HEBI_INLINE
+void
+hebi_zswap(hebi_zptr r__, hebi_zptr s__)
+{
+	struct hebi_integer t__;
+	t__.hebi_packs__ = r__->hebi_packs__;
+	t__.hebi_capacity__ = r__->hebi_capacity__;
+	t__.hebi_used__ = r__->hebi_used__;
+	t__.hebi_sign__ = r__->hebi_sign__;
+	t__.hebi_allocator__ = r__->hebi_allocator__;
+	r__->hebi_packs__ = s__->hebi_packs__;
+	r__->hebi_capacity__ = s__->hebi_capacity__;
+	r__->hebi_used__ = s__->hebi_used__;
+	r__->hebi_sign__ = s__->hebi_sign__;
+	r__->hebi_allocator__ = s__->hebi_allocator__;
+	s__->hebi_packs__ = t__.hebi_packs__;
+	s__->hebi_capacity__ = t__.hebi_capacity__;
+	s__->hebi_used__ = t__.hebi_used__;
+	s__->hebi_sign__ = t__.hebi_sign__;
+	s__->hebi_allocator__ = t__.hebi_allocator__;
+}
+
+HEBI_INLINE
+hebi_alloc_id
+hebi_zallocator(hebi_zsrcptr a__)
+{
+	return (hebi_alloc_id)(intptr_t)a__->hebi_allocator__;
+}
+
+HEBI_INLINE
+size_t
+hebi_zcapacity(hebi_zsrcptr a__)
+{
+	return a__->hebi_capacity__;
+}
+
+HEBI_INLINE
+size_t
+hebi_zused(hebi_zsrcptr a__)
+{
+	return a__->hebi_sign__ ? a__->hebi_used__ : 0;
+}
+
+HEBI_INLINE
+int
+hebi_zsign(hebi_zsrcptr a__)
+{
+	return a__->hebi_sign__;
+}
+
+HEBI_INLINE
+int
+hebi_zzero(hebi_zsrcptr a__)
+{
+	return !a__->hebi_sign__;
+}
+
+HEBI_INLINE
+int
+hebi_zeven(hebi_zsrcptr a__)
+{
+	return !a__->hebi_sign__ || (~a__->hebi_packs__->hp_words[0] & 1);
+}
+
+HEBI_INLINE
+int
+hebi_zodd(hebi_zsrcptr a__)
+{
+	return a__->hebi_sign__ && (a__->hebi_packs__->hp_words[0] & 1);
+}
+
+HEBI_INLINE
+size_t
+hebi_zbits(hebi_zsrcptr a__)
+{
+	size_t b__;
+	if (!a__->hebi_sign__)
+		return 0;
+	b__ = HEBI_PACKET_BIT * a__->hebi_used__;
+	return b__ - hebi_pclz(a__->hebi_packs__, a__->hebi_used__);
+}
+
+HEBI_INLINE
+void
+hebi_zset_copy(hebi_zptr HEBI_RESTRICT r__, hebi_zsrcptr HEBI_RESTRICT a__)
+{
+	size_t n__ = a__->hebi_used__;
+	if (n__ > r__->hebi_capacity__)
+		hebi_zrealloczero(r__, n__);
+	(void)hebi_pcopy(r__->hebi_packs__, a__->hebi_packs__, n__);
+	r__->hebi_used__ = n__;
+	r__->hebi_sign__ = a__->hebi_sign__;
+}
+
+HEBI_INLINE
+void
+hebi_zset_move(hebi_zptr HEBI_RESTRICT r__, hebi_zptr HEBI_RESTRICT s__)
+{
+	if (r__->hebi_packs__)
+		hebi_zdestroy(s__);
+	*r__ = *s__;
+	hebi_zinit(s__);
+}
+
+HEBI_INLINE
+void hebi_zset(hebi_zptr r__, hebi_zsrcptr a__)
+{
+	if (r__ != a__)
+		hebi_zset_copy(r__, a__);
+}
+
+HEBI_INLINE
+void hebi_zseti(hebi_zptr r__, int64_t a__)
+{
+	if (HEBI_LIKELY(a__)) {
+		if (HEBI_UNLIKELY(!r__->hebi_capacity__))
+			hebi_zrealloczero(r__, 1);
+		hebi_psetu(r__->hebi_packs__, (uint64_t)(a__<0?-a__:a__));
+		r__->hebi_used__ = 1;
+		r__->hebi_sign__ = a__ < 0 ? -1 : 1;
+	} else {
+		r__->hebi_sign__ = 0;
+	}
+}
+
+HEBI_INLINE
+void hebi_zsetu(hebi_zptr r__, uint64_t a__)
+{
+	if (HEBI_LIKELY(a__)) {
+		if (HEBI_UNLIKELY(!r__->hebi_capacity__))
+			hebi_zrealloczero(r__, 1);
+		hebi_psetu(r__->hebi_packs__, a__);
+		r__->hebi_used__ = 1;
+		r__->hebi_sign__ = 1;
+	} else {
+		r__->hebi_sign__ = 0;
+	}
+}
+
+HEBI_INLINE
+void
+hebi_zsetzero(hebi_zptr r__)
+{
+	r__->hebi_sign__ = 0;
+}
+
+HEBI_INLINE
+int64_t
+hebi_zgeti(hebi_zsrcptr a__)
+{
+	int64_t r__;
+	int s__;
+	s__ = a__->hebi_sign__;
+	if (!s__)
+		return 0;
+	r__ = (int64_t)a__->hebi_packs__->hp_words[0];
+	return s__ < 0 ? -r__ : r__;
+}
+
+HEBI_INLINE
+uint64_t
+hebi_zgetu(hebi_zsrcptr a__)
+{
+	return a__->hebi_sign__ ? a__->hebi_packs__->hp_words[0] : UINT64_C(0);
+}
+
+HEBI_INLINE
+void
+hebi_zabs(hebi_zptr r__, hebi_zsrcptr a__)
+{
+	if (r__ != a__)
+		hebi_zset_copy(r__, a__);
+	r__->hebi_sign__ &= 1;
+}
+
+HEBI_INLINE
+void
+hebi_zneg(hebi_zptr r__, hebi_zsrcptr a__)
+{
+	if (r__ != a__)
+		hebi_zset_copy(r__, a__);
+	r__->hebi_sign__ = -r__->hebi_sign__;
+}
+
+HEBI_INLINE
+int
+hebi_zcmpmag(hebi_zsrcptr a__, hebi_zsrcptr b__)
+{
+	if (!a__->hebi_sign__ && !b__->hebi_sign__)
+		return 0;
+	else if (!a__->hebi_sign__ && b__->hebi_sign__)
+		return -1;
+	else if (a__->hebi_sign__ && !b__->hebi_sign__)
+		return 1;
+	else if (a__->hebi_used__ < b__->hebi_used__)
+		return -1;
+	else if (a__->hebi_used__ > b__->hebi_used__)
+		return 1;
+	return hebi_pcmp(a__->hebi_packs__, b__->hebi_packs__, a__->hebi_used__);
+}
+
+HEBI_INLINE
+int
+hebi_zcmp(hebi_zsrcptr a__, hebi_zsrcptr b__)
+{
+	if (!a__->hebi_sign__ && !b__->hebi_sign__)
+		return 0;
+	else if (a__->hebi_sign__ < b__->hebi_sign__)
+		return -1;
+	else if (a__->hebi_sign__ > b__->hebi_sign__)
+		return 1;
+	else if (a__->hebi_used__ < b__->hebi_used__)
+		return -1;
+	else if (a__->hebi_used__ > b__->hebi_used__)
+		return 1;
+	return hebi_pcmp(a__->hebi_packs__, b__->hebi_packs__, a__->hebi_used__);
+}
+
+HEBI_INLINE
+void
+hebi_zaddi(hebi_zptr r__, hebi_zsrcptr a__, int64_t b__)
+{
+	if (b__ < 0)
+		hebi_zsubu(r__, a__, (uint64_t)(-b__));
+	else
+		hebi_zaddu(r__, a__, (uint64_t)b__);
+}
+
+HEBI_INLINE
+void
+hebi_zsubi(hebi_zptr r__, hebi_zsrcptr a__, int64_t b__)
+{
+	if (b__ < 0)
+		hebi_zaddu(r__, a__, (uint64_t)(-b__));
+	else
+		hebi_zsubu(r__, a__, (uint64_t)b__);
+}
+
+HEBI_INLINE
+void
+hebi_zmuli(hebi_zptr r__, hebi_zsrcptr a__, int64_t b__)
+{
+	hebi_zmulu(r__, a__, (uint64_t)(b__ < 0 ? -b__ : b__));
+	if (b__ < 0)
+		r__->hebi_sign__ = -r__->hebi_sign__;
+}
+
+HEBI_INLINE
+int64_t
+hebi_zdivmodi(hebi_zptr q__, hebi_zsrcptr a__, int64_t b__)
+{
+	uint64_t r__;
+	r__ = hebi_zdivmodu(q__,  a__, (uint64_t)(b__ < 0 ? -b__ : b__));
+	if (b__ < 0 && q__)
+		q__->hebi_sign__ = -q__->hebi_sign__;
+	return (int64_t)r__;
+}
+
+HEBI_INLINE
+void
+hebi_zdivi(hebi_zptr q__, hebi_zsrcptr a__, int64_t b__)
+{
+	(void)hebi_zdivmodi(q__, a__, b__);
+}
+
+HEBI_INLINE
+void
+hebi_zdivu(hebi_zptr q__, hebi_zsrcptr a__, uint64_t b__)
+{
+	(void)hebi_zdivmodu(q__, a__, b__);
+}
+
+HEBI_INLINE
+int64_t
+hebi_zmodi(hebi_zsrcptr a__, int64_t b__)
+{
+	return hebi_zdivmodi(NULL, a__, b__);
+}
+
+HEBI_INLINE
+uint64_t
+hebi_zmodu(hebi_zsrcptr a__, uint64_t b__)
+{
+	return hebi_zdivmodu(NULL, a__, b__);
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

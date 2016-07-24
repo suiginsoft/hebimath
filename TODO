@@ -1,0 +1,16 @@
+Integer Functions:
+
+* zpopcount
+* zhamdist
+* zscan0
+* zscan1
+* ztrunc
+* zand
+* zor
+* zxor
+* znot
+* zgetstrlen/zsizeinbase
+
+Other:
+
+* add a special invalid allocator id value for zinit_buffer functions
