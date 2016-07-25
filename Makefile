@@ -61,10 +61,10 @@ ZFUNCTIONS := \
 	z/zinitn \
 	z/zinit_allocator \
 	z/zinit_buffer \
-	z/zinit_extra \
+	z/zinit_reserve \
 	z/zinit_copy \
 	z/zinit_copy_buffer \
-	z/zinit_copy_extra \
+	z/zinit_copy_reserve \
 	z/zinit_move \
 	z/zdestroy \
 	z/zdestroys \
