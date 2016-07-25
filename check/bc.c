@@ -139,7 +139,7 @@ int vsnzprintf(
 			j = snprintf(s+i, k, "%s", va_arg(ap, const char*));
 			break;
 		case 'Z':
-			if (ll)
+			if (ll != 0)
 				assert(!"bad format string");
 			j = (int)hebi_zgetstr(s+i, k, va_arg(ap, hebi_zsrcptr), 10);
 			break;
@@ -240,14 +240,20 @@ bcputs(const char *str)
 char *
 vbcprintf(const char *format, va_list ap)
 {
+	va_list ap2;
 	char* p;
+	int c;
 
 	assert(format);
 
 	if (!bcrunning)
 		bcinit();
 
-	if (vfprintf(bcpipe[1], format, ap) < 0) {
+	va_copy(ap2, ap);
+	c = vfprintf(bcpipe[1], format, ap2);
+	va_end(ap2);
+
+	if (c < 0) {
 		perror("unable to send operation to bc");
 		exit(EXIT_FAILURE);
 	}
@@ -276,6 +282,7 @@ bcprintf(const char *format, ...)
 static void
 vscheckbc(const char *restrict hres, const char *restrict bcop, va_list ap)
 {
+	va_list ap2;
 	char *bcres = NULL;
 	size_t n = 4096;
 	int r;
@@ -287,7 +294,9 @@ vscheckbc(const char *restrict hres, const char *restrict bcop, va_list ap)
 			bcopbufsz = MAX(n + 1, bcopbufsz * 2);
 			bcopbuf = realloc(bcopbuf, bcopbufsz);
 		}
-		r = vsnzprintf(bcopbuf, bcopbufsz, bcop, ap);
+		va_copy(ap2, ap);
+		r = vsnzprintf(bcopbuf, bcopbufsz, bcop, ap2);
+		va_end(ap2);
 		assert(r >= 0);
 		n = (size_t)r;
 	} while (n >= bcopbufsz);
