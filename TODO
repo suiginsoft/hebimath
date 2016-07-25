@@ -15,3 +15,6 @@ Other:
 
 * make use of C11 static assert on user configuration values
 * add a special invalid allocator id value for zinit_buffer functions
+* consider making pmul return normalized length, and remove zeroing
+  of bytes if length is null, would give small boost to karatsuba which
+  has already zeroed destination memory

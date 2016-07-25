@@ -35,7 +35,7 @@ hebi_zmul(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 	if (t == a || t == b)
 		hebi_zinit_allocator((t = temp), hebi_zallocator(r));
 
-	if (au > 4) {
+	if (au > KARATSUBA_MUL_CUTOFF) {
 		wp = hebi_pscratch(hebi_pmul_karatsuba_space(au, bu));
 		if (tn > t->hz_resv)
 			hebi_zrealloczero(t, tn);

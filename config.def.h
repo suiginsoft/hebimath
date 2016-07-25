@@ -159,4 +159,11 @@
  */
 #define ZSTACK_MAX_SIZE 4
 
+/*
+ * Cuttoff values in number of packets before Karatsuba multiplication
+ * and squaring are used. Cutoff values must be greater or equal to 4.
+ */
+#define KARATSUBA_MUL_CUTOFF 8
+#define KARATSUBA_SQR_CUTOFF 8
+
 #endif
