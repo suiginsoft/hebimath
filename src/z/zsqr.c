@@ -21,7 +21,7 @@ hebi_zsqr(hebi_zptr r, hebi_zsrcptr a)
 	}
 
 	au = a->hz_used;
-	tn = au * 2 + 1;
+	tn = 2 * au + 1;
 	if (UNLIKELY(tn <= au))
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
 
@@ -29,7 +29,7 @@ hebi_zsqr(hebi_zptr r, hebi_zsrcptr a)
 	if (t == a)
 		hebi_zinit_allocator((t = temp), hebi_zallocator(r));
 
-	if (au > 4) {
+	if (au > KARATSUBA_SQR_CUTOFF) {
 		wp = hebi_pscratch(hebi_psqr_karatsuba_space(au));
 		if (tn > t->hz_resv)
 			hebi_zrealloczero(t, tn);

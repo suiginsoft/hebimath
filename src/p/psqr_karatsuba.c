@@ -13,36 +13,40 @@ hebi_psqr_karatsuba(
 		const hebi_packet *restrict a,
 		size_t n )
 {
-	size_t k, l, m;
+	size_t j, k, l, m;
+	uint64_t c;
 
-	/* base case, use long squaring for at most 4 packets */
-	if (n <= 4) {
+	/* base case: use long multiplication if less or equal to cutoff */
+	if (LIKELY(n <= KARATSUBA_SQR_CUTOFF)) {
 		hebi_psqr(r, a, n);
 		return;
 	}
 
-	/* compute length of result and partition point */
-	l = n + n + 1;
+	/* calculate partition point */
 	m = (n + 1) / 2;
-	n -= m;
 
 	/* compute a0+a1  */
-	hebi_psetu(w+m, hebi_padd(w, a, a+m, m, n));
+	j = m;
+	if (UNLIKELY(c = hebi_padd(w, a, a+m, m, n-m)))
+		hebi_psetu(w+j++, c);
 
 	/* accumulate (a0+a1)(a0+a1)*B^m */
-	hebi_psqr_karatsuba(r+m, w+m+1, w, m+1);
+	hebi_psqr_karatsuba(r+m, w+j, w, j);
+
+	/* calculate length of result and partition offsets */
+	j = 2 * (n - m);
+	k = 2 * m;
+	l = n + n + 1;
 
 	/* compute a1a1 */
-	k = n * 2;
-	hebi_pzero(w, k+1);
-	hebi_psqr_karatsuba(w, w+k+1, a+m, n);
+	hebi_pzero(w, j+1);
+	hebi_psqr_karatsuba(w, w+j+1, a+m, n-m);
 
 	/* accumulate a1a1*B^(m*2) - a1a1*B^m */
-	hebi_padd(r+m*2, r+m*2, w, l-m*2, k);
-	hebi_psub(r+m, r+m, w, l-m, k);
+	hebi_padd(r+k, r+k, w, l-k, j);
+	hebi_psub(r+m, r+m, w, l-m, j);
 
 	/* compute a0a0 */
-	k = m * 2;
 	hebi_pzero(w, k+1);
 	hebi_psqr_karatsuba(w, w+k+1, a, m);
 
