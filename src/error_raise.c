@@ -4,12 +4,17 @@
  */
 
 #include "../internal.h"
+#include <errno.h>
 #include <stdlib.h>
+#include <stdio.h>
+
+#define ESTR(E) case E: estr = #E; break;
 
 HEBI_API HEBI_NORETURN
 void
 hebi_error_raise(enum hebi_errdom domain, int code)
 {
+	const char *estr;
 	struct hebi_context *ctx;
 	unsigned int i;
 
@@ -33,6 +38,24 @@ hebi_error_raise(enum hebi_errdom domain, int code)
 		ctx->errhandler(ctx->errarg, &ctx->errlast);
 	}
 
-	// TODO: print error message to stderr
+	if (domain == HEBI_ERRDOM_HEBI) {
+		switch (code) {
+			ESTR(HEBI_EDIVZERO)
+			ESTR(HEBI_EZERODIVZERO)
+			ESTR(HEBI_EZEROPOWZERO)
+			ESTR(HEBI_EBADALLOCID)
+			ESTR(HEBI_EBADVALUE)
+			ESTR(HEBI_EBADRANGE)
+			ESTR(HEBI_ENOHWCAPS)
+			ESTR(HEBI_ENOMEM)
+			ESTR(HEBI_ENOSLOTS)
+			default: estr = "unknown"; break;
+		}
+		fprintf(stderr, "hebimath error: %s\n", estr);
+	} else {
+		errno = code;
+		perror("hebimath");
+	}
+
 	abort();
 }
