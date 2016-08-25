@@ -7,7 +7,11 @@
 
 HEBI_API
 hebi_word
-hebi_pdivmodu(hebi_packet *r, const hebi_packet *a, hebi_word b, size_t n)
+hebi_pdivmodru(
+		hebi_packet *r,
+		const hebi_packet *a,
+		hebi_rcpsrcptr HEBI_RESTRICT b,
+		size_t n)
 {
 	hebi_hword *rhw = r->hp_hwords;
 	const hebi_hword *ahw = a->hp_hwords;

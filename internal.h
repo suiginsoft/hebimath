@@ -178,7 +178,7 @@ int hebi_ignore__(int, ...);
 
 /* hebi_errstate field names */
 #define hes_handler hebi_handler__
-#define	hes_arg hebi_arg__
+#define hes_arg hebi_arg__
 #define hes_longjmp hebi_longjmp__
 #define hes_val hebi_val__
 #define hes_env hebi_env__
@@ -192,6 +192,12 @@ int hebi_ignore__(int, ...);
 #define hk_multi hebi_data__.hebi_multi__.hebi_values__
 #define hk_multi_index hebi_data__.hebi_multi__.hebi_index__
 
+/* hebi_reciprocal field names */
+#define hr_dnorm hebi_dnorm__
+#define hr_vnorm hebi_vnorm__
+#define hr_shift hebi_shift__
+#define hr_sign hebi_sign__
+
 /* hebi_integer field names */
 #define hz_packs hebi_packs__
 #define hz_resv hebi_capacity__
@@ -200,8 +206,7 @@ int hebi_ignore__(int, ...);
 #define hz_allocid hebi_allocator__
 
 /* arguments for longjmp */
-struct hebi_longjmparg
-{
+struct hebi_longjmparg {
 	jmp_buf env;
 	int val;
 };
@@ -304,6 +309,9 @@ HEBI_PURE unsigned long hebi_hwcaps__(void);
 HEBI_NORETURN void hebi_hwcaps_fatal__(void);
 
 #endif /* HEBI_MULTI_VERSIONING */
+
+/* lookup table for v0(x) = ⌊(2^19 - 3*2^8) / (2^8 + x)⌋ */
+extern uint16_t hebi_precipu_v0lut__[256];
 
 /* ⌈log2(x)⌉ */
 static inline HEBI_ALWAYSINLINE HEBI_CONST

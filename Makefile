@@ -48,6 +48,7 @@ PFUNCTIONS := \
 	p/pmul_karatsuba \
 	p/pmul_karatsuba_space \
 	p/prand_kiss \
+	p/precipu_lut \
 	p/psetu \
 	p/psetzero \
 	p/psqr_karatsuba \

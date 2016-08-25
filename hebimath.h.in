@@ -149,7 +149,7 @@ typedef struct hebi_alloc_tag *hebi_alloc_id;
 
 #define HEBI_ALLOC_DEFAULT ((hebi_alloc_id)((intptr_t)0))
 #define HEBI_ALLOC_SCRATCH ((hebi_alloc_id)((intptr_t)-1))
-#define HEBI_ALLOC_STDLIB  ((hebi_alloc_id)((intptr_t)-2))
+#define HEBI_ALLOC_STDLIB ((hebi_alloc_id)((intptr_t)-2))
 #define HEBI_ALLOC_INVALID ((hebi_alloc_id)((intptr_t)-3))
 
 HEBI_API hebi_alloc_id hebi_alloc_get_default(void);
@@ -251,6 +251,17 @@ typedef union hebi_packet {
 <<< simd
 } hebi_packet;
 
+struct hebi_reciprocal {
+	hebi_word hebi_dnorm__;
+	hebi_word hebi_vnorm__;
+	int hebi_shift__;
+	int hebi_sign__;
+};
+
+typedef struct hebi_reciprocal hebi_rcp[1];
+typedef struct hebi_reciprocal *hebi_rcpptr;
+typedef const struct hebi_reciprocal *hebi_rcpsrcptr;
+
 >>> dynamic
 #define HEBI_MULTI_VERSIONING
 #define HEBI_MVFUNC(R,N,P,A) extern HEBI_API R (* N##_ptr__) P; HEBI_INLINE R N P { return (*N##_ptr__) A; }
@@ -268,7 +279,8 @@ HEBI_MVFUNC(size_t, hebi_pshr, (hebi_packet *r__, const hebi_packet *a__, size_t
 HEBI_MVFUNC(hebi_word, hebi_paddu, (hebi_packet *r__, const hebi_packet *a__, hebi_word b__, size_t n__), (r__, a__, b__, n__))
 HEBI_MVFUNC(hebi_word, hebi_psubu, (hebi_packet *r__, const hebi_packet *a__, hebi_word b__, size_t n__), (r__, a__, b__, n__))
 HEBI_MVFUNC(hebi_word, hebi_pmulu, (hebi_packet *r__, const hebi_packet *a__, hebi_word b__, size_t n__), (r__, a__, b__, n__))
-HEBI_MVFUNC(hebi_word, hebi_pdivmodu, (hebi_packet *r__, const hebi_packet *a__, hebi_word b__, size_t n__), (r__, a__, b__, n__))
+HEBI_MVFUNC(int, hebi_precipu, (hebi_rcpptr r__, uint64_t a__), (r__, a__))
+HEBI_MVFUNC(hebi_word, hebi_pdivmodru, (hebi_packet *r__, const hebi_packet *a__, hebi_rcpsrcptr HEBI_RESTRICT b__, size_t n__), (r__, a__, b__, n__))
 HEBI_MVFUNC(hebi_word, hebi_padd, (hebi_packet *r__, const hebi_packet *a__, const hebi_packet *b__, size_t m__, size_t n__), (r__, a__, b__, m__, n__))
 HEBI_MVFUNC(hebi_word, hebi_psub, (hebi_packet *r__, const hebi_packet *a__, const hebi_packet *b__, size_t m__, size_t n__), (r__, a__, b__, m__, n__))
 HEBI_MVFUNC_VOID(hebi_pmul, (hebi_packet *HEBI_RESTRICT r__, const hebi_packet *a__, const hebi_packet *b__, size_t m__, size_t n__), (r__, a__, b__, m__, n__))
@@ -288,7 +300,8 @@ HEBI_API size_t hebi_pshr(hebi_packet *, const hebi_packet *, size_t, size_t);
 HEBI_API hebi_word hebi_paddu(hebi_packet *, const hebi_packet *, hebi_word, size_t);
 HEBI_API hebi_word hebi_psubu(hebi_packet *, const hebi_packet *, hebi_word, size_t);
 HEBI_API hebi_word hebi_pmulu(hebi_packet *, const hebi_packet *, hebi_word, size_t);
-HEBI_API hebi_word hebi_pdivmodu(hebi_packet *, const hebi_packet *, hebi_word, size_t);
+HEBI_API int hebi_precipu(hebi_rcpptr, uint64_t);
+HEBI_API hebi_word hebi_pdivmodru(hebi_packet *, const hebi_packet *, hebi_rcpsrcptr HEBI_RESTRICT, size_t);
 HEBI_API hebi_word hebi_padd(hebi_packet *, const hebi_packet *, const hebi_packet *, size_t, size_t);
 HEBI_API hebi_word hebi_psub(hebi_packet *, const hebi_packet *, const hebi_packet *, size_t, size_t);
 HEBI_API void hebi_pmul(hebi_packet *HEBI_RESTRICT, const hebi_packet *, const hebi_packet *, size_t, size_t);
@@ -414,7 +427,7 @@ HEBI_API void hebi_zsub(hebi_zptr, hebi_zsrcptr, hebi_zsrcptr);
 HEBI_API void hebi_zmul(hebi_zptr, hebi_zsrcptr, hebi_zsrcptr);
 HEBI_API void hebi_zsqr(hebi_zptr, hebi_zsrcptr);
 //HEBI_INLINE void hebi_zdiv(hebi_zptr, hebi_zsrcptr, hebi_zsrcptr);
-HEBI_API void hebi_zdivmod(hebi_zptr, hebi_zptr, hebi_zsrcptr, hebi_zsrcptr);
+//HEBI_API void hebi_zdivmod(hebi_zptr, hebi_zptr, hebi_zsrcptr, hebi_zsrcptr);
 HEBI_API void hebi_zaddu(hebi_zptr, hebi_zsrcptr, uint64_t);
 HEBI_API void hebi_zsubu(hebi_zptr, hebi_zsrcptr, uint64_t);
 HEBI_API void hebi_zmulu(hebi_zptr, hebi_zsrcptr, uint64_t);
