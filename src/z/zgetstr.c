@@ -53,7 +53,7 @@ hebi_zgetstr(char *restrict str, size_t n, hebi_zsrcptr restrict a, int base)
 	/* write out digits */
 	start = ptr;
 	for ( ; ptr < end && sz > 0; ++ptr) {
-		remainder = (char)hebi_pdivmodu(work, work, base, sz);
+		remainder = (char)hebi_pdivremu(work, work, base, sz);
 		sz = hebi_pnorm(work, sz);
 		*ptr = remainder + (remainder < 10 ? '0' : 'A' - 10);
 	}

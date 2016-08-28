@@ -12,7 +12,7 @@ hebi_pmulu(hebi_packet *r, const hebi_packet *a, hebi_word b, size_t n)
 	hebi_word o = 0;
 	size_t i;
 
-#ifdef HEBI_HAS_DWORD
+#ifdef USE_INT128
 
 	hebi_word *rw = r->hp_words;
 	const hebi_word *aw = a->hp_words;

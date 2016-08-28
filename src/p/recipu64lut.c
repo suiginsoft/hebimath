@@ -3,39 +3,12 @@
  * See LICENSE file for copyright and license details
  */
 
-#include "../../internal.h"
+/*
+ * NOTE: This source file is not intended to be compiled directly.
+ * It should be included by a kernel-backend specific source file.
+ */
 
-#if 0
-
-/* hebi_precipu_v0lut__ is generated with the following program: */
-
-#include <stdio.h>
-
-int main(int argc, char **argv)
-{
-	int x, i, j;
-
-	puts("uint16_t hebi_precipu_v0lut__[256] =");
-	puts("{");
-
-	for (i = 0; i < 32; ++i) {
-		putchar('\t');
-		for (j = 0; j < 8; ++j) {
-			x = ((1 << 19) - 3 * 256) / (256 + (i * 8) + j);
-			printf("0x%04X", x);
-			if (i != 31 || j != 7)
-				printf(", ");
-		}
-		putchar('\n');
-	}
-
-	puts("};");
-	return 0;
-}
-
-#endif
-
-uint16_t hebi_precipu_v0lut__[256] =
+uint16_t hebi_recipu64_v0lut__[256] =
 {
 	0x07FD, 0x07F5, 0x07ED, 0x07E5, 0x07DD, 0x07D5, 0x07CE, 0x07C6,
 	0x07BF, 0x07B7, 0x07B0, 0x07A8, 0x07A1, 0x079A, 0x0792, 0x078B,
@@ -70,3 +43,33 @@ uint16_t hebi_precipu_v0lut__[256] =
 	0x041F, 0x041D, 0x041B, 0x0419, 0x0417, 0x0414, 0x0412, 0x0410,
 	0x040E, 0x040C, 0x040A, 0x0408, 0x0406, 0x0404, 0x0402, 0x0400
 };
+
+#if 0
+
+/* hebi_recipu64_v0lut__ is generated with the following program: */
+
+#include <stdio.h>
+
+int main(int argc, char **argv)
+{
+	int x, i, j;
+
+	puts("uint16_t hebi_recipu64_v0lut__[256] =");
+	puts("{");
+
+	for (i = 0; i < 32; ++i) {
+		putchar('\t');
+		for (j = 0; j < 8; ++j) {
+			x = 523520 / (256 + i*8 + j);
+			printf("0x%04X", x);
+			if (i != 31 || j != 7)
+				printf(j == 7 ? "," : ", ");
+		}
+		putchar('\n');
+	}
+
+	puts("};");
+	return 0;
+}
+
+#endif

@@ -7,7 +7,7 @@
 
 HEBI_API
 uint64_t
-hebi_zdivmodu(hebi_zptr r, hebi_zsrcptr a, uint64_t b)
+hebi_zdivremu(hebi_zptr r, hebi_zsrcptr a, uint64_t b)
 {
 	hebi_packet *p;
 	hebi_word m;
@@ -31,7 +31,7 @@ hebi_zdivmodu(hebi_zptr r, hebi_zsrcptr a, uint64_t b)
 		hebi_zrealloczero(r, n);
 
 	p = r->hz_packs;
-	m = hebi_pdivmodu(p, a->hz_packs, b, n);
+	m = hebi_pdivremu(p, a->hz_packs, b, n);
 	r->hz_used = hebi_pnorm(p, n);
 	r->hz_sign = r->hz_used ? s : 0;
 	return m;

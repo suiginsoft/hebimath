@@ -18,8 +18,7 @@ hebi_pmul(
 	const HALF *ah;
 	const HALF *bh;
 	FULL p;
-	HALF m;
-	hebi_word o;
+	HALF m, o;
 	size_t i, j;
 
 	/* early out if length of b is zero (note: an >= bn >= 0) */
@@ -38,7 +37,7 @@ hebi_pmul(
 	for (j = 0; j < bn * HALF_PER_PACKET; j++) {
 		p = (FULL)bh[j] * m + o;
 		rh[j] = (HALF)(p & HALF_MAX);
-		o = (hebi_word)(p >> HALF_BITS);
+		o = (HALF)(p >> HALF_BITS);
 	}
 	rh[j] = o;
 
@@ -49,7 +48,7 @@ hebi_pmul(
 		for (j = 0; j < bn * HALF_PER_PACKET; j++) {
 			p = (FULL)bh[j] * m + rh[i+j] + o;
 			rh[i+j] = (HALF)(p & HALF_MAX);
-			o = (hebi_word)(p >> HALF_BITS);
+			o = (HALF)(p >> HALF_BITS);
 		}
 		rh[i+j] = (HALF)(o & HALF_MAX);
 	}

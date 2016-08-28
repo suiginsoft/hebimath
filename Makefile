@@ -15,7 +15,11 @@ KERN_detected != sh -c 'test -d src/p/$(KERN_$(KERN)) && \
 
 KERNMV_generic := fixed
 KERNMV_x86_64 := $(KERNMV)
-KERNMV_detected := $(KERNMV_$(KERN_detected))
+KERNMV_kern := $(KERNMV_$(KERN_detected))
+
+CPPFLAGS_generic := -DUSE_KERN_GENERIC
+CPPFLAGS_x86_64 := -DUSE_KERN_X86_64
+CPPFLAGS_kern := $(CPPFLAGS_$(KERN_detected))
 
 PKERNELS := \
 	padd \
@@ -25,7 +29,8 @@ PKERNELS := \
 	pcopy \
 	pctz \
 	pdivmod_norm \
-	pdivmodu \
+	pdivremu \
+	pdivremru \
 	pmove \
 	pmul \
 	pmulu \
@@ -35,7 +40,10 @@ PKERNELS := \
 	psqr \
 	psub \
 	psubu \
-	pzero
+	pzero \
+	recipu \
+	recipulut \
+	recipux2
 
 PKERNELS_dynamic := $(PKERNELS:%=p/dynamic/%)
 
@@ -48,12 +56,11 @@ PFUNCTIONS := \
 	p/pmul_karatsuba \
 	p/pmul_karatsuba_space \
 	p/prand_kiss \
-	p/precipu_lut \
 	p/psetu \
 	p/psetzero \
 	p/psqr_karatsuba \
 	p/psqr_karatsuba_space \
-	$(PKERNELS_$(KERNMV_detected)) \
+	$(PKERNELS_$(KERNMV_kern)) \
 	$(PKERNELS:%=p/$(KERN_detected)/%)
 
 ZFUNCTIONS := \
@@ -111,10 +118,10 @@ ZFUNCTIONS := \
 	z/zmulu \
 	z/zdivi \
 	z/zdivu \
-	z/zdivmodi \
-	z/zdivmodu \
-	z/zmodi \
-	z/zmodu \
+	z/zdivremi \
+	z/zdivremu \
+	z/zremi \
+	z/zremu \
 	z/zshl \
 	z/zshr \
 	z/zrand_kiss
@@ -140,7 +147,7 @@ MODULES := \
 	alloc_set \
 	alloc_table \
 	context \
-	$(MODULES_$(KERNMV_detected))
+	$(MODULES_$(KERNMV_kern))
 
 SRC := $(FUNCTIONS) $(MODULES)
 
@@ -243,7 +250,7 @@ config.inc:
 
 hebimath.h: hebimath.h.in
 	@echo generating $@ from hebimath.h.in
-	$(Q)awk -v p='$(KERNMV_detected)|$(SIMD)' \
+	$(Q)awk -v p='$(KERNMV_kern)|$(SIMD)' \
 	    '$$1==">>>"{x=$$2!~p;next;} \
 	     $$1=="<<<"{x=0;next;} \
 	     !x{print $$0}' \
@@ -267,7 +274,7 @@ bench/p: $(BENCH_BIN)
 $(BENCH_BIN): $(BENCH_DEPS) $(LIBS) bench/libbench.a
 	@echo CC $@.c
 	$(Q)$(CC) -o $@ $(CFLAGS_static) $(CFLAGS) \
-		$(CPPFLAGS_static) $(CPPFLAGS) $@.c \
+		$(CPPFLAGS_static) $(CPPFLAGS) $(CPPFLAGS_kern) $@.c \
 		$(LDFLAGS) -L. bench/libbench.a $(TEST_LDLIBS) $(LDLIBS)
 
 bench/libbench.a: $(BENCH_DEPS) $(BENCH_OBJ)
@@ -287,7 +294,7 @@ check/z: $(CHECK_Z_BIN)
 $(CHECK_BIN): $(CHECK_DEPS) $(LIBS) check/libcheck.a
 	@echo CC $@.c
 	$(Q)$(CC) -o $@ $(CFLAGS_static) $(CFLAGS) \
-		$(CPPFLAGS_static) $(CPPFLAGS) $@.c \
+		$(CPPFLAGS_static) $(CPPFLAGS) $(CPPFLAGS_kern) $@.c \
 		$(LDFLAGS) -L. check/libcheck.a $(TEST_LDLIBS) $(LDLIBS)
 
 check/libcheck.a: $(CHECK_DEPS) $(CHECK_OBJ)
@@ -298,22 +305,22 @@ check/libcheck.a: $(CHECK_DEPS) $(CHECK_OBJ)
 .c.po: $(DEPS)
 	@echo CC $<
 	$(Q)$(CC) -o $@ -c $(CFLAGS_shared) $(CFLAGS) \
-		$(CPPFLAGS_shared) $(CPPFLAGS) $<
+		$(CPPFLAGS_shared) $(CPPFLAGS) $(CPPFLAGS_kern) $<
 
 .c.o: $(DEPS)
 	@echo CC $<
 	$(Q)$(CC) -o $@ -c $(CFLAGS_static) $(CFLAGS) \
-		$(CPPFLAGS_static) $(CPPFLAGS) $<
+		$(CPPFLAGS_static) $(CPPFLAGS) $(CPPFLAGS_kern) $<
 
 .s.po: $(DEPS)
 	@echo AS $<
-	$(Q)$(AS) -o $@ $(ASFLAGS_$(KERNMV_detected)) \
+	$(Q)$(AS) -o $@ $(ASFLAGS_$(KERNMV_kern)) \
 		$(ASFLAGS_shared) $(ASFLAGS) $<
 	$(Q)$(STRIP) -o $@ -x $@
 
 .s.o: $(DEPS)
 	@echo AS $<
-	$(Q)$(AS) -o $@ $(ASFLAGS_$(KERNMV_detected)) \
+	$(Q)$(AS) -o $@ $(ASFLAGS_$(KERNMV_kern)) \
 		$(ASFLAGS_static) $(ASFLAGS) $<
 	$(Q)$(STRIP) -o $@ -x $@
 
@@ -369,7 +376,7 @@ options:
 	@echo libhebimath build options:
 	@echo "LINKAGE           = $(LINKAGE)"
 	@echo "KERN              = $(KERN_detected)"
-	@echo "KERNMV            = $(KERNMV_detected)"
+	@echo "KERNMV            = $(KERNMV_kern)"
 	@echo "SIMD              = $(SIMD)"
 	@echo "CPPFLAGS          = $(CPPFLAGS)"
 	@echo "CFLAGS            = $(CFLAGS)"

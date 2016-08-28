@@ -5,5 +5,10 @@
 
 #include "../../internal.h"
 
-extern HEBI_API
-int64_t hebi_zdivmodi(hebi_zptr, hebi_zsrcptr, int64_t);
+HEBI_API
+int64_t
+hebi_zdivremi(hebi_zptr r, hebi_zsrcptr a, int64_t b)
+{
+	return hebi_zdivremu(r, a, (uint64_t)b);
+}
+

@@ -310,9 +310,6 @@ HEBI_NORETURN void hebi_hwcaps_fatal__(void);
 
 #endif /* HEBI_MULTI_VERSIONING */
 
-/* lookup table for v0(x) = ⌊(2^19 - 3*2^8) / (2^8 + x)⌋ */
-extern uint16_t hebi_precipu_v0lut__[256];
-
 /* ⌈log2(x)⌉ */
 static inline HEBI_ALWAYSINLINE HEBI_CONST
 size_t
@@ -401,6 +398,79 @@ hebi_wctz(hebi_word x)
 #endif
 }
 
+/* internal division kernels */
+#undef USE_64BIT_DIVISION
+#if defined USE_INT128 || defined USE_KERN_X86_64
+#define USE_64BIT_DIVISION
+#endif
+
+#ifdef USE_64BIT_DIVISION
+
+extern uint16_t hebi_recipu64_v0lut__[256];
+HEBI_CONST uint64_t hebi_recipu64__(uint64_t);
+HEBI_CONST uint64_t hebi_recipu64x2__(uint64_t, uint64_t);
+
+#ifdef HEBI_MULTI_VERSIONING
+
+extern uint64_t (* hebi_pdivremru64_ptr__)(hebi_packet *, const hebi_packet *, size_t, int, uint64_t, uint64_t);
+extern hebi_uint128 (* hebi_pdivremru64x2_ptr__)(hebi_packet *, const hebi_packet *, size_t, int, uint64_t, uint64_t, uint64_t);
+
+static inline HEBI_ALWAYSINLINE
+uint64_t
+hebi_pdivremru64__(hebi_packet *r, const hebi_packet *a, size_t n, int s, uint64_t d, uint64_t v)
+{
+	return hebi_pdivremru64_ptr__(r, a, n, s, d, v);
+}
+
+static inline HEBI_ALWAYSINLINE
+hebi_uint128
+hebi_pdivremru64x2__(hebi_packet *r, const hebi_packet *a, size_t n, int s, uint64_t d1, uint64_t d0, uint64_t v)
+{
+	return hebi_pdivremru64x2_ptr__(r, a, n, s, d1, d0, v);
+}
+
+#else /* HEBI_MULTI_VERSIONING */
+
+uint64_t hebi_pdivremru64__(hebi_packet *, const hebi_packet *, size_t, int, uint64_t, uint64_t);
+hebi_uint128 hebi_pdivremru64x2__(hebi_packet *, const hebi_packet *, size_t, int, uint64_t, uint64_t, uint64_t);
+
+#endif /* HEBI_MULTI_VERSIONING */
+
+#else /* USE_64BIT_DIVISION */
+
+extern uint16_t hebi_recipu32_v0lut__[512];
+HEBI_CONST uint32_t hebi_recipu32__(uint32_t);
+HEBI_CONST uint32_t hebi_recipu32x2__(uint32_t, uint32_t);
+
+#ifdef HEBI_MULTI_VERSIONING
+
+extern uint32_t (* hebi_pdivremru32_ptr__)(hebi_packet *, const hebi_packet *, size_t, int, uint32_t, uint32_t);
+extern uint64_t (* hebi_pdivremru32x2_ptr__)(hebi_packet *, const hebi_packet *, size_t, int, uint32_t, uint32_t, uint32_t);
+
+static inline HEBI_ALWAYSINLINE
+uint32_t
+hebi_pdivremru32__(hebi_packet *r, const hebi_packet *a, size_t n, int s, uint32_t d, uint32_t v)
+{
+	return hebi_pdivremru32_ptr__(r, a, n, s, d, v);
+}
+
+static inline HEBI_ALWAYSINLINE
+hebi_uint128
+hebi_pdivremru32x2__(hebi_packet *r, const hebi_packet *a, size_t n, int s, uint32_t d1, uint32_t d0, uint32_t v)
+{
+	return hebi_pdivremru32x2_ptr__(r, a, n, s, d1, d0, v);
+}
+
+#else /* HEBI_MULTI_VERSIONING */
+
+uint32_t hebi_pdivremru32__(hebi_packet *, const hebi_packet *, size_t, int, uint32_t, uint32_t);
+uint64_t hebi_pdivremru32x2__(hebi_packet *, const hebi_packet *, size_t, int, uint32_t, uint32_t d0, uint32_t v);
+
+#endif /* HEBI_MULTI_VERSIONING */
+
+#endif /* USE_64BIT_DIVISION */
+
+/* compare single packet 'a' against UINT_64MAX */
 static inline HEBI_ALWAYSINLINE
 int
 hebi_pcmpgtui64max(const hebi_packet *a)
@@ -452,6 +522,7 @@ hebi_pcmpgtui64max(const hebi_packet *a)
 #endif /* HEBI_SIMD */
 }
 
+/* convert single packet to unsigned 64-bit integer with saturation */
 static inline HEBI_ALWAYSINLINE
 hebi_word
 hebi_pgetsu(const hebi_packet *a)

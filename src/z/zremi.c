@@ -6,4 +6,4 @@
 #include "../../internal.h"
 
 extern HEBI_API
-int64_t hebi_zmodi(hebi_zsrcptr, int64_t);
+int64_t hebi_zremi(hebi_zsrcptr, int64_t);
