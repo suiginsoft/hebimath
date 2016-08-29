@@ -11,8 +11,10 @@ HEBI_CONST
 uint64_t
 hebi_recipu64__(uint64_t d)
 {
-	uint64_t d0, d8, d40, d63, e;
+	uint64_t d0, d8, d40, d63;
 	uint64_t v1, v2, v3, v4;
+	uint64_t e, f1, f0;
+	hebi_uint128 f;
 	uint32_t v0;
 
 	d0 = -(d & 1);
@@ -27,7 +29,14 @@ hebi_recipu64__(uint64_t d)
 	e = ((v2 & d0) >> 1) - v2 * d63;
 
 	v3 = (v2 << 31) + ((uint64_t)((((hebi_uint128)v2) * e) >> 65));
-	v4 = v3 - (((uint64_t)(((((hebi_uint128)v3) * d) + d) >> 64)) + d);
+
+	f = (hebi_uint128)v3 * d;
+	f0 = (uint64_t)(f & UINT64_MAX);
+	f1 = (uint64_t)(f >> 64);
+	f0 = f0 + d;
+	f1 = f1 + d + (f0 < d);
+
+	v4 = v3 - f1;
 
 	return v4;
 }

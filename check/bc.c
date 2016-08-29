@@ -114,6 +114,12 @@ int vsnzprintf(
 	restart:
 		c = format[f++];
 		switch (c) {
+		case '%':
+			if (k > 0) {
+				s[i] = '%';
+				j = 1;
+			}
+			break;
 		case 'l':
 			if (++ll > 2)
 				assert(!"bad format string");

@@ -25,7 +25,7 @@ main(int argc, char *argv[])
 	bench_start();
 
 	for (i = 0; i < p.iter; ++i)
-		result_sink = hebi_pdivmodu(r, a, b, p.an);
+		result_sink = hebi_pdivremu(r, a, b, p.an);
 
 	bench_stop();
 

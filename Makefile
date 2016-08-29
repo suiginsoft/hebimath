@@ -177,7 +177,7 @@ BENCH_P := \
 	pclz \
 	pcmp \
 	pcopy \
-	pdivmodu \
+	pdivremu \
 	pmove \
 	pmul \
 	pmul_karatsuba \
@@ -207,6 +207,8 @@ CHECK_Z := \
 	zaddi \
 	zsubi \
 	zmuli \
+	zdivi \
+	zremi \
 	zadd \
 	zsub \
 	zmul \
