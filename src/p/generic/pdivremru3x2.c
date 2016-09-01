@@ -33,7 +33,7 @@ PDIVREMRU_3x2(
 		u0 = a1 >> (HALF_BITS - bits);
 		if (LIKELY((u2 < d1 || (u2 == d1 && u1 < d0)) && u0 == 0)) {
 			qh[--n] = 0;
-			a0 = ah[n - 1];
+			a0 = ah[n - 2];
 			u1 |= a0 >> (HALF_BITS - bits);
 		} else {
 			u1 = u2;
@@ -50,7 +50,7 @@ PDIVREMRU_3x2(
 			u1 = (HALF)(u & HALF_MAX);
 		}
 		u0 = a1 << bits;
-		u = DIVREMRU_3x2(qh + 1, u2, u1, u0, d1, d0, v);
+		u = DIVREMRU_3x2(qh, u2, u1, u0, d1, d0, v);
 	} else {
 		u2 = a1;
 		u1 = a0;
