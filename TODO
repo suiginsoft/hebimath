@@ -18,3 +18,5 @@ Other:
 * consider making pmul return normalized length, and remove zeroing
   of bytes if length is null, would give small boost to karatsuba which
   has already zeroed destination memory
+* consider creating an ASSERT macro to wrap assert, and add assertions
+  to low-level functions

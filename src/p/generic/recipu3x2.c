@@ -7,12 +7,12 @@
 
 HEBI_CONST
 HALF
-RECIPUX2(HALF d1, HALF d0)
+RECIPU_3x2(HALF d1, HALF d0)
 {
 	HALF v, p, t1, t0;
 	FULL t;
 
-	v = RECIPU(d1);
+	v = RECIPU_2x1(d1);
 	p = v * d1 + d0;
 
 	if (p < d0) {

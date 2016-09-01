@@ -30,7 +30,8 @@ PKERNELS := \
 	pctz \
 	pdivmod_norm \
 	pdivremu \
-	pdivremru \
+	pdivremru2x1 \
+	pdivremru3x2 \
 	pmove \
 	pmul \
 	pmulu \
@@ -41,9 +42,9 @@ PKERNELS := \
 	psub \
 	psubu \
 	pzero \
-	recipu \
-	recipulut \
-	recipux2
+	recipu2x1 \
+	recipu3x2 \
+	recipulut
 
 PKERNELS_dynamic := $(PKERNELS:%=p/dynamic/%)
 

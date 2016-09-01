@@ -9,7 +9,7 @@
 
 HEBI_CONST
 uint64_t
-hebi_recipu64__(uint64_t d)
+hebi_recipu64_2x1__(uint64_t d)
 {
 	uint64_t d0, d8, d40, d63;
 	uint64_t v1, v2, v3, v4;
@@ -45,7 +45,7 @@ hebi_recipu64__(uint64_t d)
 
 HEBI_CONST
 uint32_t
-hebi_recipu32__(uint32_t d)
+hebi_recipu32_2x1__(uint32_t d)
 {
 	uint32_t d0, d9, d21, d31, e;
 	uint32_t v0, v1, v2, v3;

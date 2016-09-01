@@ -38,27 +38,81 @@
 
 #ifdef USE_64BIT_DIVISION
 
-#define RECIPU hebi_recipu64__
-#define RECIPUX2 hebi_recipu64x2__
-#define PDIVREMRU hebi_pdivremru64__
-#define PDIVREMRUX2 hebi_pdivremru64x2__
-
-#define RECIPU64(D) hebi_recipu64__(D)
-#define PDIVREMRU64(R,A,N,S,D,V) hebi_pdivremru64__((R),(A),(N),(S),(D),(V))
+#define RECIPU_2x1 hebi_recipu64_2x1__
+#define RECIPU_3x2 hebi_recipu64_3x2__
+#define DIVREMRU_2x1 hebi_divremru64_2x1__
+#define DIVREMRU_3x2 hebi_divremru64_3x2__
+#define PDIVREMRU_2x1 hebi_pdivremru64_2x1__
+#define PDIVREMRU_3x2 hebi_pdivremru64_3x2__
 
 #else /* USE_64BIT_DIVISION */
 
-#define RECIPU hebi_recipu32__
-#define RECIPUX2 hebi_recipu32x2__
-#define PDIVREMRU hebi_pdivremru32__
-#define PDIVREMRUX2 hebi_pdivremru32x2__
-
-#define RECIPU64(D) \
-hebi_recipu32x2__((HALF)((D)>>HALF_BITS),(HALF)((D)&HALF_MAX))
-
-#define PDIVREMRU64(R,A,N,S,D,V) \
-hebi_pdivremru32x2__((R),(A),(N),(S),(HALF)((D)>>HALF_BITS),(HALF)((D)&HALF_MAX),V)
+#define RECIPU_2x1 hebi_recipu32_2x1__
+#define RECIPU_3x2 hebi_recipu32_3x2__
+#define DIVREMRU_2x1 hebi_divremru32_2x1__
+#define DIVREMRU_3x2 hebi_divremru32_3x2__
+#define PDIVREMRU_2x1 hebi_pdivremru32_2x1__
+#define PDIVREMRU_3x2 hebi_pdivremru32_3x2__
 
 #endif /* USE_64BIT_DIVISION */
+
+static inline HEBI_ALWAYSINLINE
+HALF
+DIVREMRU_2x1(HALF *qh, HALF u1, HALF u0, HALF d, HALF v)
+{
+	HALF q1, q0, r;
+	FULL q, u;
+
+	u = ((FULL)u1 << HALF_BITS) | u0;
+	q = (FULL)u1 * v + u;
+	q0 = (HALF)(q & HALF_MAX);
+	q1 = (HALF)(q >> HALF_BITS);
+	q1 = q1 + 1;
+	r = u0 - q1 * d;
+
+	if (r > q0) {
+		q1--;
+		r += d;
+	}
+
+	if (UNLIKELY(u1 >= d)) {
+		q1++;
+		r -= d;
+	}
+
+	*qh = q1;
+	return r;
+}
+
+static inline HEBI_ALWAYSINLINE
+FULL
+DIVREMRU_3x2(HALF *qh, HALF u2, HALF u1, HALF u0, HALF d1, HALF d0, HALF v)
+{
+	FULL d, q, r, t, u;
+	HALF q1, q0;
+
+	u = ((FULL)u2 << HALF_BITS) | u1;
+	q = (FULL)u2 * v + u;
+	q0 = (HALF)(q & HALF_MAX);
+	q1 = (HALF)(q >> HALF_BITS);
+	r = ((FULL)(u1 - q1 * d1) << HALF_BITS) | u0;
+	t = (FULL)q1 * d0;
+	d = ((FULL)d1 << HALF_BITS) | d0;
+	r = r - t - d;
+	q1 = q1 + 1;
+
+	if ((HALF)(r >> HALF_BITS) >= q0) {
+		q1--;
+		r += d;
+	}
+
+	if (UNLIKELY(r >= d)) {
+		q1++;
+		r -= d;
+	}
+
+	*qh = q1;
+	return r;
+}
 
 #endif

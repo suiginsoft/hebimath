@@ -407,64 +407,64 @@ hebi_wctz(hebi_word x)
 #ifdef USE_64BIT_DIVISION
 
 extern uint16_t hebi_recipu64_v0lut__[256];
-HEBI_CONST uint64_t hebi_recipu64__(uint64_t);
-HEBI_CONST uint64_t hebi_recipu64x2__(uint64_t, uint64_t);
+HEBI_CONST uint64_t hebi_recipu64_2x1__(uint64_t);
+HEBI_CONST uint64_t hebi_recipu64_3x2__(uint64_t, uint64_t);
 
 #ifdef HEBI_MULTI_VERSIONING
 
-extern uint64_t (* hebi_pdivremru64_ptr__)(hebi_packet *, const hebi_packet *, size_t, int, uint64_t, uint64_t);
-extern hebi_uint128 (* hebi_pdivremru64x2_ptr__)(hebi_packet *, const hebi_packet *, size_t, int, uint64_t, uint64_t, uint64_t);
+extern uint64_t (* hebi_pdivremru64_2x1_ptr__)(hebi_packet *, const hebi_packet *, size_t, int, uint64_t, uint64_t);
+extern hebi_uint128 (* hebi_pdivremru64_3x2_ptr__)(hebi_packet *, const hebi_packet *, size_t, int, uint64_t, uint64_t, uint64_t);
 
 static inline HEBI_ALWAYSINLINE
 uint64_t
-hebi_pdivremru64__(hebi_packet *r, const hebi_packet *a, size_t n, int s, uint64_t d, uint64_t v)
+hebi_pdivremru64_2x1__(hebi_packet *r, const hebi_packet *a, size_t n, int s, uint64_t d, uint64_t v)
 {
-	return hebi_pdivremru64_ptr__(r, a, n, s, d, v);
+	return hebi_pdivremru64_2x1_ptr__(r, a, n, s, d, v);
 }
 
 static inline HEBI_ALWAYSINLINE
 hebi_uint128
-hebi_pdivremru64x2__(hebi_packet *r, const hebi_packet *a, size_t n, int s, uint64_t d1, uint64_t d0, uint64_t v)
+hebi_pdivremru64_3x2__(hebi_packet *r, const hebi_packet *a, size_t n, int s, uint64_t d1, uint64_t d0, uint64_t v)
 {
-	return hebi_pdivremru64x2_ptr__(r, a, n, s, d1, d0, v);
+	return hebi_pdivremru64_3x2_ptr__(r, a, n, s, d1, d0, v);
 }
 
 #else /* HEBI_MULTI_VERSIONING */
 
-uint64_t hebi_pdivremru64__(hebi_packet *, const hebi_packet *, size_t, int, uint64_t, uint64_t);
-hebi_uint128 hebi_pdivremru64x2__(hebi_packet *, const hebi_packet *, size_t, int, uint64_t, uint64_t, uint64_t);
+uint64_t hebi_pdivremru64_2x1__(hebi_packet *, const hebi_packet *, size_t, int, uint64_t, uint64_t);
+hebi_uint128 hebi_pdivremru64_3x2__(hebi_packet *, const hebi_packet *, size_t, int, uint64_t, uint64_t, uint64_t);
 
 #endif /* HEBI_MULTI_VERSIONING */
 
 #else /* USE_64BIT_DIVISION */
 
 extern uint16_t hebi_recipu32_v0lut__[512];
-HEBI_CONST uint32_t hebi_recipu32__(uint32_t);
-HEBI_CONST uint32_t hebi_recipu32x2__(uint32_t, uint32_t);
+HEBI_CONST uint32_t hebi_recipu32_2x1__(uint32_t);
+HEBI_CONST uint32_t hebi_recipu32_3x2__(uint32_t, uint32_t);
 
 #ifdef HEBI_MULTI_VERSIONING
 
-extern uint32_t (* hebi_pdivremru32_ptr__)(hebi_packet *, const hebi_packet *, size_t, int, uint32_t, uint32_t);
-extern uint64_t (* hebi_pdivremru32x2_ptr__)(hebi_packet *, const hebi_packet *, size_t, int, uint32_t, uint32_t, uint32_t);
+extern uint32_t (* hebi_pdivremru32_2x1_ptr__)(hebi_packet *, const hebi_packet *, size_t, int, uint32_t, uint32_t);
+extern uint64_t (* hebi_pdivremru32_3x2_ptr__)(hebi_packet *, const hebi_packet *, size_t, int, uint32_t, uint32_t, uint32_t);
 
 static inline HEBI_ALWAYSINLINE
 uint32_t
-hebi_pdivremru32__(hebi_packet *r, const hebi_packet *a, size_t n, int s, uint32_t d, uint32_t v)
+hebi_pdivremru32_2x1__(hebi_packet *r, const hebi_packet *a, size_t n, int s, uint32_t d, uint32_t v)
 {
-	return hebi_pdivremru32_ptr__(r, a, n, s, d, v);
+	return hebi_pdivremru32_2x1_ptr__(r, a, n, s, d, v);
 }
 
 static inline HEBI_ALWAYSINLINE
 hebi_uint128
-hebi_pdivremru32x2__(hebi_packet *r, const hebi_packet *a, size_t n, int s, uint32_t d1, uint32_t d0, uint32_t v)
+hebi_pdivremru32_3x2__(hebi_packet *r, const hebi_packet *a, size_t n, int s, uint32_t d1, uint32_t d0, uint32_t v)
 {
-	return hebi_pdivremru32x2_ptr__(r, a, n, s, d1, d0, v);
+	return hebi_pdivremru32_3x2_ptr__(r, a, n, s, d1, d0, v);
 }
 
 #else /* HEBI_MULTI_VERSIONING */
 
-uint32_t hebi_pdivremru32__(hebi_packet *, const hebi_packet *, size_t, int, uint32_t, uint32_t);
-uint64_t hebi_pdivremru32x2__(hebi_packet *, const hebi_packet *, size_t, int, uint32_t, uint32_t d0, uint32_t v);
+uint32_t hebi_pdivremru32_2x1__(hebi_packet *, const hebi_packet *, size_t, int, uint32_t, uint32_t);
+uint64_t hebi_pdivremru32_3x2__(hebi_packet *, const hebi_packet *, size_t, int, uint32_t, uint32_t d0, uint32_t v);
 
 #endif /* HEBI_MULTI_VERSIONING */
 
