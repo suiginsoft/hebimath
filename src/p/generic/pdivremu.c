@@ -34,7 +34,7 @@ hebi_pdivremu(hebi_packet *q, const hebi_packet *a, uint64_t b, size_t n)
 	} else {
 		bits = hebi_wclz(b);
 		d = b << bits;
-		d0 = (uint32_t)(d & UINT32_MAX)
+		d0 = (uint32_t)(d & UINT32_MAX);
 		d1 = (uint32_t)(d >> 32);
 		v = hebi_recipu32_3x2__(d1, d0);
 		r = hebi_pdivremru32_3x2__(q, a, n, bits, d1, d0, v);

@@ -24,9 +24,11 @@ check/p/pnorm
 check/p/pzero
 check/z/zadd
 check/z/zaddi
+check/z/zdivi
 check/z/zgetset
 check/z/zmul
 check/z/zmuli
+check/z/zremi
 check/z/zshl
 check/z/zshr
 check/z/zsub

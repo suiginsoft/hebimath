@@ -58,7 +58,7 @@ hebi_recipu32_2x1__(uint32_t d)
 	v0 = hebi_recipu32_v0lut__[(size_t)d9];
 	v1 = (v0 << 4) - ((uint32_t)((((uint64_t)(v0 * v0)) * d21) >> 32)) - 1;
 
-	e = ((v2 & d0) >> 1) - v1 * d31;
+	e = ((v1 & d0) >> 1) - v1 * d31;
 
 	v2 = (v1 << 15) + ((uint32_t)((((uint64_t)v1) * e) >> 33));
 	v3 = v2 - (((uint32_t)(((((uint64_t)v2) * d) + d) >> 32)) + d);

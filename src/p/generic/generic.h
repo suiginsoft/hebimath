@@ -75,7 +75,7 @@ DIVREMRU_2x1(HALF *qh, HALF u1, HALF u0, HALF d, HALF v)
 		r += d;
 	}
 
-	if (UNLIKELY(u1 >= d)) {
+	if (UNLIKELY(r >= d)) {
 		q1++;
 		r -= d;
 	}
