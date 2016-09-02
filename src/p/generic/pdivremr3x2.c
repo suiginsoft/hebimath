@@ -7,41 +7,36 @@
 
 HEBI_API
 size_t
-hebi_pdivmod_norm(
-		hebi_packet *restrict q,
-		hebi_packet *restrict u,
-		const hebi_packet *restrict v,
+PDIVREMR_3x2(
+		HALF *restrict q,
+		HALF *restrict u,
+		const HALF *restrict d,
+		HALF v,
 		size_t m,
 		size_t n )
 {
-	HALF *restrict qh, *restrict uh;
-	const HALF *restrict vh;
 	FULL qhat, rhat, p;
 	SFULL t, o;
 	HALF f;
 	size_t i, j;
 
-	qh = HALF_PTR(q);
-	uh = HALF_PTR(u);
-	vh = HALF_PTR(v);
-
 	/* clear top of last packet in quotient */
 	m = m - n;
 	if ((j = m % HALF_PER_PACKET) != 0)
 		for (i = m; j < HALF_PER_PACKET; j++, i++)
-			qh[i] = 0;
+			q[i] = 0;
 
 	for (j = m; j--; ) {
 		/* estimate quotient and remainder */
-		p = ((FULL)uh[j+n] << HALF_BITS) | uh[j+n-1];
-		qhat = p / vh[n-1];
-		rhat = p - qhat*vh[n-1];
+		p = ((FULL)u[j+n] << HALF_BITS) | u[j+n-1];
+		qhat = p / d[n-1];
+		rhat = p - qhat*d[n-1];
 	again:
 		if (qhat > HALF_MAX ||
 				(rhat <= HALF_MAX &&
-				qhat*vh[n-2] > (rhat<<HALF_BITS)+uh[j+n-2])) {
+				qhat*d[n-2] > (rhat<<HALF_BITS)+u[j+n-2])) {
 			qhat = qhat - 1;
-			rhat = rhat + vh[n-1];
+			rhat = rhat + d[n-1];
 			if (rhat <= HALF_MAX)
 				goto again;
 		}
@@ -49,13 +44,13 @@ hebi_pdivmod_norm(
 		/* multiply and subtract */
 		o = 0;
 		for (i = 0; i < n; i++) {
-			p = (FULL)qhat * vh[i];
-			t = (SFULL)uh[i+j] - o - (SFULL)(p & HALF_MAX);
-			uh[i+j] = (HALF)(t & HALF_MAX);
+			p = (FULL)qhat * d[i];
+			t = (SFULL)u[i+j] - o - (SFULL)(p & HALF_MAX);
+			u[i+j] = (HALF)(t & HALF_MAX);
 			o = (SFULL)(p >> HALF_BITS) - (t >> HALF_BITS);
 		}
-		t = uh[j+n] - o;
-		uh[j+n] = (HALF)(t & HALF_MAX);
+		t = u[j+n] - o;
+		u[j+n] = (HALF)(t & HALF_MAX);
 
 		/* finalize quotient, if we subtracted too much add it
 		 * back to remainder */
@@ -64,13 +59,13 @@ hebi_pdivmod_norm(
 			f = f - 1;
 			o = 0;
 			for (i = 0; i < n; i++) {
-				p = uh[i+j] + vh[i] + o;
-				uh[i+j] = (HALF)(p & HALF_MAX);
+				p = u[i+j] + d[i] + o;
+				u[i+j] = (HALF)(p & HALF_MAX);
 				o = p >> HALF_BITS;
 			}
-			uh[j+n] = uh[j+n] + o;
+			u[j+n] = u[j+n] + o;
 		}
-		qh[j] = f;
+		q[j] = f;
 	}
 
 	/* compute length of quotient */

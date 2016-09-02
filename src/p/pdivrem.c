@@ -18,7 +18,7 @@
 
 HEBI_API
 size_t
-hebi_pdivmod(
+hebi_pdivrem(
 		hebi_packet *restrict q,
 		hebi_packet *restrict r,
 		hebi_packet *restrict w,
@@ -28,7 +28,7 @@ hebi_pdivmod(
 		size_t an,
 		size_t bn )
 {
-	hebi_packet *restrict u, *restrict v;
+	hebi_packet *restrict u, *restrict d;
 	size_t s, z, m, n;
 
 	/* normalize divisor and dividend into working memory */
@@ -42,11 +42,11 @@ hebi_pdivmod(
 		if (u->HALF_ARRAY[m-1])
 			break;
 
-	v = w + an + 1;
-	n = hebi_pshl(v, b, s, bn) * HALF_PER_PACKET;
+	d = w + an + 1;
+	n = hebi_pshl(d, b, s, bn) * HALF_PER_PACKET;
 
 	/* perform normalized division */
-	m = hebi_pdivmod_norm(q, u, v, m, n - z);
+	m = hebi_pdivremr64_3x2__(q->HALF_ARRAY, u->HALF_ARRAY, d->HALF_ARRAY, 0, m, n - z);
 
 	/* store de-normalized remainder if caller provided space for it */
 	if (r) {

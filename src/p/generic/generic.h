@@ -44,6 +44,7 @@
 #define DIVREMRU_3x2 hebi_divremru64_3x2__
 #define PDIVREMRU_2x1 hebi_pdivremru64_2x1__
 #define PDIVREMRU_3x2 hebi_pdivremru64_3x2__
+#define PDIVREMR_3x2 hebi_pdivremr64_3x2__
 
 #else /* USE_64BIT_DIVISION */
 
@@ -53,12 +54,13 @@
 #define DIVREMRU_3x2 hebi_divremru32_3x2__
 #define PDIVREMRU_2x1 hebi_pdivremru32_2x1__
 #define PDIVREMRU_3x2 hebi_pdivremru32_3x2__
+#define PDIVREMR_3x2 hebi_pdivremr32_3x2__
 
 #endif /* USE_64BIT_DIVISION */
 
 static inline HEBI_ALWAYSINLINE
 HALF
-DIVREMRU_2x1(HALF *qh, HALF u1, HALF u0, HALF d, HALF v)
+DIVREMRU_2x1(HALF *p, HALF u1, HALF u0, HALF d, HALF v)
 {
 	HALF q1, q0, r;
 	FULL q, u;
@@ -80,13 +82,13 @@ DIVREMRU_2x1(HALF *qh, HALF u1, HALF u0, HALF d, HALF v)
 		r -= d;
 	}
 
-	*qh = q1;
+	*p = q1;
 	return r;
 }
 
 static inline HEBI_ALWAYSINLINE
 FULL
-DIVREMRU_3x2(HALF *qh, HALF u2, HALF u1, HALF u0, HALF d1, HALF d0, HALF v)
+DIVREMRU_3x2(HALF *p, HALF u2, HALF u1, HALF u0, HALF d1, HALF d0, HALF v)
 {
 	FULL d, q, r, t, u;
 	HALF q1, q0;
@@ -111,7 +113,7 @@ DIVREMRU_3x2(HALF *qh, HALF u2, HALF u1, HALF u0, HALF d1, HALF d0, HALF v)
 		r -= d;
 	}
 
-	*qh = q1;
+	*p = q1;
 	return r;
 }
 
