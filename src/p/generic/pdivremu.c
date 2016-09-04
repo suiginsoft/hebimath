@@ -9,12 +9,12 @@ HEBI_API
 uint64_t
 hebi_pdivremu(hebi_packet *q, const hebi_packet *a, uint64_t b, size_t n)
 {
-	HALF* ql;
-	const HALF* al;
+	MLIMB* ql;
+	const MLIMB* al;
 	size_t nl;
 	int bits;
 	uint64_t d, r;
-#ifdef USE_64BIT_DIVISION
+#ifdef USE_LIMB64_MULDIV
 	uint64_t v;
 #else
 	uint32_t v, d1, d0;
@@ -23,23 +23,23 @@ hebi_pdivremu(hebi_packet *q, const hebi_packet *a, uint64_t b, size_t n)
 	if (UNLIKELY(!b))
 		return 0;
 
-	ql = HALF_PTR(q);
-	al = HALF_PTR(a);
-	nl = n * HALF_PER_PACKET;
+	ql = MLIMB_PTR(q);
+	al = MLIMB_PTR(a);
+	nl = n * MLIMB_PER_PACKET;
 
-#ifdef USE_64BIT_DIVISION
-	bits = hebi_wclz(b);
+#ifdef USE_LIMB64_MULDIV
+	bits = hebi_clz64(b);
 	d = b << bits;
 	v = hebi_recipu64_2x1__(d);
 	r = hebi_pdivremru64_2x1__(ql, al, nl, bits, d, v);
 #else
 	if (b <= UINT32_MAX) {
-		bits = hebi_hclz((uint32_t)b);
+		bits = hebi_clz32((uint32_t)b);
 		d0 = (uint32_t)b << bits;
 		v = hebi_recipu32_2x1__(d0);
 		r = hebi_pdivremru32_2x1__(ql, al, nl, bits, d0, v);
 	} else {
-		bits = hebi_wclz(b);
+		bits = hebi_clz64(b);
 		d = b << bits;
 		d0 = (uint32_t)(d & UINT32_MAX);
 		d1 = (uint32_t)(d >> 32);

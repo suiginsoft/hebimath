@@ -5,38 +5,38 @@
 
 #include "generic.h"
 
-HALF
+MLIMB
 PDIVREMRU_2x1(
-		HALF *q,
-		const HALF *a,
+		MLIMB *q,
+		const MLIMB *a,
 		size_t n,
 		int bits,
-		HALF d,
-		HALF v)
+		MLIMB d,
+		MLIMB v)
 {
-	HALF a1, a0, u1, u0;
+	MLIMB a1, a0, u1, u0;
 	size_t i;
 
 	a1 = a[n-1];
 
 	if (bits) {
 		u1 = a1 << bits;
-		u0 = a1 >> (HALF_BITS - bits);
-		if (LIKELY(u1 < d && u0 == 0)) {
+		u0 = a1 >> (MLIMB_BIT - bits);
+		if (u1 < d && !u0) {
 			q[--n] = 0;
 			a1 = a[n-1];
-			u1 |= a1 >> (HALF_BITS - bits);
+			u1 |= a1 >> (MLIMB_BIT - bits);
 		} else {
 			u1 = u0;
 		}
 		for (i = n-1; i--; ) {
 			a0 = a[i];
-			u0 = (a1 << bits) | (a0 >> (HALF_BITS - bits));
+			u0 = (a1 << bits) | (a0 >> (MLIMB_BIT - bits));
 			a1 = a0;
-			u1 = DIVREMRU_2x1(q+i+1, u1, u0, d, v);
+			DIVREMRU_2x1(q+i+1, &u1, u0, d, v);
 		}
 		u0 = a1 << bits;
-		u1 = DIVREMRU_2x1(q, u1, u0, d, v);
+		DIVREMRU_2x1(q, &u1, u0, d, v);
 	} else {
 		u0 = 0;
 		u1 = a1;
@@ -47,7 +47,7 @@ PDIVREMRU_2x1(
 		q[n - 1] = u0;
 		for (i = n - 1; i--; ) {
 			u0 = a[i];
-			u1 = DIVREMRU_2x1(q+i, u1, u0, d, v);
+			DIVREMRU_2x1(q+i, &u1, u0, d, v);
 		}
 	}
 

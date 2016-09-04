@@ -3,7 +3,7 @@
 #include <string.h>
 
 #define NUM_PACKETS 501
-#define NUM_DIGITS (NUM_PACKETS * HEBI_PACKET_WORDS)
+#define NUM_DIGITS (NUM_PACKETS * HEBI_PACKET_LIMBS64)
 #define NUM_BYTES (NUM_PACKETS * sizeof(hebi_packet))
 
 int main(int argc, char *argv[])
@@ -20,8 +20,8 @@ int main(int argc, char *argv[])
 	assert(y == x + NUM_PACKETS);
 
 	for (i = 0; i < NUM_PACKETS; ++i)
-		for (j = 0; j < HEBI_PACKET_WORDS; ++j)
-			assert(x[i].hp_words[j] == 0);
+		for (j = 0; j < HEBI_PACKET_LIMBS64; ++j)
+			assert(x[i].hp_limbs64[j] == 0);
 
 	hebi_pfree(HEBI_ALLOC_DEFAULT, x, NUM_PACKETS);
 

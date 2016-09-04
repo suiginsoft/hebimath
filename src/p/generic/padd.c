@@ -6,7 +6,7 @@
 #include "generic.h"
 
 HEBI_API
-hebi_word
+uint64_t
 hebi_padd(
 		hebi_packet *r,
 		const hebi_packet *a,
@@ -14,25 +14,29 @@ hebi_padd(
 		size_t an,
 		size_t bn )
 {
-	hebi_word *rw = r->hp_words;
-	const hebi_word *aw = a->hp_words;
-	const hebi_word *bw = b->hp_words;
-	hebi_word sum, carry;
+	LIMB *rl;
+	const LIMB *al;
+	const LIMB *bl;
+	LIMB sum, carry;
 	size_t i;
+
+	rl = LIMB_PTR(r);
+	al = LIMB_PTR(a);
+	bl = LIMB_PTR(b);
 
 	carry = 0;
 	i = 0;
 
-	for ( ; i < bn * HEBI_PACKET_WORDS; ++i) {
-		sum = aw[i] + bw[i] + carry;
-		carry = (sum < aw[i]) || (sum == aw[i] && carry);
-		rw[i] = sum;
+	for ( ; i < bn * LIMB_PER_PACKET; ++i) {
+		sum = al[i] + bl[i] + carry;
+		carry = (sum < al[i]) || (sum == al[i] && carry);
+		rl[i] = sum;
 	}
 
-	for ( ; i < an * HEBI_PACKET_WORDS; ++i) {
-		sum = aw[i] + carry;
-		carry = sum < aw[i];
-		rw[i] = sum;
+	for ( ; i < an * LIMB_PER_PACKET; ++i) {
+		sum = al[i] + carry;
+		carry = sum < al[i];
+		rl[i] = sum;
 	}
 
 	return carry;

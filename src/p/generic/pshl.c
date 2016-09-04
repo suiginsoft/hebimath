@@ -10,57 +10,57 @@ HEBI_API
 size_t
 hebi_pshl(hebi_packet *r, const hebi_packet *a, size_t b, size_t n)
 {
-	size_t i, j, rn, words, pwords, bits, rbits;
-	hebi_word *rw, q, s;
-	const hebi_word *aw;
+	int bits;
+	size_t i, j, rn, limbs, offset;
+	LIMB *rl, q, s;
+	const LIMB *al;
 
 	if (UNLIKELY(!n))
 		return 0;
 
-	words = b / HEBI_WORD_BIT;
-	bits = b % HEBI_WORD_BIT;
-	pwords = words % HEBI_PACKET_WORDS;
-	rbits = HEBI_WORD_BIT - bits;
+	bits = (int)(b % LIMB_BIT);
+	limbs = b / LIMB_BIT;
+	offset = limbs % LIMB_PER_PACKET;
 
-	aw = a->hp_words;
-	rw = r->hp_words + words;
 	rn = n + (b + HEBI_PACKET_BIT - 1) / HEBI_PACKET_BIT;
+	rl = LIMB_PTR(r) + limbs;
+	al = LIMB_PTR(a);
 
-	i = rn * HEBI_PACKET_WORDS - words;
-	while (i > n * HEBI_PACKET_WORDS)
-		rw[--i] = 0;
+	i = rn * LIMB_PER_PACKET - limbs;
+	while (i > n * LIMB_PER_PACKET)
+		rl[--i] = 0;
 
 	if (LIKELY(bits)) {
 		q = 0;
-		j = i - pwords - 1;
+		j = i - offset - 1;
 		while (i > j) {
-			s = aw[--i];
-			rw[i+1] = s >> rbits | q;
+			s = al[--i];
+			rl[i+1] = s >> (LIMB_BIT - bits) | q;
 			q = s << bits;
-			if (rw[i+1])
+			if (rl[i+1])
 				goto shift_rest;
 		}
 		--rn;
 	shift_rest:
 		while (i > 0) {
-			s = aw[--i];
-			rw[i+1] = s >> rbits | q;
+			s = al[--i];
+			rl[i+1] = s >> (LIMB_BIT - bits) | q;
 			q = s << bits;
 		}
-		rw[0] = q;
+		rl[0] = q;
 	} else {
-		j = i - (pwords ? pwords : HEBI_PACKET_WORDS);
+		j = i - (offset ? offset : LIMB_PER_PACKET);
 		while (i > j) {
-			s = aw[--i];
-			rw[i] = s;
+			s = al[--i];
+			rl[i] = s;
 			if (s)
 				goto move_rest;
 		}
 		--rn;
 	move_rest:
-		(void)memmove(rw, aw, i * sizeof(hebi_word));
+		(void)memmove(rl, al, i * sizeof(LIMB));
 	}
 
-	(void)memset(r, 0, words * sizeof(hebi_word));
+	(void)memset(r, 0, limbs * sizeof(LIMB));
 	return rn;
 }

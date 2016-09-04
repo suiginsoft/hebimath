@@ -6,14 +6,14 @@
 #include "../../internal.h"
 #include <limits.h>
 
-#ifndef HEBI_HAS_DWORD
-#define HALF_ARRAY hp_words
-#define HALF_BITS (CHAR_BIT * sizeof(hebi_word))
-#define HALF_PER_PACKET HEBI_PACKET_WORDS
+#ifndef USE_LIMB64_MULDIV
+#define HALF_ARRAY hp_limbs64
+#define HALF_BITS (CHAR_BIT * sizeof(uint64_t))
+#define HALF_PER_PACKET HEBI_PACKET_LIMBS64
 #else
-#define HALF_ARRAY hp_hwords
-#define HALF_BITS (CHAR_BIT * sizeof(hebi_hword))
-#define HALF_PER_PACKET HEBI_PACKET_HWORDS
+#define HALF_ARRAY hp_limbs32
+#define HALF_BITS (CHAR_BIT * sizeof(uint32_t))
+#define HALF_PER_PACKET HEBI_PACKET_LIMBS32
 #endif
 
 HEBI_API

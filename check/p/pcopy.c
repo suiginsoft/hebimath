@@ -2,7 +2,7 @@
 #include <string.h>
 
 #define NUM_PACKETS 501
-#define NUM_DIGITS (NUM_PACKETS * HEBI_PACKET_WORDS)
+#define NUM_DIGITS (NUM_PACKETS * HEBI_PACKET_LIMBS64)
 #define NUM_BYTES (NUM_PACKETS * sizeof(hebi_packet))
 
 int main(int argc, char *argv[])
@@ -15,9 +15,9 @@ int main(int argc, char *argv[])
 	assert(x && y);
 
 	for (i = 0; i < NUM_PACKETS; ++i) {
-		for (j = 0; j < HEBI_PACKET_WORDS; ++j) {
-			x[i].hp_words[j] = (hebi_word)i;
-			y[i].hp_words[j] = (hebi_word)i + 55;
+		for (j = 0; j < HEBI_PACKET_LIMBS64; ++j) {
+			x[i].hp_limbs64[j] = (uint64_t)i;
+			y[i].hp_limbs64[j] = (uint64_t)i + 55;
 		}
 	}
 

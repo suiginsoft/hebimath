@@ -10,6 +10,6 @@ HEBI_API
 hebi_packet *
 hebi_pcopy(hebi_packet *restrict r, const hebi_packet *restrict a, size_t n)
 {
-	memcpy(r, a, n * sizeof(hebi_packet));
+	(void)memcpy(r, a, n * sizeof(hebi_packet));
 	return r + n;
 }

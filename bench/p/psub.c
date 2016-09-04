@@ -5,7 +5,7 @@
 
 #include "../bench.h"
 
-static volatile hebi_word result_sink;
+static volatile uint64_t result_sink;
 
 int
 main(int argc, char *argv[])

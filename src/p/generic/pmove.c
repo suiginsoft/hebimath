@@ -10,6 +10,6 @@ HEBI_API
 hebi_packet *
 hebi_pmove(hebi_packet *r, const hebi_packet *a, size_t n)
 {
-	memmove(r, a, n * sizeof(hebi_packet));
+	(void)memmove(r, a, n * sizeof(hebi_packet));
 	return r + n;
 }

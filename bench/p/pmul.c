@@ -5,7 +5,7 @@
 
 #include "../bench.h"
 
-static volatile hebi_word result_sink;
+static volatile uint64_t result_sink;
 
 int
 main(int argc, char *argv[])
@@ -27,7 +27,7 @@ main(int argc, char *argv[])
 
 	for (i = 0; i < p.iter; ++i) {
 		hebi_pmul(r, a, b, p.an, p.bn);
-		result_sink = r->hp_words[0];
+		result_sink = r->hp_limbs64[0];
 	}
 
 	bench_stop();

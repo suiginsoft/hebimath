@@ -14,11 +14,11 @@ hebi_pmul(
 		size_t an,
 		size_t bn )
 {
-	HALF *restrict rh;
-	const HALF *ah;
-	const HALF *bh;
-	FULL p;
-	HALF m, o;
+	MLIMB *restrict rp;
+	const MLIMB *ap;
+	const MLIMB *bp;
+	MLIMB m, o;
+	DLIMB p;
 	size_t i, j;
 
 	/* early out if length of b is zero (note: an >= bn >= 0) */
@@ -27,29 +27,29 @@ hebi_pmul(
 		return;
 	}
 
-	rh = HALF_PTR(r);
-	ah = HALF_PTR(a);
-	bh = HALF_PTR(b);
+	rp = MLIMB_PTR(r);
+	ap = MLIMB_PTR(a);
+	bp = MLIMB_PTR(b);
 
 	/* compute first diagonal and copy into output */
-	m = ah[0];
+	m = ap[0];
 	o = 0;
-	for (j = 0; j < bn * HALF_PER_PACKET; j++) {
-		p = (FULL)bh[j] * m + o;
-		rh[j] = (HALF)(p & HALF_MAX);
-		o = (HALF)(p >> HALF_BITS);
+	for (j = 0; j < bn * MLIMB_PER_PACKET; j++) {
+		p = (DLIMB)bp[j] * m + o;
+		rp[j] = (MLIMB)(p & MLIMB_MAX);
+		o = (MLIMB)(p >> MLIMB_BIT);
 	}
-	rh[j] = o;
+	rp[j] = o;
 
 	/* compute remaining diagonals and accumulate into output */
-	for (i = 1; i < an * HALF_PER_PACKET; i++) {
-		m = ah[i];
+	for (i = 1; i < an * MLIMB_PER_PACKET; i++) {
+		m = ap[i];
 		o = 0;
-		for (j = 0; j < bn * HALF_PER_PACKET; j++) {
-			p = (FULL)bh[j] * m + rh[i+j] + o;
-			rh[i+j] = (HALF)(p & HALF_MAX);
-			o = (HALF)(p >> HALF_BITS);
+		for (j = 0; j < bn * MLIMB_PER_PACKET; j++) {
+			p = (DLIMB)bp[j] * m + rp[i+j] + o;
+			rp[i+j] = (MLIMB)(p & MLIMB_MAX);
+			o = (MLIMB)(p >> MLIMB_BIT);
 		}
-		rh[i+j] = (HALF)(o & HALF_MAX);
+		rp[i+j] = (MLIMB)(o & MLIMB_MAX);
 	}
 }

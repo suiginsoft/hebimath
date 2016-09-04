@@ -5,7 +5,7 @@
 
 #include "generic.h"
 
-#ifdef USE_INT128
+#ifdef USE_LIMB64_MULDIV
 
 HEBI_CONST
 uint64_t

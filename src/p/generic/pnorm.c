@@ -7,14 +7,16 @@
 
 HEBI_API
 size_t
-hebi_pnorm(const hebi_packet *p, size_t n)
+hebi_pnorm(const hebi_packet *a, size_t n)
 {
-	const hebi_word *pw = p->hp_words;
+	const LIMB *al;
 	size_t i;
 
-	for (i = n * HEBI_PACKET_WORDS; i--; )
-		if (pw[i])
-			return (i + HEBI_PACKET_WORDS) / HEBI_PACKET_WORDS;
+	al = LIMB_PTR(a);
+
+	for (i = n * LIMB_PER_PACKET; i--; )
+		if (al[i])
+			return (i + LIMB_PER_PACKET) / LIMB_PER_PACKET;
 
 	return 0;
 }

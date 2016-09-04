@@ -10,7 +10,7 @@ void
 hebi_zmulu(hebi_zptr r, hebi_zsrcptr a, uint64_t b)
 {
 	hebi_packet *p;
-	hebi_word overflow;
+	uint64_t overflow;
 	size_t n, u;
 	int s;
 

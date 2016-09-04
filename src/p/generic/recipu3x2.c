@@ -6,11 +6,11 @@
 #include "generic.h"
 
 HEBI_CONST
-HALF
-RECIPU_3x2(HALF d1, HALF d0)
+MLIMB
+RECIPU_3x2(MLIMB d1, MLIMB d0)
 {
-	HALF v, p, t1, t0;
-	FULL t;
+	MLIMB v, p, t1, t0;
+	DLIMB t;
 
 	v = RECIPU_2x1(d1);
 	p = v * d1 + d0;
@@ -24,9 +24,9 @@ RECIPU_3x2(HALF d1, HALF d0)
 		p -= d1;
 	}
 
-	t = (FULL)v * d0;
-	t0 = (HALF)(t & HALF_MAX);
-	t1 = (HALF)(t >> HALF_BITS);
+	t = (DLIMB)v * d0;
+	t0 = (MLIMB)(t & MLIMB_MAX);
+	t1 = (MLIMB)(t >> MLIMB_BIT);
 	p += t1;
 
 	if (p < t1) {

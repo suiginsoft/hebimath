@@ -18,7 +18,7 @@ main(int argc, char *argv[])
 
 	a = hebi_palloc(HEBI_ALLOC_DEFAULT, p.an);
 	hebi_pzero(a, p.an);
-	a->hp_words[0] = 1;
+	a->hp_limbs64[0] = 1;
 
 	bench_start();
 

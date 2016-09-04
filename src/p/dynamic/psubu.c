@@ -6,4 +6,4 @@
 #include "../../../internal.h"
 
 extern HEBI_API
-hebi_word hebi_psubu(hebi_packet *, const hebi_packet *, hebi_word, size_t);
+uint64_t hebi_psubu(hebi_packet *, const hebi_packet *, uint64_t, size_t);

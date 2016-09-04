@@ -10,7 +10,7 @@ void
 hebi_zsub(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 {
 	hebi_packet *rp;
-	hebi_word carry;
+	uint64_t carry;
 	size_t au, bu;
 	int as, bs, d;
 

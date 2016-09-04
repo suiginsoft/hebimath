@@ -123,7 +123,6 @@
 
 #undef USE_C11_THREAD_LOCAL
 #undef USE_GNUC_THREAD_LOCAL
-
 #undef USE_C11_ATOMICS
 #undef USE_SYNC_ATOMICS
 
@@ -136,20 +135,69 @@
 #undef USE_INT128
 #endif
 
-#if defined __GNUC__ && !defined __clang__
+#ifndef __clang__
+#ifdef __GNUC__
 #if GNUC_VERSION_LESS_THAN(4,6,0)
+#undef USE_INT128
+#endif
+#else
 #undef USE_INT128
 #endif
 #endif
 
 #ifdef USE_INT128
-#define HEBI_DWORD_BIT 128
 EXTENSION typedef signed __int128 hebi_int128;
 EXTENSION typedef unsigned __int128 hebi_uint128;
-typedef hebi_uint128 hebi_dword;
 #endif
 
 #endif /* USE_INT128 */
+
+/* configure preferred limb type for low-level kernel functions */
+#ifdef USE_KERN_GENERIC
+
+/* detect preferred limb type for most arithmetic/logical operations */
+#if !defined USE_LIMB64_ARITHMETIC && !defined USE_LIMB32_ARITHMETIC
+#if SIZE_MAX >= UINT64_MAX || defined __LP64__ || defined __ILP32__
+#define USE_LIMB64_ARITHMETIC
+#else
+#define USE_LIMB32_ARITHMETIC
+#endif
+#endif
+
+#ifdef USE_LIMB64_ARITHMETIC
+#undef USE_LIMB32_ARITHMETIC
+#endif
+
+/* detect limb type for full multiplication and division operations */
+#undef USE_LIMB64_MULDIV
+#ifndef USE_LIMB32_MULDIV
+#if defined USE_LIMB64_ARITHMETIC && defined USE_INT128
+#define USE_LIMB64_MULDIV
+#else
+#define USE_LIMB32_MULDIV
+#endif
+#endif
+
+#ifdef USE_LIMB64_MULDIV
+#undef USE_LIMB32_MULDIV
+#endif
+
+#else /* USE_KERN_GENERIC */
+
+#undef USE_LIMB64_ARITHMETIC
+#undef USE_LIMB32_ARITHMETIC
+#undef USE_LIMB64_MULDIV
+#undef USE_LIMB32_MULDIV
+
+#if defined USE_KERN_X86_64 || defined USE_KERN_AARCH64
+#define USE_LIMB64_ARITHMETIC
+#define USE_LIMB64_MULDIV
+#else
+#define USE_LIMB32_ARITHMETIC
+#define USE_LIMB32_MULDIV
+#endif
+
+#endif /* USE_KERN_GENERIC */
 
 /* vector shuffle/swizzle */
 #ifdef HEBI_SIMD
@@ -313,7 +361,7 @@ HEBI_NORETURN void hebi_hwcaps_fatal__(void);
 /* ⌈log2(x)⌉ */
 static inline HEBI_ALWAYSINLINE HEBI_CONST
 size_t
-hebi_ceillog2(size_t x)
+hebi_ceillog2sz(size_t x)
 {
 #if __has_builtin(__builtin_clzl)
 	return ((size_t)__builtin_clzl(x | 1) ^
@@ -330,7 +378,7 @@ hebi_ceillog2(size_t x)
 /* ⌊log2(x)⌋ */
 static inline HEBI_ALWAYSINLINE HEBI_CONST
 size_t
-hebi_floorlog2(size_t x)
+hebi_floorlog2sz(size_t x)
 {
 #if __has_builtin(__builtin_clzl)
 	return (size_t)__builtin_clzl(x | 1) ^
@@ -342,10 +390,10 @@ hebi_floorlog2(size_t x)
 #endif
 }
 
-/* count leading-zeros of hebi_hword */
+/* count leading-zeros of 32-bit unsigned integer */
 static inline HEBI_ALWAYSINLINE HEBI_CONST
 int
-hebi_hclz(hebi_hword x)
+hebi_clz32(uint32_t x)
 {
 #if __has_builtin(__builtin_clz)
 	return __builtin_clz(x);
@@ -356,10 +404,10 @@ hebi_hclz(hebi_hword x)
 #endif
 }
 
-/* count trailing-zeros of hebi_hword */
+/* count trailing-zeros of 32-bit unsigned integer */
 static inline HEBI_ALWAYSINLINE HEBI_CONST
 int
-hebi_hctz(hebi_hword x)
+hebi_ctz32(uint32_t x)
 {
 #if __has_builtin(__builtin_ctz)
 	return __builtin_ctz(x);
@@ -370,10 +418,10 @@ hebi_hctz(hebi_hword x)
 #endif
 }
 
-/* count leading-zeros of hebi_word */
+/* count leading-zeros of 64-bit unsigned integer */
 static inline HEBI_ALWAYSINLINE HEBI_CONST
 int
-hebi_wclz(hebi_word x)
+hebi_clz64(uint64_t x)
 {
 #if __has_builtin(__builtin_clzll)
 	return __builtin_clzll(x);
@@ -384,10 +432,10 @@ hebi_wclz(hebi_word x)
 #endif
 }
 
-/* count trailing-zeros of hebi_word */
+/* count trailing-zeros of 64-bit unsigned integer */
 static inline HEBI_ALWAYSINLINE HEBI_CONST
 int
-hebi_wctz(hebi_word x)
+hebi_ctz64(uint64_t x)
 {
 #if __has_builtin(__builtin_ctzll)
 	return __builtin_ctzll(x);
@@ -399,12 +447,7 @@ hebi_wctz(hebi_word x)
 }
 
 /* internal integer division kernels */
-#undef USE_64BIT_DIVISION
-#if defined USE_INT128 || defined USE_KERN_X86_64
-#define USE_64BIT_DIVISION
-#endif
-
-#ifdef USE_64BIT_DIVISION
+#ifdef USE_LIMB64_MULDIV
 
 extern uint16_t hebi_recipu64_v0lut__[256];
 HEBI_CONST uint64_t hebi_recipu64_2x1__(uint64_t);
@@ -445,7 +488,7 @@ size_t hebi_pdivremr64_3x2__(uint64_t *HEBI_RESTRICT, uint64_t *HEBI_RESTRICT, c
 
 #endif /* HEBI_MULTI_VERSIONING */
 
-#else /* USE_64BIT_DIVISION */
+#else /* USE_LIMB64_MULDIV */
 
 extern uint16_t hebi_recipu32_v0lut__[512];
 HEBI_CONST uint32_t hebi_recipu32_2x1__(uint32_t);
@@ -486,7 +529,7 @@ size_t hebi_pdivremr32_3x2__(uint32_t *HEBI_RESTRICT, uint32_t *HEBI_RESTRICT, c
 
 #endif /* HEBI_MULTI_VERSIONING */
 
-#endif /* USE_64BIT_DIVISION */
+#endif /* USE_LIMB64_MULDIV */
 
 /* compare single packet 'a' against UINT_64MAX */
 static inline HEBI_ALWAYSINLINE
@@ -531,8 +574,8 @@ hebi_pcmpgtui64max(const hebi_packet *a)
 
 	int i;
 
-	for (i = 1; i < HEBI_PACKET_WORDS; i++)
-		if (a->hp_words[i])
+	for (i = 1; i < HEBI_PACKET_LIMBS64; i++)
+		if (a->hp_limbs64[i])
 			return 1;
 
 	return 0;
@@ -542,7 +585,7 @@ hebi_pcmpgtui64max(const hebi_packet *a)
 
 /* convert single packet to unsigned 64-bit integer with saturation */
 static inline HEBI_ALWAYSINLINE
-hebi_word
+uint64_t
 hebi_pgetsu(const hebi_packet *a)
 {
 #if defined HEBI_SIMD && defined __SSE2__
@@ -586,11 +629,11 @@ hebi_pgetsu(const hebi_packet *a)
 
 	int i;
 
-	for (i = 1; i < HEBI_PACKET_WORDS; i++)
-		if (a->hp_words[i])
-			return HEBI_WORD_MAX;
+	for (i = 1; i < HEBI_PACKET_LIMBS64; i++)
+		if (a->hp_limbs64[i])
+			return UINT64_MAX;
 
-	return a->hp_words[0];
+	return a->hp_limbs64[0];
 
 #endif /* HEBI_SIMD */
 }

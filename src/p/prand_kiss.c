@@ -13,16 +13,16 @@ hebi_prand_kiss(
 		size_t bits,
 		struct hebi_kiss *restrict k )
 {
-	hebi_word *restrict rw;
+	uint64_t *restrict p;
 	uint64_t *restrict q;
 	uint64_t m, x, c, cng, xs;
-	size_t i, j, l, words;
+	size_t i, j, l, limbs;
 
 	if (UNLIKELY(!n))
 		return;
 
-	/* determine number of words to randomly generate */
-	if (UNLIKELY(!(words = (bits + HEBI_WORD_BIT -1) / HEBI_WORD_BIT))) {
+	/* determine number of limbs to randomly generate */
+	if (UNLIKELY(!(limbs = (bits + 64 -1) / 64))) {
 		hebi_pzero(r, n);
 		return;
 	}
@@ -41,8 +41,9 @@ hebi_prand_kiss(
 		l = 1;
 	}
 
-	rw = r->hp_words;
-	for (i = 0; i < words; i++) {
+	/* generate random limbs */
+	p = r->hp_limbs64;
+	for (i = 0; i < limbs; i++) {
 		/* multiply-with-carry generator */
 		j = (j + 1) & (l - 1);
 		x = q[j];
@@ -60,7 +61,7 @@ hebi_prand_kiss(
 		xs ^= xs << 17;
 		xs ^= xs << 43;
 
-		rw[i] = m + cng + xs;
+		p[i] = m + cng + xs;
 	}
 
 	/* save PRNG state */
@@ -70,16 +71,16 @@ hebi_prand_kiss(
 	if (l > 1)
 		k->hk_multi_index = j;
 
-	/* mask off bits of last word */
-	if (LIKELY(bits %= HEBI_WORD_BIT))
-		rw[i-1] &= (UINT64_C(1) << bits) - 1;
+	/* mask off bits of last limb */
+	if (LIKELY(bits %= 64))
+		p[i-1] &= (UINT64_C(1) << bits) - 1;
 
-	/* zero remaining words of last packet */
-	if (LIKELY(words %= HEBI_PACKET_WORDS))
-		for ( ; words < HEBI_PACKET_WORDS; words++, i++)
-			rw[i] = 0;
+	/* zero remaining limbs of last packet */
+	if (LIKELY(limbs %= HEBI_PACKET_LIMBS64))
+		for ( ; limbs < HEBI_PACKET_LIMBS64; limbs++, i++)
+			p[i] = 0;
 
 	/* zero remaining packets */
-	if (UNLIKELY((i /= HEBI_PACKET_WORDS) < n))
+	if (UNLIKELY((i /= HEBI_PACKET_LIMBS64) < n))
 		hebi_pzero(r + i, n - i);
 }

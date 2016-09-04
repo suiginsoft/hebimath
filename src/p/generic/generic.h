@@ -8,35 +8,37 @@
 
 #include "../../../internal.h"
 
-#ifdef USE_INT128
+#ifdef USE_LIMB64_ARITHMETIC
 
-#define FULL hebi_uint128
-#define HALF uint64_t
-#define SFULL hebi_int128
-#define SHALF int64_t
-#define HALF_CLZ(X) hebi_wclz(X)
-#define HALF_CTZ(X) hebi_wctz(X)
-#define HALF_PTR(X) (X)->hp_words
-#define HALF_BITS 64
-#define HALF_MAX UINT64_MAX
-#define HALF_PER_PACKET HEBI_PACKET_WORDS
+#define LIMB uint64_t
+#define LIMB_BIT 64
+#define LIMB_MAX UINT64_MAX
+#define LIMB_PER_PACKET HEBI_PACKET_LIMBS64
+#define LIMB_CLZ(X) hebi_clz64(X)
+#define LIMB_CTZ(X) hebi_ctz64(X)
+#define LIMB_PTR(X) (X)->hp_limbs64
 
 #else /* USE_INT128 */
 
-#define FULL uint64_t
-#define HALF uint32_t
-#define SFULL int64_t
-#define SHALF int32_t
-#define HALF_CLZ(X) hebi_hclz(X)
-#define HALF_CTZ(X) hebi_hctz(X)
-#define HALF_PTR(X) (X)->hp_hwords
-#define HALF_BITS 32
-#define HALF_MAX UINT32_MAX
-#define HALF_PER_PACKET HEBI_PACKET_HWORDS
+#define LIMB uint32_t
+#define LIMB_BIT 32
+#define LIMB_MAX UINT32_MAX
+#define LIMB_PER_PACKET HEBI_PACKET_LIMBS32
+#define LIMB_CLZ(X) hebi_clz32(X)
+#define LIMB_CTZ(X) hebi_ctz32(X)
+#define LIMB_PTR(X) (X)->hp_limbs32
 
 #endif /* USE_INT128 */
 
-#ifdef USE_64BIT_DIVISION
+#ifdef USE_LIMB64_MULDIV
+
+#define DLIMB hebi_uint128
+#define MLIMB uint64_t
+#define MLIMB_BIT 64
+#define MLIMB_MAX UINT64_MAX
+#define MLIMB_PER_PACKET HEBI_PACKET_LIMBS64
+#define MLIMB_CLZ(X) hebi_clz64(X)
+#define MLIMB_PTR(X) (X)->hp_limbs64
 
 #define RECIPU_2x1 hebi_recipu64_2x1__
 #define RECIPU_3x2 hebi_recipu64_3x2__
@@ -46,7 +48,15 @@
 #define PDIVREMRU_3x2 hebi_pdivremru64_3x2__
 #define PDIVREMR_3x2 hebi_pdivremr64_3x2__
 
-#else /* USE_64BIT_DIVISION */
+#else /* USE_LIMB64_MULDIV */
+
+#define DLIMB uint64_t
+#define MLIMB uint32_t
+#define MLIMB_BIT 32
+#define MLIMB_MAX UINT32_MAX
+#define MLIMB_PER_PACKET HEBI_PACKET_LIMBS32
+#define MLIMB_CLZ(X) hebi_clz32(X)
+#define MLIMB_PTR(X) (X)->hp_limbs32
 
 #define RECIPU_2x1 hebi_recipu32_2x1__
 #define RECIPU_3x2 hebi_recipu32_3x2__
@@ -56,19 +66,18 @@
 #define PDIVREMRU_3x2 hebi_pdivremru32_3x2__
 #define PDIVREMR_3x2 hebi_pdivremr32_3x2__
 
-#endif /* USE_64BIT_DIVISION */
+#endif /* USE_LIMB64_MULDIV */
 
 static inline HEBI_ALWAYSINLINE
-HALF
-DIVREMRU_2x1(HALF *p, HALF u1, HALF u0, HALF d, HALF v)
+void
+DIVREMRU_2x1(MLIMB *q, MLIMB *u1, MLIMB u0, MLIMB d, MLIMB v)
 {
-	HALF q1, q0, r;
-	FULL q, u;
+	DLIMB p;
+	MLIMB q1, q0, r;
 
-	u = ((FULL)u1 << HALF_BITS) | u0;
-	q = (FULL)u1 * v + u;
-	q0 = (HALF)(q & HALF_MAX);
-	q1 = (HALF)(q >> HALF_BITS);
+	p = ((DLIMB)*u1 * v) + (((DLIMB)*u1 << MLIMB_BIT) | u0);
+	q0 = (MLIMB)(p & MLIMB_MAX);
+	q1 = (MLIMB)(p >> MLIMB_BIT);
 	q1 = q1 + 1;
 	r = u0 - q1 * d;
 
@@ -82,28 +91,27 @@ DIVREMRU_2x1(HALF *p, HALF u1, HALF u0, HALF d, HALF v)
 		r -= d;
 	}
 
-	*p = q1;
-	return r;
+	*q = q1;
+	*u1 = r;
 }
 
 static inline HEBI_ALWAYSINLINE
-FULL
-DIVREMRU_3x2(HALF *p, HALF u2, HALF u1, HALF u0, HALF d1, HALF d0, HALF v)
+void
+DIVREMRU_3x2(MLIMB *q, MLIMB *u2, MLIMB *u1, MLIMB u0, MLIMB d1, MLIMB d0, MLIMB v)
 {
-	FULL d, q, r, t, u;
-	HALF q1, q0;
+	DLIMB d, p, r, t;
+	MLIMB q1, q0;
 
-	u = ((FULL)u2 << HALF_BITS) | u1;
-	q = (FULL)u2 * v + u;
-	q0 = (HALF)(q & HALF_MAX);
-	q1 = (HALF)(q >> HALF_BITS);
-	r = ((FULL)(u1 - q1 * d1) << HALF_BITS) | u0;
-	t = (FULL)q1 * d0;
-	d = ((FULL)d1 << HALF_BITS) | d0;
+	p = ((DLIMB)*u2 * v) + (((DLIMB)*u2 << MLIMB_BIT) | *u1);
+	q0 = (MLIMB)(p & MLIMB_MAX);
+	q1 = (MLIMB)(p >> MLIMB_BIT);
+	r = ((DLIMB)(*u1 - q1 * d1) << MLIMB_BIT) | u0;
+	t = (DLIMB)q1 * d0;
+	d = ((DLIMB)d1 << MLIMB_BIT) | d0;
 	r = r - t - d;
 	q1 = q1 + 1;
 
-	if ((HALF)(r >> HALF_BITS) >= q0) {
+	if ((MLIMB)(r >> MLIMB_BIT) >= q0) {
 		q1--;
 		r += d;
 	}
@@ -113,8 +121,9 @@ DIVREMRU_3x2(HALF *p, HALF u2, HALF u1, HALF u0, HALF d1, HALF d0, HALF v)
 		r -= d;
 	}
 
-	*p = q1;
-	return r;
+	*q = q1;
+	*u1 = (MLIMB)(r & MLIMB_MAX);
+	*u2 = (MLIMB)(r >> MLIMB_BIT);
 }
 
 #endif

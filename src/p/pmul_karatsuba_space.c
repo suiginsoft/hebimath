@@ -30,11 +30,11 @@ hebi_pmul_karatsuba_space(size_t an, size_t bn)
 	if (an <= KARATSUBA_MUL_CUTOFF)
 		return s;
 
-	k0 = hebi_ceillog2(KARATSUBA_MUL_CUTOFF - 2);
-	k1 = hebi_ceillog2(KARATSUBA_MUL_CUTOFF - 3);
+	k0 = hebi_ceillog2sz(KARATSUBA_MUL_CUTOFF - 2);
+	k1 = hebi_ceillog2sz(KARATSUBA_MUL_CUTOFF - 3);
 	a0 = 2 * k0 + (((size_t)1) << (k0 - 1));
 	a1 = 3 * k1 + (((size_t)1) << (k1 - 1));
-	t0 = 2 * (an - a0 + 2 * hebi_ceillog2(an - 2));
-	t1 = 2 * (an - a1 + 3 * hebi_floorlog2(an - 3));
+	t0 = 2 * (an - a0 + 2 * hebi_ceillog2sz(an - 2));
+	t1 = 2 * (an - a1 + 3 * hebi_floorlog2sz(an - 3));
 	return s + MAX(t0, t1);
 }

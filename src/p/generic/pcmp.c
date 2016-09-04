@@ -9,14 +9,17 @@ HEBI_API
 int
 hebi_pcmp(const hebi_packet *a, const hebi_packet *b, size_t n)
 {
-	const hebi_word *aw = a->hp_words;
-	const hebi_word *bw = b->hp_words;
+	const LIMB *al;
+	const LIMB *bl;
 	size_t i;
 
-	for (i = n * HEBI_PACKET_WORDS; i--; ) {
-		if (aw[i] < bw[i])
+	al = LIMB_PTR(a);
+	bl = LIMB_PTR(b);
+
+	for (i = n * LIMB_PER_PACKET; i--; ) {
+		if (al[i] < bl[i])
 			return -1;
-		else if (aw[i] > bw[i])
+		else if (al[i] > bl[i])
 			return 1;
 	}
 

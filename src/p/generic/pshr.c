@@ -10,46 +10,46 @@ HEBI_API
 size_t
 hebi_pshr(hebi_packet *r, const hebi_packet *a, size_t b, size_t n)
 {
-	size_t i, j, k, rn, words, bits, rbits;
-	hebi_word *rw, q, s;
-	const hebi_word *aw;
+	int bits;
+	size_t i, j, k, rn, limbs;
+	LIMB *rl, q, s;
+	const LIMB *al;
 
 	rn = b / HEBI_PACKET_BIT;
 	if (UNLIKELY(n <= rn))
 		return 0;
 
-	words = b / HEBI_WORD_BIT;
-	bits = b % HEBI_WORD_BIT;
-	rbits = HEBI_WORD_BIT - bits;
+	bits = (int)(b % LIMB_BIT);
+	limbs = b / LIMB_BIT;
 
 	rn = n - rn;
-	rw = r->hp_words;
-	aw = a->hp_words + words;
+	rl = LIMB_PTR(r);
+	al = LIMB_PTR(a) + limbs;
 
 	if (LIKELY(bits)) {
-		q = aw[0] >> bits;
-		for (i = 1; i < rn * HEBI_PACKET_WORDS; i++) {
-			s = aw[i];
-			rw[i-1] = s << rbits | q;
+		q = al[0] >> bits;
+		for (i = 1; i < rn * LIMB_PER_PACKET; i++) {
+			s = al[i];
+			rl[i-1] = s << (LIMB_BIT - bits) | q;
 			q = s >> bits;
 		}
-		rw[i-1] = q;
+		rl[i-1] = q;
 	} else {
-		(void)memmove(rw, aw, rn * sizeof(hebi_packet));
-		i = rn * HEBI_PACKET_WORDS;
+		(void)memmove(rl, al, rn * sizeof(hebi_packet));
+		i = rn * LIMB_PER_PACKET;
 	}
 
-	if ((j = i & ~(HEBI_PACKET_WORDS - 1)) != i)
+	if ((j = i & ~(LIMB_PER_PACKET - 1)) != i)
 	{
 		k = i;
-		for (words %= HEBI_PACKET_WORDS; words > 0; words--)
-			rw[k++] = 0;
+		for (limbs %= LIMB_PER_PACKET; limbs > 0; limbs--)
+			rl[k++] = 0;
 	} else {
-		j -= HEBI_PACKET_WORDS;
+		j -= LIMB_PER_PACKET;
 	}
 
 	for ( ; j < i; j++)
-		if (rw[j])
+		if (rl[j])
 			return rn;
 
 	return rn - 1;
