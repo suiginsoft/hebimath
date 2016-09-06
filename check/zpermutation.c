@@ -55,7 +55,7 @@ zpermutation(long x, long n, int p, ...)
 			hebi_zseti(z, check_i64values[y]);
 		} else {
 			y -= check_num_i64values;
-			s = bcprintf("zrand(61937,%ld)", y);
+			s = bcprintf("zrand(61939,%ld)", y);
 			hebi_zsetstr(z, s, NULL, 10);
 			free(s);
 		}

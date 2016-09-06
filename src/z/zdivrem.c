@@ -16,10 +16,6 @@ hebi_zdivrem(hebi_zptr q, hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 	size_t qn, rn, wn, an, bn, *restrict rpn;
 	int c, e, qs, rs;
 
-	/* TODO: do we want to do these kinds of checks?
-	if (UNLIKELY(q == r))
-		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);*/
-
 	qs = b->hz_sign;
 	rs = a->hz_sign;
 
@@ -38,10 +34,11 @@ hebi_zdivrem(hebi_zptr q, hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 	an = a->hz_used;
 	bn = b->hz_used;
 
+	/* TODO: can we get rid of this pcmp? */
 	c = 1;
 	if (an == bn)
 		c = hebi_pcmp(a->hz_packs, b->hz_packs, an);
-	else if (UNLIKELY(an < bn))
+	if (UNLIKELY(an < bn))
 		c = -1;
 
 	if (UNLIKELY(c <= 0)) {
@@ -56,7 +53,7 @@ hebi_zdivrem(hebi_zptr q, hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 		return;
 	}
 
-	qn = an - bn + 1;
+	qn = an - bn + 2; /* TODO: this should be 1 instead of 2 */
 	rn = bn;
 	wn = an + bn + 2;
 	wp = hebi_pscratch(wn + (q ? 0 : qn));

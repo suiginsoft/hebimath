@@ -49,15 +49,13 @@ hebi_pdivrem(
 		dl = MLIMB_PTR(d);
 
 		/* perform normalized multi-word division */
-		v = RECIPU_3x2(dl[n - 1], dl[n - 2]);
+		v = RECIPU_3x2(dl[n-1], dl[n-2]);
 		m = PDIVREMR(q, ul, dl, v, m, n);
 		n = (n + MLIMB_PER_PACKET - 1) / MLIMB_PER_PACKET;
 
 		/* denormalize remainder if caller provided space for it */
-		if (r || rn) {
-			bits = (MLIMB_BIT - bits) & (MLIMB_BIT - 1);
+		if (r || rn)
 			n = hebi_pshr(r ? r : u, u, bits, n);
-		}
 	} else {
 		/* division with small divisor */
 		MLIMB *restrict ql;

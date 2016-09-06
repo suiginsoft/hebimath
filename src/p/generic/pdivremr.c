@@ -16,7 +16,7 @@ PDIVREMR(
 		size_t n )
 {
 	MLIMB *restrict ql;
-	MLIMB qhat, u1, u0, p1, p0;
+	MLIMB qhat, p1, p0, u1, u0, c1, c0;
 	DLIMB p;
 	size_t i, j;
 
@@ -28,16 +28,21 @@ PDIVREMR(
 	 * ensure initial top two limbs of dividend are less than top two
 	 * words of divisor, adjust dividend and quotient if necessary
 	 */
-	j = m -= n;
-	u1 = ul[j+n-1];
-	u0 = ul[j+n-2];
+	m -= n;
+	n -= 2;
+	j = m;
+
+	u1 = ul[j+n+1];
+	u0 = ul[j+n+0];
 	ql = MLIMB_PTR(q);
 
-	if (UNLIKELY(u1 > dl[n-1] || (u1 == dl[n-1] && u0 >= dl[n-2]))) {
-		u1 -= dl[n-1] + (u0 < dl[n-2]);
-		u0 -= dl[n-2];
-		ul[j+n-1] = u1;
-		ul[j+n-2] = u0;
+	/* TODO: need to compare with entire divisor */
+	if (UNLIKELY(u1 > dl[n+1] || (u1 == dl[n+1] && u0 >= dl[n+0]))) {
+		ASSERT(!"NOT IMPLEMENTED");
+		u1 -= dl[n+1] + (u0 < dl[n+1]);
+		u0 -= dl[n+0];
+		ul[j+n+1] = u1;
+		ul[j+n+0] = u0;
 		ql[m++] = 1;
 	}
 
@@ -47,47 +52,53 @@ PDIVREMR(
 			ql[m++] = 0;
 
 	/* perform multi-word 3x2 reciprocal division */
-	goto start;
+	while (j--) {
+		/* TODO: do we need to handle this case? */
+		ASSERT(u1 != dl[n+1] || u0 != dl[n+0]);
 
-	do {
 		/* estimate quotient limb */
-		u1 = ul[j+n-1];
-		u0 = ul[j+n-2];
-	start:
-		DIVREMRU_3x2(&qhat, &u1, &u0, ul[j+n-3], dl[n-1], dl[n-2], v);
+		DIVREMRU_3x2(&qhat, &u1, &u0, ul[j+n], dl[n+1], dl[n+0], v);
 
 		/* multiply and subtract to compute remainder */
-		u1 = 0;
-		for (i = 0; i < n - 2; i++) {
+		c1 = 0;
+		for (i = 0; i < n; i++) {
 			p = (DLIMB)qhat * dl[i];
 			p0 = (MLIMB)(p & MLIMB_MAX);
 			p1 = (MLIMB)(p >> MLIMB_BIT);
-			p0 = p0 + u1;
-			u1 = p1 + (p0 < u1);
-			u0 = ul[j+i];
-			p0 = u0 - p0;
-			u1 = u1 + (u0 < p0);
+			p0 = p0 + c1;
+			c1 = p1 + (p0 < c1);
+			c0 = ul[j+i];
+			p0 = c0 - p0;
+			c1 = c1 + (c0 < p0);
 			ul[j+i] = p0;
 		}
-		u0 = ul[j+n-1];
-		p0 = u0 - u1;
-		u1 = u0 < p0;
-		ul[j+n-1] = p0;
+		c0 = u0 < c1;
+		u0 = u0 - c1;
+		c1 = u1 < c0;
+		u1 = u1 - c0;
+		ul[j+n] = u0;
 
 		/* adjust if quotient estimate was too large */
-		if (UNLIKELY(u1 > 0)) {
-			u1 = 0;
-			for (i = 0; i < n; i++) {
-				u0 = ul[j+i] + dl[i] + u1;
-				u1 = (u0 < ul[j+i]) || (u0 == ul[j+i] && u1);
-				ul[j+i] = u0;
+		if (UNLIKELY(c1)) {
+			c1 = 0;
+			for (i = 0; i < n + 1; i++) {
+				c0 = ul[j+i] + dl[i] + c1;
+				c1 = (c0 < ul[j+i]) || (c0 == ul[j+i] && c1);
+				ul[j+i] = c0;
 			}
+			u1 = u1 + dl[n+1] + c1;
 			qhat--;
 		}
 
-		ql[j-1] = qhat;
+		ql[j] = qhat;
 	}
-	while (--j);
+
+	ul[++n] = u1;
+
+	/* clear top of last packet in remainder */
+	if ((i = ++n % MLIMB_PER_PACKET) != 0)
+		for ( ; i < MLIMB_PER_PACKET; i++)
+			ul[n++] = 0;
 
 	/* length of quotient in packets*/
 	return m / MLIMB_PER_PACKET;

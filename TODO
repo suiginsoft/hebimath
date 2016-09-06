@@ -19,3 +19,9 @@ Other:
   has already zeroed destination memory
 * add support for GCC/Clang overflow intrinsics when checking if
   memory allocation sizes exceed max size
+* use different seeds for each sequentially generated integer from the
+  zpermutation function in the unit test suite, so that numbers don't
+  overlap for multiplication and division
+* fix up edge cases in hebi_zdiv backend
+* does the zdiv backend need to call pnorm, or should we leave that up
+  to the caller?
