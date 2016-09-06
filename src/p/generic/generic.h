@@ -35,6 +35,7 @@
 #define DLIMB hebi_uint128
 #define MLIMB uint64_t
 #define MLIMB_BIT 64
+#define MLIMB_HIGH_BIT (UINT64_C(1)<<63)
 #define MLIMB_MAX UINT64_MAX
 #define MLIMB_PER_PACKET HEBI_PACKET_LIMBS64
 #define MLIMB_CLZ(X) hebi_clz64(X)
@@ -53,6 +54,7 @@
 #define DLIMB uint64_t
 #define MLIMB uint32_t
 #define MLIMB_BIT 32
+#define MLIMB_HIGH_BIT (UINT32_C(1)<<31)
 #define MLIMB_MAX UINT32_MAX
 #define MLIMB_PER_PACKET HEBI_PACKET_LIMBS32
 #define MLIMB_CLZ(X) hebi_clz32(X)

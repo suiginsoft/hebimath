@@ -10,13 +10,17 @@ size_t
 hebi_pnorm(const hebi_packet *a, size_t n)
 {
 	const LIMB *al;
-	size_t i;
+	size_t i, r;
 
 	al = LIMB_PTR(a);
+	r = 0;
 
-	for (i = n * LIMB_PER_PACKET; i--; )
-		if (al[i])
-			return (i + LIMB_PER_PACKET) / LIMB_PER_PACKET;
+	for (i = n * LIMB_PER_PACKET; i--; ) {
+		if (al[i]) {
+			r = (i + LIMB_PER_PACKET) / LIMB_PER_PACKET;
+			break;
+		}
+	}
 
-	return 0;
+	return r;
 }

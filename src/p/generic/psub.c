@@ -20,6 +20,8 @@ hebi_psub(
 	LIMB diff, borrow;
 	size_t i;
 
+	ASSERT(an >= bn);
+
 	rl = LIMB_PTR(r);
 	al = LIMB_PTR(a);
 	bl = LIMB_PTR(b);

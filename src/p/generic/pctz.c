@@ -12,14 +12,16 @@ hebi_pctz(const hebi_packet *a, size_t n)
 	const LIMB *al;
 	size_t i, r;
 
-	if (UNLIKELY(!n))
-		return 0;
-
 	al = LIMB_PTR(a);
+	r = 0;
 
-	for (r = 0, i = 0; i < n * LIMB_PER_PACKET; r += LIMB_BIT)
-		if (al[i])
-			return LIMB_CTZ(al[i]) + r;
+	for (i = 0; i < n * LIMB_PER_PACKET; i++) {
+		if (al[i]) {
+			r += LIMB_CTZ(al[i]);
+			break;
+		}
+		r += LIMB_BIT;
+	}
 
 	return r;
 }

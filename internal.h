@@ -238,7 +238,7 @@ HEBI_NORETURN void hebi_error_assert__(const char *, const char *, const char *,
 #define ASSERT(E) \
 	MULTILINEBEGIN \
 	if (UNLIKELY(!(E))) \
-		hebi_error_assert__(STRINGIZE(E), __func__, __FILE__, __LINE__) \
+		hebi_error_assert__(STRINGIZE(E), __func__, __FILE__, __LINE__); \
 	MULTILINEEND
 #else
 #define ASSERT(E) IGNORE(E)

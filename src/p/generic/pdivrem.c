@@ -21,17 +21,16 @@ hebi_pdivrem(
 	size_t limbs, m, n;
 	MLIMB v;
 
+	ASSERT(an >= bn);
+	ASSERT(bn > 0);
+
 	/* determine number of bits needed to normalize divisor */
 	n = hebi_pclz(b, bn);
 	bits = (int)(n % MLIMB_BIT);
 	limbs = n / MLIMB_BIT;
 	n = bn * MLIMB_PER_PACKET - limbs;
 
-	if (UNLIKELY(!n)) {
-		if (rn)
-			*rn = 0;
-		return 0;
-	}
+	ASSERT(n != 0);
 
 	if (n > 2) {
 		/* division with large multi-word divisor */
@@ -109,6 +108,5 @@ hebi_pdivrem(
 	/* store length of remainder and determine length of quotient */
 	if (rn)
 		*rn = n;
-
 	return hebi_pnorm(q, m);
 }

@@ -18,6 +18,10 @@ PDIVREMRU_3x2(
 	MLIMB a1, a0, u2, u1, u0;
 	size_t i;
 
+	ASSERT(n > 2);
+	ASSERT(MLIMB_BIT > bits && bits >= 0);
+	ASSERT((d1 & MLIMB_HIGH_BIT) != 0);
+
 	a1 = a[n-1];
 	a0 = a[n-2];
 

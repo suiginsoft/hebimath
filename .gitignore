@@ -4,7 +4,8 @@ bench/p/paddu
 bench/p/pclz
 bench/p/pcmp
 bench/p/pcopy
-bench/p/pdivmodu
+bench/p/pdivrem
+bench/p/pdivremu
 bench/p/pmove
 bench/p/pmul
 bench/p/pmul_karatsuba
@@ -24,10 +25,12 @@ check/p/pnorm
 check/p/pzero
 check/z/zadd
 check/z/zaddi
+check/z/zdiv
 check/z/zdivi
 check/z/zgetset
 check/z/zmul
 check/z/zmuli
+check/z/zrem
 check/z/zremi
 check/z/zshl
 check/z/zshr

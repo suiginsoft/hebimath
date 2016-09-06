@@ -14,7 +14,7 @@ hebi_error_assert__(
 		const char *file,
 		long line)
 {
-	fprintf(stderr, "assertion failure in %s [%s:%ld]\nexpression:%s\n",
+	fprintf(stderr, "Assertion failure in %s (%s:%ld)\nExpression: %s\n",
 		func, file, line, expr);
 	hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EASSERTION);
 }

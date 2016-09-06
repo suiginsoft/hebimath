@@ -20,8 +20,8 @@ hebi_pdivremu(hebi_packet *q, const hebi_packet *a, uint64_t b, size_t n)
 	uint32_t v, d1, d0;
 #endif
 
-	if (UNLIKELY(!b))
-		return 0;
+	ASSERT(n > 0);
+	ASSERT(b != 0);
 
 	ql = MLIMB_PTR(q);
 	al = MLIMB_PTR(a);

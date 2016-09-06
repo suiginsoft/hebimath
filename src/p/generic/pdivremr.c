@@ -20,6 +20,10 @@ PDIVREMR(
 	DLIMB p;
 	size_t i, j;
 
+	ASSERT(m >= n);
+	ASSERT(n > 2);
+	ASSERT((dl[n-1] & MLIMB_HIGH_BIT) != 0);
+
 	/*
 	 * ensure initial top two limbs of dividend are less than top two
 	 * words of divisor, adjust dividend and quotient if necessary
