@@ -5,6 +5,8 @@
 
 #include "../../internal.h"
 
+STATIC_ASSERT(KARATSUBA_MUL_CUTOFF >= 4, "must be greater than or equal to 4");
+
 HEBI_API HEBI_CONST
 size_t
 hebi_pmul_karatsuba_space(size_t an, size_t bn)

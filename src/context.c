@@ -15,6 +15,11 @@
 #endif
 #endif
 
+STATIC_ASSERT(CACHE_LINE_SIZE > 0, "must be greater than zero");
+STATIC_ASSERT((CACHE_LINE_SIZE & (CACHE_LINE_SIZE - 1)) == 0, "must be a power of two");
+
+STATIC_ASSERT(ZSTACK_MAX_SIZE > 0, "must be greater than zero");
+
 #if defined USE_C11_THREAD_LOCAL
 
 EXTENSION _Thread_local struct hebi_context hebi_context__;

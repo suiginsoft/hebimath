@@ -134,6 +134,7 @@ ZFUNCTIONS := \
 FUNCTIONS := \
 	$(PFUNCTIONS) \
 	$(ZFUNCTIONS) \
+	error_assert \
 	error_handler \
 	error_jmp \
 	error_save \

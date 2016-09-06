@@ -5,6 +5,8 @@
 
 #include "../../internal.h"
 
+STATIC_ASSERT(KARATSUBA_SQR_CUTOFF >= 4, "must be greater than or equal to 4");
+
 HEBI_API
 void
 hebi_psqr_karatsuba(

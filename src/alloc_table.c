@@ -13,6 +13,16 @@
 #include <pthread.h>
 #endif
 
+STATIC_ASSERT(ALLOC_TABLE_MAX_PAGES > 0, "must be non-zero");
+STATIC_ASSERT(ALLOC_TABLE_PAGE_SIZE > 0, "must be non-zero");
+STATIC_ASSERT((ALLOC_TABLE_MAX_PAGES & (ALLOC_TABLE_MAX_PAGES - 1)) == 0, "must be a power of two");
+STATIC_ASSERT((ALLOC_TABLE_PAGE_SIZE & (ALLOC_TABLE_PAGE_SIZE - 1)) == 0, "must be a power of two");
+
+STATIC_ASSERT(ALLOC_CACHE_MAX_SIZE > 0, "must be non-zero");
+STATIC_ASSERT(ALLOC_CACHE_MAX_USED > 0, "must be non-zero");
+STATIC_ASSERT((ALLOC_CACHE_MAX_SIZE & (ALLOC_CACHE_MAX_SIZE - 1)) == 0, "must be a power of two");
+STATIC_ASSERT(ALLOC_CACHE_MAX_USED < ALLOC_CACHE_MAX_SIZE, "MAX_USED must be less than MAX_SIZE");
+
 #if SIZE_MAX >= UINT64_MAX
 #define KEY_GENR_SHFT 16
 #define KEY_GENR_MASK 0x00007FFF

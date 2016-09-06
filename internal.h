@@ -34,6 +34,7 @@
 #define __has_extension(X) GNUC_EXTENSION_##X
 #define GNUC_EXTENSION_c_atomic GNUC_VERSION_AT_LEAST(4,9,0)
 #define GNUC_EXTENSION_c_thread_local GNUC_VERSION_AT_LEAST(4,9,0)
+#define GNUC_EXTENSION_c_static_assert GNUC_VERSION_AT_LEAST(4,6,0)
 #endif
 
 #endif
@@ -212,17 +213,42 @@ EXTENSION typedef unsigned __int128 hebi_uint128;
 
 /* common macros */
 #define ALIGNAS(A) HEBI_ALIGNAS(A)
-#define ABS(X) ((X)<0?-(X):(X))
+#define ABS(A) ((A)<0?-(A):(A))
 #define MIN(A,B) ((A)<(B)?(A):(B))
 #define MAX(A,B) ((A)>(B)?(A):(B))
-#define COUNTOF(X) (sizeof(X) / sizeof(X[0]))
+#define SWAP(T,A,B) { T T_ = A; A = B; B = T_; }
+#define COUNTOF(A) (sizeof(A) / sizeof(A[0]))
 #define LIKELY(E) HEBI_LIKELY(E)
 #define UNLIKELY(E) HEBI_UNLIKELY(E)
-#define SWAP(T,X,Y) { T T_ = X; X = Y; Y = T_; }
+#define CONCAT__(A,B) A##B
+#define CONCAT_(A,B) CONCAT__(A,B)
+#define CONCAT(A,B) CONCAT_(A,B)
+#define STRINGIZE_(A) #A
+#define STRINGIZE(A) STRINGIZE_(A)
+#define MULTILINEBEGIN do {
+#define MULTILINEEND } while(0)
 
 /* ignore unused arguments or variables */
 int hebi_ignore__(int, ...);
 #define IGNORE(...) ((void)sizeof(hebi_ignore__(0, __VA_ARGS__)))
+
+/* runtime and static assertions */
+HEBI_NORETURN void hebi_error_assert__(const char *, const char *, const char *, long);
+#ifdef USE_ASSERTIONS
+#define ASSERT(E) \
+	MULTILINEBEGIN \
+	if (UNLIKELY(!(E))) \
+		hebi_error_assert__(STRINGIZE(E), __func__, __FILE__, __LINE__) \
+	MULTILINEEND
+#else
+#define ASSERT(E) IGNORE(E)
+#endif
+
+#if __has_extension(c_static_assert) || (defined __STDC_VERSION__ && __STDC_VERSION__ >= 201112L)
+#define STATIC_ASSERT(E,S) _Static_assert(E, S)
+#else
+#define STATIC_ASSERT(E,S) typedef char CONCAT(static_assert_on_line_, __LINE__)[(!!(E))*2-1]
+#endif
 
 /* hebi_errstate field names */
 #define hes_handler hebi_handler__
@@ -239,12 +265,6 @@ int hebi_ignore__(int, ...);
 #define hk_single hebi_data__.hebi_single__
 #define hk_multi hebi_data__.hebi_multi__.hebi_values__
 #define hk_multi_index hebi_data__.hebi_multi__.hebi_index__
-
-/* hebi_reciprocal field names */
-#define hr_dnorm hebi_dnorm__
-#define hr_vnorm hebi_vnorm__
-#define hr_shift hebi_shift__
-#define hr_sign hebi_sign__
 
 /* hebi_integer field names */
 #define hz_packs hebi_packs__
@@ -684,7 +704,7 @@ void
 hebi_zdestroy_pop__(hebi_zptr r)
 {
 	struct hebi_context *ctx = hebi_context_get();
-//	ASSERT(ctx->zstackused > 0 && ctx->zstack[ctx->zstackused - 1] == r);
+	ASSERT(ctx->zstackused > 0 && ctx->zstack[ctx->zstackused - 1] == r);
 	ctx->zstack[--ctx->zstackused] = NULL;
 	hebi_zdestroy(r);
 }
