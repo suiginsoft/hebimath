@@ -313,18 +313,18 @@ vscheckbc(const char *restrict hres, const char *restrict bcop, va_list ap)
 	if (strcmp(hres, bcres)) {
 		(void)fprintf(stderr,
 			"hebi operation does not match bc operation\n"
-			"iteration: %ld\n"
+			"iteration: %ld pass: %ld\n"
 			"hebi:\n%s\n"
 			"bc:\n%s\n"
 			"operation:\n%s\n",
-			check_iter, hres, bcres, bcopbuf);
+			check_iter, check_pass, hres, bcres, bcopbuf);
 		if (!check_skip_error) {
 			(void)fflush(stderr);
 			abort();
 		}
 	} else if (check_verbose) {
 		(void)printf(
-			"iteration:%ld pass: %ld\n"
+			"iteration: %ld pass: %ld\n"
 			"hebi:\n%s\n"
 			"bc:\n%s\n"
 			"operation:\n%s\n\n",
