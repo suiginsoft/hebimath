@@ -55,10 +55,13 @@ STRIP = strip
 ASFLAGS =
 CPPFLAGS = -DVERSION=\"${VERSION}\" -D_POSIX_C_SOURCE=200809L
 CFLAGS = -O3 -flto -ftree-vectorize -pedantic -pthread -Wall
-#CFLAGS = -O0 -g -pedantic -pthread -Wall
-ARFLAGS = -rc
 LDFLAGS = -s
 LDLIBS = -lc -lm
+ARFLAGS = -rc
+
+# debug toolchain flags
+#CFLAGS = -g -O0 -pedantic -pthread -Wall -DUSE_ASSERTIONS
+#LDFLAGS =
 
 # additional flags used when building shared library
 ASFLAGS_shared = -mshared --defsym HAS_PIC=1
