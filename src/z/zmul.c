@@ -9,10 +9,10 @@ HEBI_API
 void
 hebi_zmul(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 {
-	hebi_z temp;
-	hebi_zptr restrict t;
-	hebi_packet *restrict tp, *restrict wp;
-	size_t au, bu, tn;
+	hebi_z rtmp;
+	hebi_zptr restrict rz;
+	hebi_packet *restrict rp, *restrict wp;
+	size_t rn, an, bn;
 	int as, bs;
 
 	if (UNLIKELY(!(as = a->hz_sign) || !(bs = b->hz_sign))) {
@@ -20,40 +20,39 @@ hebi_zmul(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 		return;
 	}
 
-	au = a->hz_used;
-	bu = b->hz_used;
-	if (au < bu) {
+	an = a->hz_used;
+	bn = b->hz_used;
+	if (an < bn) {
 		SWAP(hebi_zsrcptr, a, b);
-		SWAP(size_t, au, bu);
+		SWAP(size_t, an, bn);
 	}
 
-	tn = au + bu + 1;
-	if (UNLIKELY(tn <= au))
+	rn = an + bn + 1;
+	if (UNLIKELY(rn <= an))
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
 
-	t = r;
-	if (t == a || t == b)
-		hebi_zinit_allocator((t = temp), hebi_zallocator(r));
+	rz = r;
+	if (rz == a || rz == b)
+		hebi_zinit_push__((rz = rtmp), hebi_zallocator(r));
 
-	if (au > KARATSUBA_MUL_CUTOFF) {
-		wp = hebi_pscratch(hebi_pmul_karatsuba_space(au, bu));
-		if (tn > t->hz_resv)
-			hebi_zrealloczero(t, tn);
-		tp = t->hz_packs;
-		hebi_pzero(tp, tn);
-		hebi_pmul_karatsuba(tp, wp, a->hz_packs, b->hz_packs, au, bu);
+	if (an > KARATSUBA_MUL_CUTOFF) {
+		wp = hebi_pscratch(hebi_pmul_karatsuba_space(an, bn));
+		if (rn > rz->hz_resv)
+			hebi_zrealloczero(rz, rn);
+		rp = rz->hz_packs;
+		hebi_pzero(rp, rn);
+		hebi_pmul_karatsuba(rp, wp, a->hz_packs, b->hz_packs, an, bn);
 	} else {
-		if (--tn > t->hz_resv)
-			hebi_zrealloczero(t, tn);
-		tp = t->hz_packs;
-		hebi_pmul(tp, a->hz_packs, b->hz_packs, au, bu);
+		if (--rn > rz->hz_resv)
+			hebi_zrealloczero(rz, rn);
+		rp = rz->hz_packs;
+		hebi_pmul(rp, a->hz_packs, b->hz_packs, an, bn);
 	}
 
-	t->hz_used = hebi_pnorm(tp, tn);
-	t->hz_sign = (as ^ bs) < 0 ? -1 : 1;
-
-	if (r != t) {
-		hebi_zswap(r, t);
-		hebi_zdestroy(t);
+	rz->hz_used = hebi_pnorm(rp, rn);
+	rz->hz_sign = (as ^ bs) < 0 ? -1 : 1;
+	if (rz != r) {
+		hebi_zswap(rz, r);
+		hebi_zdestroy_pop__(rz);
 	}
 }

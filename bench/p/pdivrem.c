@@ -15,7 +15,7 @@ main(int argc, char *argv[])
 	size_t rn;
 	int i;
 
-	al = bench_init(argc, argv, &p);
+	bench_init(argc, argv, &p);
 
 	a = hebi_palloc(HEBI_ALLOC_DEFAULT, p.an);
 	b = hebi_palloc(HEBI_ALLOC_DEFAULT, p.bn);
@@ -28,7 +28,7 @@ main(int argc, char *argv[])
 	bench_start();
 
 	for (i = 0; i < p.iter; ++i)
-		result_sink = hebi_pdivmod(q, r, w, &rn, a, b, p.an, p.bn);
+		result_sink = hebi_pdivrem(q, r, w, &rn, a, b, p.an, p.bn);
 
 	bench_stop();
 

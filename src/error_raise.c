@@ -49,6 +49,7 @@ hebi_error_raise(enum hebi_errdom domain, int code)
 			ESTR(HEBI_ENOHWCAPS)
 			ESTR(HEBI_ENOMEM)
 			ESTR(HEBI_ENOSLOTS)
+			ESTR(HEBI_EASSERTION)
 			default: estr = "unknown"; break;
 		}
 		fprintf(stderr, "hebimath error: %s\n", estr);

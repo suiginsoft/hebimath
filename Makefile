@@ -28,10 +28,11 @@ PKERNELS := \
 	pcmp \
 	pcopy \
 	pctz \
-	pdivremr3x2 \
+	pdivrem \
+	pdivremr \
+	pdivremu \
 	pdivremru2x1 \
 	pdivremru3x2 \
-	pdivremu \
 	pmove \
 	pmul \
 	pmulu \
@@ -57,6 +58,7 @@ PFUNCTIONS := \
 	p/pmul_karatsuba_space \
 	p/prand_kiss \
 	p/psetu \
+	p/psetu2 \
 	p/psetzero \
 	p/psqr_karatsuba \
 	p/psqr_karatsuba_space \
@@ -110,6 +112,9 @@ ZFUNCTIONS := \
 	z/zsub \
 	z/zmul \
 	z/zsqr \
+	z/zdiv \
+	z/zrem \
+	z/zdivrem \
 	z/zaddi \
 	z/zaddu \
 	z/zsubi \
@@ -118,10 +123,10 @@ ZFUNCTIONS := \
 	z/zmulu \
 	z/zdivi \
 	z/zdivu \
-	z/zdivremi \
-	z/zdivremu \
 	z/zremi \
 	z/zremu \
+	z/zdivremi \
+	z/zdivremu \
 	z/zshl \
 	z/zshr \
 	z/zrand_kiss
@@ -177,6 +182,7 @@ BENCH_P := \
 	pclz \
 	pcmp \
 	pcopy \
+	pdivrem \
 	pdivremu \
 	pmove \
 	pmul \
@@ -212,6 +218,8 @@ CHECK_Z := \
 	zadd \
 	zsub \
 	zmul \
+	zdiv \
+	zrem \
 	zshl \
 	zshr
 

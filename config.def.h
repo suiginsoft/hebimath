@@ -7,8 +7,18 @@
 #define HEBI_CONFIG_H__
 
 /*
- * Comment out to disable internal validation checks that call hebi_raise.
- * This may improve performance at the cost of safety.
+ * Uncomment to enable assertions on input argument constraints of low-
+ * level kernel functions and internal consistency checks. Assertions
+ * guard against programming errors and hence are disabled by default
+ * and should only be enabled as an aid when debugging.
+ */
+/* #define USE_ASSERTIONS */
+
+/*
+ * Comment out to disable validation of input arguments on high-level
+ * integer functions (functions with hebi_z*** prefix). Validation
+ * checks help guard against constraint violations in external data.
+ * Disabling this may improve performance at the cost of safety.
  */
 #define USE_VALIDATION
 

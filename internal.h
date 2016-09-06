@@ -277,7 +277,10 @@ struct hebi_context {
 	size_t scratchsize;
 	void *scratch;
 
-	/* stack of temporary integer objects to track */
+	/*
+	 * stack of temporary integer objects to track and release
+	 * if an error is raised
+	 */
 	unsigned int zstackused;
 	hebi_zptr zstack[ZSTACK_MAX_SIZE];
 
@@ -457,7 +460,7 @@ HEBI_CONST uint64_t hebi_recipu64_3x2__(uint64_t, uint64_t);
 
 extern uint64_t (* hebi_pdivremru64_2x1_ptr__)(uint64_t *, const uint64_t *, size_t, int, uint64_t, uint64_t);
 extern hebi_uint128 (* hebi_pdivremru64_3x2_ptr__)(uint64_t *, const uint64_t *, size_t, int, uint64_t, uint64_t, uint64_t);
-extern size_t (* hebi_pdivremr64_3x2_ptr__)(uint64_t *HEBI_RESTRICT, uint64_t *HEBI_RESTRICT, const uint64_t *HEBI_RESTRICT, uint64_t, size_t, size_t);
+extern size_t (* hebi_pdivremr64_ptr__)(hebi_packet *HEBI_RESTRICT, uint64_t *HEBI_RESTRICT, const uint64_t *HEBI_RESTRICT, uint64_t, size_t, size_t);
 
 static inline HEBI_ALWAYSINLINE
 uint64_t
@@ -475,16 +478,16 @@ hebi_pdivremru64_3x2__(uint64_t *r, const uint64_t *a, size_t n, int s, uint64_t
 
 static inline HEBI_ALWAYSINLINE
 size_t
-hebi_pdivremr64_3x2__(uint64_t *HEBI_RESTRICT q, uint64_t *HEBI_RESTRICT u, const uint64_t *HEBI_RESTRICT d, uint64_t v, size_t m, size_t n)
+hebi_pdivremr64__(hebi_packet *HEBI_RESTRICT q, uint64_t *HEBI_RESTRICT u, const uint64_t *HEBI_RESTRICT d, uint64_t v, size_t m, size_t n)
 {
-	return hebi_pdivremr64_3x2_ptr__(q, u, d, v, m, n);
+	return hebi_pdivremr64_ptr__(q, u, d, v, m, n);
 }
 
 #else /* HEBI_MULTI_VERSIONING */
 
 uint64_t hebi_pdivremru64_2x1__(uint64_t *, const uint64_t *, size_t, int, uint64_t, uint64_t);
 hebi_uint128 hebi_pdivremru64_3x2__(uint64_t *, const uint64_t *, size_t, int, uint64_t, uint64_t, uint64_t);
-size_t hebi_pdivremr64_3x2__(uint64_t *HEBI_RESTRICT, uint64_t *HEBI_RESTRICT, const uint64_t *HEBI_RESTRICT, uint64_t, size_t, size_t);
+size_t hebi_pdivremr64__(hebi_packet *HEBI_RESTRICT, uint64_t *HEBI_RESTRICT, const uint64_t *HEBI_RESTRICT, uint64_t, size_t, size_t);
 
 #endif /* HEBI_MULTI_VERSIONING */
 
@@ -498,7 +501,7 @@ HEBI_CONST uint32_t hebi_recipu32_3x2__(uint32_t, uint32_t);
 
 extern uint32_t (* hebi_pdivremru32_2x1_ptr__)(uint32_t *, const uint32_t *, size_t, int, uint32_t, uint32_t);
 extern uint64_t (* hebi_pdivremru32_3x2_ptr__)(uint32_t *, const uint32_t *, size_t, int, uint32_t, uint32_t, uint32_t);
-extern size_t (* hebi_pdivremr32_3x2_ptr__)(uint32_t *HEBI_RESTRICT, uint32_t *HEBI_RESTRICT, const uint32_t *HEBI_RESTRICT, uint32_t, size_t, size_t);
+extern size_t (* hebi_pdivremr32_ptr__)(hebi_packet *HEBI_RESTRICT, uint32_t *HEBI_RESTRICT, const uint32_t *HEBI_RESTRICT, uint32_t, size_t, size_t);
 
 static inline HEBI_ALWAYSINLINE
 uint32_t
@@ -516,16 +519,16 @@ hebi_pdivremru32_3x2__(uint32_t *r, const uint32_t *a, size_t n, int s, uint32_t
 
 static inline HEBI_ALWAYSINLINE
 size_t
-hebi_pdivremr32_3x2__(uint32_t *HEBI_RESTRICT q, uint32_t *HEBI_RESTRICT u, const uint32_t *HEBI_RESTRICT d, uint32_t v, size_t m, size_t n)
+hebi_pdivremr32__(hebi_packet *HEBI_RESTRICT q, uint32_t *HEBI_RESTRICT u, const uint32_t *HEBI_RESTRICT d, uint32_t v, size_t m, size_t n)
 {
-	return hebi_pdivremr32_3x2_ptr__(q, u, d, v, m, n);
+	return hebi_pdivremr32_ptr__(q, u, d, v, m, n);
 }
 
 #else /* HEBI_MULTI_VERSIONING */
 
 uint32_t hebi_pdivremru32_2x1__(uint32_t *, const uint32_t *, size_t, int, uint32_t, uint32_t);
 uint64_t hebi_pdivremru32_3x2__(uint32_t *, const uint32_t *, size_t, int, uint32_t, uint32_t d0, uint32_t v);
-size_t hebi_pdivremr32_3x2__(uint32_t *HEBI_RESTRICT, uint32_t *HEBI_RESTRICT, const uint32_t *HEBI_RESTRICT, uint32_t, size_t, size_t);
+size_t hebi_pdivremr32__(hebi_packet *HEBI_RESTRICT, uint32_t *HEBI_RESTRICT, const uint32_t *HEBI_RESTRICT, uint32_t, size_t, size_t);
 
 #endif /* HEBI_MULTI_VERSIONING */
 
@@ -642,18 +645,14 @@ static inline HEBI_ALWAYSINLINE HEBI_ALLOC HEBI_WARNUNUSED
 void *
 hebi_scratch(size_t n)
 {
+	struct hebi_context *ctx = hebi_context_get();
 	const struct hebi_alloc_callbacks *cb;
-	struct hebi_context *ctx;
-	
-	ctx = hebi_context_get();
-
 	if (ctx->scratchsize < n) {
 		cb = hebi_alloc_query(NULL, ctx->allocids[1]);
 		hebi_free_cb(cb, ctx->scratch, ctx->scratchsize);
 		ctx->scratch = hebi_alloc_cb(cb, HEBI_PACKET_ALIGNMENT, n);
 		ctx->scratchsize = n;
 	}
-
 	return ctx->scratch;
 }
 
@@ -665,6 +664,29 @@ hebi_pscratch(size_t n)
 	if (UNLIKELY(sz / sizeof(hebi_packet) != n))
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
 	return (hebi_packet *)hebi_scratch(sz);
+}
+
+static inline HEBI_ALWAYSINLINE
+void
+hebi_zinit_push__(hebi_zptr r, hebi_alloc_id id)
+{
+	struct hebi_context *ctx = hebi_context_get();
+	if (UNLIKELY(ctx->zstackused >= ZSTACK_MAX_SIZE))
+		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOSLOTS);
+	ctx->zstack[ctx->zstackused++] = r;
+	if (UNLIKELY(id == HEBI_ALLOC_INVALID))
+		id = HEBI_ALLOC_DEFAULT;
+	hebi_zinit_allocator(r, id);
+}
+
+static inline HEBI_ALWAYSINLINE
+void
+hebi_zdestroy_pop__(hebi_zptr r)
+{
+	struct hebi_context *ctx = hebi_context_get();
+//	ASSERT(ctx->zstackused > 0 && ctx->zstack[ctx->zstackused - 1] == r);
+	ctx->zstack[--ctx->zstackused] = NULL;
+	hebi_zdestroy(r);
 }
 
 static inline HEBI_ALWAYSINLINE

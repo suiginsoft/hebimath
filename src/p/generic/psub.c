@@ -27,13 +27,13 @@ hebi_psub(
 	borrow = 0;
 	i = 0;
 
-	for ( ; i < bn * LIMB_PER_PACKET; ++i) {
+	for ( ; i < bn * LIMB_PER_PACKET; i++) {
 		diff = al[i] - bl[i] - borrow;
 		borrow = (diff > al[i]) || (diff == al[i] && borrow);
 		rl[i] = diff;
 	}
 
-	for ( ; i < an * LIMB_PER_PACKET; ++i) {
+	for ( ; i < an * LIMB_PER_PACKET; i++) {
 		diff = al[i] - borrow;
 		borrow = diff > al[i];
 		rl[i] = diff;

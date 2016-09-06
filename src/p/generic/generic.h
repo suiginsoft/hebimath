@@ -46,7 +46,7 @@
 #define DIVREMRU_3x2 hebi_divremru64_3x2__
 #define PDIVREMRU_2x1 hebi_pdivremru64_2x1__
 #define PDIVREMRU_3x2 hebi_pdivremru64_3x2__
-#define PDIVREMR_3x2 hebi_pdivremr64_3x2__
+#define PDIVREMR hebi_pdivremr64__
 
 #else /* USE_LIMB64_MULDIV */
 
@@ -64,7 +64,7 @@
 #define DIVREMRU_3x2 hebi_divremru32_3x2__
 #define PDIVREMRU_2x1 hebi_pdivremru32_2x1__
 #define PDIVREMRU_3x2 hebi_pdivremru32_3x2__
-#define PDIVREMR_3x2 hebi_pdivremr32_3x2__
+#define PDIVREMR hebi_pdivremr32__
 
 #endif /* USE_LIMB64_MULDIV */
 
