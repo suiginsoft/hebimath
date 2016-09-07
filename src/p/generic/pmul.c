@@ -50,6 +50,6 @@ hebi_pmul(
 			rp[i+j] = (MLIMB)(p & MLIMB_MAX);
 			o = (MLIMB)(p >> MLIMB_BIT);
 		}
-		rp[i+j] = (MLIMB)(o & MLIMB_MAX);
+		rp[i+j] = o;
 	}
 }
