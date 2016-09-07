@@ -10,7 +10,7 @@ static volatile size_t result_sink;
 int
 main(int argc, char *argv[])
 {
-	bench_args p = { .iter = 5000, .an = 256, .bn = 128 };
+	bench_args p = { .iter = 5000, .an = 512, .bn = 256 };
 	hebi_packet *a, *b, *q, *r, *w;
 	size_t rn;
 	int i;
