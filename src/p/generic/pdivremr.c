@@ -6,98 +6,98 @@
 #include "generic.h"
 
 HEBI_API
-size_t
+MLIMB
 PDIVREMR(
 		hebi_packet *restrict q,
 		hebi_packet *restrict u,
 		const hebi_packet *restrict d,
-		MLIMB v,
-		size_t m,
-		size_t n,
-		size_t l )
+		size_t un,
+		size_t dn,
+		size_t limbs,
+		MLIMB v )
 {
 	MLIMB *restrict ql, *restrict ul;
 	const MLIMB *restrict dl;
-	MLIMB qhat, p1, p0, u1, u0, c1, c0;
+	MLIMB qh, qhat, p1, p0, u1, u0, c1, c0;
 	DLIMB p;
-	size_t i, j;
+	size_t i, m, n;
 
 	ql = MLIMB_PTR(q);
 	ul = MLIMB_PTR(u);
 	dl = MLIMB_PTR(d);
-	m = m * MLIMB_PER_PACKET;
-	n = n * MLIMB_PER_PACKET;
 
-	ASSERT(m >= n);
-	ASSERT(n > l+2);
+	m = un * MLIMB_PER_PACKET;
+	n = dn * MLIMB_PER_PACKET;
+
+	ASSERT(n > limbs+2);
 	ASSERT((dl[n-1] & MLIMB_HIGH_BIT) != 0);
 
-	/*
-	 * ensure initial top two limbs of dividend are less than top two
-	 * words of divisor, adjust dividend and quotient if necessary
-	 */
-	m -= n;
 	n -= 2;
-	j = m;
+	u1 = ul[m+n+1];
+	u0 = ul[m+n];
+	qh = 0;
 
-	u1 = ul[j+n+1];
-	u0 = ul[j+n+0];
-
-	/* TODO: need to compare with entire divisor */
-	if (UNLIKELY(u1 > dl[n+1] || (u1 == dl[n+1] && u0 >= dl[n+0]))) {
-		ASSERT(!"NOT IMPLEMENTED");
-		u1 -= dl[n+1] + (u0 < dl[n+1]);
-		u0 -= dl[n+0];
-		ul[j+n+1] = u1;
-		ul[j+n+0] = u0;
-		hebi_psetu(q+m/MLIMB_PER_PACKET, 1);
-		m+=4;
+	/*
+	 * ensure dividend is less than divisor, adjust dividend and top limb
+	 * of quotient if necessary
+	 */
+	if (UNLIKELY((u1 > dl[n+1] || (u1 == dl[n+1] && u0 >= dl[n])) &&
+			hebi_pcmp(u+un, d, dn) >= 0)) {
+		(void)hebi_psub(u+un, u+un, d, dn, dn);
+		u1 = ul[m+n+1];
+		u0 = ul[m+n];
+		qh = 1;
 	}
 
 	/* perform multi-word 3x2 reciprocal division */
-	while (j--) {
-		/* TODO: do we need to handle this case? */
-		ASSERT(u1 != dl[n+1] || u0 != dl[n+0]);
-
+	while (m--) {
 		/* estimate quotient limb */
-		DIVREMRU_3x2(&qhat, &u1, &u0, ul[j+n], dl[n+1], dl[n+0], v);
+		if (LIKELY(u1 < dl[n+1] || u0 < dl[n])) {
+			DIVREMRU_3x2(&qhat, &u1, &u0, ul[m+n], dl[n+1], dl[n], v);
+		} else {
+			u0 = u0 + dl[n];
+			c0 = dl[n] > u0;
+			p0 = dl[n] - (dl[n] > 0);
+			c1 = p0 - c0;
+			u1 = u1 + dl[n+1] - c1;
+			qhat = MLIMB_MAX;
+		}
 
 		/* multiply and subtract to compute remainder */
 		c1 = 0;
-		for (i = l; i < n; i++) {
+		for (i = limbs; i < n; i++) {
 			p = (DLIMB)qhat * dl[i];
 			p0 = (MLIMB)(p & MLIMB_MAX);
 			p1 = (MLIMB)(p >> MLIMB_BIT);
 			p0 = p0 + c1;
 			c1 = p1 + (p0 < c1);
-			c0 = ul[j+i];
+			c0 = ul[m+i];
 			p0 = c0 - p0;
 			c1 = c1 + (c0 < p0);
-			ul[j+i] = p0;
+			ul[m+i] = p0;
 		}
 		c0 = u0 < c1;
 		u0 = u0 - c1;
 		c1 = u1 < c0;
 		u1 = u1 - c0;
-		ul[j+n] = u0;
+		ul[m+n] = u0;
 
 		/* adjust if quotient estimate was too large */
 		if (UNLIKELY(c1)) {
 			c1 = 0;
-			for (i = l; i < n+1; i++) {
-				c0 = ul[j+i] + dl[i] + c1;
-				c1 = (c0 < ul[j+i]) || (c0 == ul[j+i] && c1);
-				ul[j+i] = c0;
+			for (i = limbs; i < n+1; i++) {
+				c0 = ul[m+i] + dl[i] + c1;
+				c1 = (c0 < ul[m+i]) || (c0 == ul[m+i] && c1);
+				ul[m+i] = c0;
 			}
 			u1 = u1 + dl[n+1] + c1;
 			qhat--;
 		}
 
-		ql[j] = qhat;
+		ql[m] = qhat;
 	}
 
-	ul[++n] = u1;
-
-	/* length of quotient in packets*/
-	return m / MLIMB_PER_PACKET;
+	/* store top limb of remainder and return top limb of quotient */
+	ul[n+1] = u1;
+	return qh;
 }

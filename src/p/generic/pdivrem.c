@@ -18,7 +18,7 @@ hebi_pdivrem(
 		size_t bn )
 {
 	size_t bits, limbs, m, n;
-	MLIMB v;
+	MLIMB d1, d0, v;
 
 	ASSERT(an >= bn);
 	ASSERT(bn > 0);
@@ -33,29 +33,39 @@ hebi_pdivrem(
 	if (n > 2) {
 		/* division with large divisor */
 		hebi_packet *restrict u, *restrict d;
+		const MLIMB *restrict dl;
+		MLIMB qh;
 
 		m = hebi_pshl((u = w), a, bits, an);
 		n = hebi_pshl((d = w + m), b, bits, bn);
-		v = RECIPU_3x2(MLIMB_PTR(&d[n-1])[3], MLIMB_PTR(&d[n-1])[2]);
-		m = PDIVREMR(q, u, d, v, m, n, limbs);
 
-		if (r || rn)
-			n = hebi_pshr(r ? r : u, u, bits, n);
+		ASSERT(m >= n);
+		m -= n;
+
+		dl = MLIMB_PTR(d+n)-2;
+		d1 = dl[1];
+		d0 = dl[0];
+
+		v = RECIPU_3x2(d1, d0);
+		if (UNLIKELY((qh = PDIVREMR(q, u, d, m, n, limbs, v))))
+			hebi_psetu(q+m++, qh);
+
+		if (r != NULL || rn != NULL)
+			n = hebi_pshr(r != NULL ? r : u, u, bits, n);
 	} else {
 		/* division with small divisor */
 		MLIMB *restrict ql;
 		const MLIMB *al;
 		const MLIMB *bl;
-		MLIMB d1, d0;
 		int shft;
+
+		m = an;
+		an = an * MLIMB_PER_PACKET;
+		shft = (int)(bits % MLIMB_BIT);
 
 		ql = MLIMB_PTR(q);
 		al = MLIMB_PTR(a);
 		bl = MLIMB_PTR(b);
-
-		shft = (int)(bits % MLIMB_BIT);
-		m = an;
-		an *= MLIMB_PER_PACKET;
 		d0 = bl[0];
 
 		if (n == 2) {
@@ -71,30 +81,32 @@ hebi_pdivrem(
 			v = RECIPU_3x2(d1, d0);
 			u = PDIVREMRU_3x2(ql, al, an, shft, d1, d0, v);
 
+			/* unpack and store remainder */
 #ifdef USE_LIMB64_MULDIV
 			d0 = (MLIMB)(u & MLIMB_MAX);
 			d1 = (MLIMB)(u >> MLIMB_BIT);
-			n = d0 || d1 ? 1 : 0;
+			if ((n = (d0 || d1)) && r != NULL)
+				hebi_psetu2(r, d0, d1);
 #else
-			d0 = u;
-			d1 = 0;
-			n = d0 ? 1 : 0;
+			if ((n = (u != 0)) && r != NULL)
+				hebi_psetu(r, u);
 #endif
 		} else {
 			/* 2x1 division by normalized reciprocal */
 			d0 = d0 << shft;
 			v = RECIPU_2x1(d0);
 			d0 = PDIVREMRU_2x1(ql, al, an, shft, d0, v);
-			d1 = 0;
-			n = d0 ? 1 : 0;
+
+			/* store remainder */
+			if ((n = (d0 != 0)) && r != NULL)
+				hebi_psetu(r, d0);
 		}
 
-		if (r && n)
-			hebi_psetu2(r, d0, d1);
 	}
 
-	/* store length of remainder and determine length of quotient */
-	if (rn)
+	/* store length of remainder and normalize length of quotient */
+	if (rn != NULL)
 		*rn = n;
+
 	return hebi_pnorm(q, m);
 }
