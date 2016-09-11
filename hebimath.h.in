@@ -273,7 +273,6 @@ HEBI_MVFUNC(uint64_t, hebi_padd, (hebi_packet *r__, const hebi_packet *a__, cons
 HEBI_MVFUNC(uint64_t, hebi_psub, (hebi_packet *r__, const hebi_packet *a__, const hebi_packet *b__, size_t m__, size_t n__), (r__, a__, b__, m__, n__))
 HEBI_MVFUNC_VOID(hebi_pmul, (hebi_packet *HEBI_RESTRICT r__, const hebi_packet *a__, const hebi_packet *b__, size_t m__, size_t n__), (r__, a__, b__, m__, n__))
 HEBI_MVFUNC_VOID(hebi_psqr, (hebi_packet *HEBI_RESTRICT r__, const hebi_packet *HEBI_RESTRICT a__, size_t n__), (r__, a__, n__))
-HEBI_MVFUNC(size_t, hebi_pdivrem, (hebi_packet *HEBI_RESTRICT q__, hebi_packet *HEBI_RESTRICT u__, hebi_packet *HEBI_RESTRICT d__, size_t *HEBI_RESTRICT l__, const hebi_packet *a__, const hebi_packet *b__, size_t m__, size_t n__), (q__, u__, d__, l__, a__, b__, m__, n__));
 <<< dynamic
 >>> fixed
 HEBI_API hebi_packet *hebi_pcopy(hebi_packet *HEBI_RESTRICT, const hebi_packet *HEBI_RESTRICT, size_t);
@@ -293,8 +292,8 @@ HEBI_API uint64_t hebi_padd(hebi_packet *, const hebi_packet *, const hebi_packe
 HEBI_API uint64_t hebi_psub(hebi_packet *, const hebi_packet *, const hebi_packet *, size_t, size_t);
 HEBI_API void hebi_pmul(hebi_packet *HEBI_RESTRICT, const hebi_packet *, const hebi_packet *, size_t, size_t);
 HEBI_API void hebi_psqr(hebi_packet *HEBI_RESTRICT, const hebi_packet *HEBI_RESTRICT, size_t);
-HEBI_API size_t hebi_pdivrem(hebi_packet *HEBI_RESTRICT, hebi_packet *HEBI_RESTRICT, hebi_packet *HEBI_RESTRICT, size_t *HEBI_RESTRICT, const hebi_packet *, const hebi_packet *, size_t, size_t);
 <<< fixed
+HEBI_API size_t hebi_pdivrem(hebi_packet *HEBI_RESTRICT, hebi_packet *HEBI_RESTRICT, hebi_packet *HEBI_RESTRICT, size_t *HEBI_RESTRICT, const hebi_packet *, const hebi_packet *, size_t, size_t);
 HEBI_API void hebi_pmul_karatsuba(hebi_packet *HEBI_RESTRICT, hebi_packet *HEBI_RESTRICT, const hebi_packet *, const hebi_packet *, size_t, size_t);
 HEBI_API HEBI_CONST size_t hebi_pmul_karatsuba_space(size_t, size_t);
 HEBI_API void hebi_psqr_karatsuba(hebi_packet *HEBI_RESTRICT, hebi_packet *HEBI_RESTRICT, const hebi_packet *, size_t);

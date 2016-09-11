@@ -3,9 +3,6 @@
  * See LICENSE file for copyright and license details
  */
 
-#ifndef HEBI_CONFIG_H__
-#define HEBI_CONFIG_H__
-
 /*
  * Uncomment to enable assertions on input argument constraints of low-
  * level kernel functions and internal consistency checks. Assertions
@@ -175,5 +172,3 @@
  */
 #define KARATSUBA_MUL_CUTOFF 8
 #define KARATSUBA_SQR_CUTOFF 8
-
-#endif

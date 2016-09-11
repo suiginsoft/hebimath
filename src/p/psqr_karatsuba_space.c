@@ -3,7 +3,7 @@
  * See LICENSE file for copyright and license details
  */
 
-#include "../../internal.h"
+#include "pcommon.h"
 
 STATIC_ASSERT(KARATSUBA_SQR_CUTOFF >= 4, "must be greater than or equal to 4");
 

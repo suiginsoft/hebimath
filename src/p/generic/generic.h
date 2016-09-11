@@ -3,72 +3,7 @@
  * See LICENSE file for copyright and license details
  */
 
-#ifndef HEBI_GENERIC_H__
-#define HEBI_GENERIC_H__
-
-#include "../../../internal.h"
-
-#ifdef USE_LIMB64_ARITHMETIC
-
-#define LIMB uint64_t
-#define LIMB_BIT 64
-#define LIMB_MAX UINT64_MAX
-#define LIMB_PER_PACKET HEBI_PACKET_LIMBS64
-#define LIMB_CLZ(X) hebi_clz64(X)
-#define LIMB_CTZ(X) hebi_ctz64(X)
-#define LIMB_PTR(X) (X)->hp_limbs64
-
-#else /* USE_INT128 */
-
-#define LIMB uint32_t
-#define LIMB_BIT 32
-#define LIMB_MAX UINT32_MAX
-#define LIMB_PER_PACKET HEBI_PACKET_LIMBS32
-#define LIMB_CLZ(X) hebi_clz32(X)
-#define LIMB_CTZ(X) hebi_ctz32(X)
-#define LIMB_PTR(X) (X)->hp_limbs32
-
-#endif /* USE_INT128 */
-
-#ifdef USE_LIMB64_MULDIV
-
-#define DLIMB hebi_uint128
-#define MLIMB uint64_t
-#define MLIMB_BIT 64
-#define MLIMB_HIGH_BIT (UINT64_C(1)<<63)
-#define MLIMB_MAX UINT64_MAX
-#define MLIMB_PER_PACKET HEBI_PACKET_LIMBS64
-#define MLIMB_CLZ(X) hebi_clz64(X)
-#define MLIMB_PTR(X) (X)->hp_limbs64
-
-#define RECIPU_2x1 hebi_recipu64_2x1__
-#define RECIPU_3x2 hebi_recipu64_3x2__
-#define DIVREMRU_2x1 hebi_divremru64_2x1__
-#define DIVREMRU_3x2 hebi_divremru64_3x2__
-#define PDIVREMRU_2x1 hebi_pdivremru64_2x1__
-#define PDIVREMRU_3x2 hebi_pdivremru64_3x2__
-#define PDIVREMR hebi_pdivremr64__
-
-#else /* USE_LIMB64_MULDIV */
-
-#define DLIMB uint64_t
-#define MLIMB uint32_t
-#define MLIMB_BIT 32
-#define MLIMB_HIGH_BIT (UINT32_C(1)<<31)
-#define MLIMB_MAX UINT32_MAX
-#define MLIMB_PER_PACKET HEBI_PACKET_LIMBS32
-#define MLIMB_CLZ(X) hebi_clz32(X)
-#define MLIMB_PTR(X) (X)->hp_limbs32
-
-#define RECIPU_2x1 hebi_recipu32_2x1__
-#define RECIPU_3x2 hebi_recipu32_3x2__
-#define DIVREMRU_2x1 hebi_divremru32_2x1__
-#define DIVREMRU_3x2 hebi_divremru32_3x2__
-#define PDIVREMRU_2x1 hebi_pdivremru32_2x1__
-#define PDIVREMRU_3x2 hebi_pdivremru32_3x2__
-#define PDIVREMR hebi_pdivremr32__
-
-#endif /* USE_LIMB64_MULDIV */
+#include "../pcommon.h"
 
 static inline HEBI_ALWAYSINLINE
 void
@@ -127,5 +62,3 @@ DIVREMRU_3x2(MLIMB *q, MLIMB *u2, MLIMB *u1, MLIMB u0, MLIMB d1, MLIMB d0, MLIMB
 	*u1 = (MLIMB)(r & MLIMB_MAX);
 	*u2 = (MLIMB)(r >> MLIMB_BIT);
 }
-
-#endif

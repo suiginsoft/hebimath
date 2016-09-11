@@ -28,7 +28,6 @@ PKERNELS := \
 	pcmp \
 	pcopy \
 	pctz \
-	pdivrem \
 	pdivremr \
 	pdivremu \
 	pdivremru2x1 \
@@ -56,6 +55,7 @@ PFUNCTIONS := \
 	p/pfree_cb \
 	p/pmul_karatsuba \
 	p/pmul_karatsuba_space \
+	p/pdivrem \
 	p/prand_kiss \
 	p/psetu \
 	p/psetu2 \

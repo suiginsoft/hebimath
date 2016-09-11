@@ -3,9 +3,6 @@
  * See LICENSE file for copyright and license details
  */
 
-#ifndef HEBI_INTERNAL_H__
-#define HEBI_INTERNAL_H__
-
 #include "config.h"
 #include "hebimath.h"
 #include <limits.h>
@@ -469,91 +466,6 @@ hebi_ctz64(uint64_t x)
 #endif
 }
 
-/* internal integer division kernels */
-#ifdef USE_LIMB64_MULDIV
-
-extern uint16_t hebi_recipu64_v0lut__[256];
-HEBI_CONST uint64_t hebi_recipu64_2x1__(uint64_t);
-HEBI_CONST uint64_t hebi_recipu64_3x2__(uint64_t, uint64_t);
-
-#ifdef HEBI_MULTI_VERSIONING
-
-extern uint64_t (* hebi_pdivremru64_2x1_ptr__)(uint64_t *, const uint64_t *, size_t, int, uint64_t, uint64_t);
-extern hebi_uint128 (* hebi_pdivremru64_3x2_ptr__)(uint64_t *, const uint64_t *, size_t, int, uint64_t, uint64_t, uint64_t);
-extern uint64_t (* hebi_pdivremr64_ptr__)(hebi_packet *HEBI_RESTRICT, hebi_packet *HEBI_RESTRICT, const hebi_packet *HEBI_RESTRICT, size_t, size_t, size_t, uint64_t);
-
-static inline HEBI_ALWAYSINLINE
-uint64_t
-hebi_pdivremru64_2x1__(uint64_t *r, const uint64_t *a, size_t n, int s, uint64_t d, uint64_t v)
-{
-	return hebi_pdivremru64_2x1_ptr__(r, a, n, s, d, v);
-}
-
-static inline HEBI_ALWAYSINLINE
-hebi_uint128
-hebi_pdivremru64_3x2__(uint64_t *r, const uint64_t *a, size_t n, int s, uint64_t d1, uint64_t d0, uint64_t v)
-{
-	return hebi_pdivremru64_3x2_ptr__(r, a, n, s, d1, d0, v);
-}
-
-static inline HEBI_ALWAYSINLINE
-uint64_t
-hebi_pdivremr64__(hebi_packet *HEBI_RESTRICT q, hebi_packet *HEBI_RESTRICT u, const hebi_packet *HEBI_RESTRICT d, size_t m, size_t n, size_t l, uint64_t v)
-{
-	return hebi_pdivremr64_ptr__(q, u, d, m, n, l, v);
-}
-
-#else /* HEBI_MULTI_VERSIONING */
-
-uint64_t hebi_pdivremru64_2x1__(uint64_t *, const uint64_t *, size_t, int, uint64_t, uint64_t);
-hebi_uint128 hebi_pdivremru64_3x2__(uint64_t *, const uint64_t *, size_t, int, uint64_t, uint64_t, uint64_t);
-uint64_t hebi_pdivremr64__(hebi_packet *HEBI_RESTRICT, hebi_packet *HEBI_RESTRICT, const hebi_packet *HEBI_RESTRICT, size_t, size_t, size_t, uint64_t);
-
-#endif /* HEBI_MULTI_VERSIONING */
-
-#else /* USE_LIMB64_MULDIV */
-
-extern uint16_t hebi_recipu32_v0lut__[512];
-HEBI_CONST uint32_t hebi_recipu32_2x1__(uint32_t);
-HEBI_CONST uint32_t hebi_recipu32_3x2__(uint32_t, uint32_t);
-
-#ifdef HEBI_MULTI_VERSIONING
-
-extern uint32_t (* hebi_pdivremru32_2x1_ptr__)(uint32_t *, const uint32_t *, size_t, int, uint32_t, uint32_t);
-extern uint64_t (* hebi_pdivremru32_3x2_ptr__)(uint32_t *, const uint32_t *, size_t, int, uint32_t, uint32_t, uint32_t);
-extern uint32_t (* hebi_pdivremr32_ptr__)(hebi_packet *HEBI_RESTRICT, hebi_packet *HEBI_RESTRICT, const hebi_packet *HEBI_RESTRICT, size_t, size_t, size_t, uint32_t);
-
-static inline HEBI_ALWAYSINLINE
-uint32_t
-hebi_pdivremru32_2x1__(uint32_t *r, const uint32_t *a, size_t n, int s, uint32_t d, uint32_t v)
-{
-	return hebi_pdivremru32_2x1_ptr__(r, a, n, s, d, v);
-}
-
-static inline HEBI_ALWAYSINLINE
-hebi_uint128
-hebi_pdivremru32_3x2__(uint32_t *r, const uint32_t *a, size_t n, int s, uint32_t d1, uint32_t d0, uint32_t v)
-{
-	return hebi_pdivremru32_3x2_ptr__(r, a, n, s, d1, d0, v);
-}
-
-static inline HEBI_ALWAYSINLINE
-uint32_t
-hebi_pdivremr32__(hebi_packet *HEBI_RESTRICT q, hebi_packet *HEBI_RESTRICT u, const hebi_packet *HEBI_RESTRICT d, size_t m, size_t n, size_t l, uint32_t v)
-{
-	return hebi_pdivremr32_ptr__(q, u, d, m, n, l, v);
-}
-
-#else /* HEBI_MULTI_VERSIONING */
-
-uint32_t hebi_pdivremru32_2x1__(uint32_t *, const uint32_t *, size_t, int, uint32_t, uint32_t);
-uint64_t hebi_pdivremru32_3x2__(uint32_t *, const uint32_t *, size_t, int, uint32_t, uint32_t d0, uint32_t v);
-uint32_t hebi_pdivremr32__(hebi_packet *HEBI_RESTRICT, hebi_packet *HEBI_RESTRICT, const hebi_packet *HEBI_RESTRICT, size_t, size_t, size_t, uint32_t);
-
-#endif /* HEBI_MULTI_VERSIONING */
-
-#endif /* USE_LIMB64_MULDIV */
-
 /* compare single packet 'a' against UINT_64MAX */
 static inline HEBI_ALWAYSINLINE
 int
@@ -727,5 +639,3 @@ hebi_zgrow_copyif(hebi_zptr r, size_t n, int c)
 		hebi_zrealloc_copyif(r, n, c);
 	return r->hz_packs;
 }
-
-#endif
