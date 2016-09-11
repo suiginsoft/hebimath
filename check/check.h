@@ -22,6 +22,9 @@ enum {
 extern const int64_t check_i64values[];
 extern const long check_num_i64values;
 
+extern const uint64_t check_u64values[];
+extern const long check_num_u64values;
+
 extern long check_pass;
 extern long check_iter;
 extern long check_start_iter;
@@ -44,6 +47,7 @@ void zcheckbc(hebi_zsrcptr restrict hres, const char *restrict bcop, ...);
 void zpermutation(long x, long n, int p, ...);
 void zcheckbinop(void (*f)(hebi_zptr, hebi_zsrcptr, hebi_zsrcptr), const char* op, int flags);
 void zcheckbinopi64(void (*f)(hebi_zptr, hebi_zsrcptr, int64_t), const char* op, int flags);
+void zcheckbinopu64(void (*f)(hebi_zptr, hebi_zsrcptr, uint64_t), const char* op, int flags);
 void zcheckrelop(int (*f)(hebi_zsrcptr, hebi_zsrcptr), const char* op, int flags);
 
 #endif

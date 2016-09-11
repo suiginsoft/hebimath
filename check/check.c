@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define COUNTOF(X) (long)(sizeof(X) / sizeof((X)[0]))
+
 const int64_t check_i64values[] =
 {
 	0,
@@ -36,8 +38,29 @@ const int64_t check_i64values[] =
 	-0x100000000ll
 };
 
-const long check_num_i64values =
-	(long)(sizeof(check_i64values) / sizeof(int64_t));
+const long check_num_i64values = COUNTOF(check_i64values);
+
+const uint64_t check_u64values[] =
+{
+	0,
+	1,
+	2,
+	9,
+	53987,
+	0x8000,
+	0x8001,
+	UINT16_MAX,
+	0x73B98FB2,
+	0x80000000,
+	0x80000001,
+	UINT32_MAX,
+	0x32EF516AF43D503Full,
+	0x8000000000000000ull,
+	0x8000000000000001ull,
+	UINT64_MAX
+};
+
+const long check_num_u64values = COUNTOF(check_u64values);
 
 char *argv0;
 long check_pass;

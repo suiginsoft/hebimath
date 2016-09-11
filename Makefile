@@ -211,16 +211,21 @@ CHECK_P := \
 
 CHECK_Z := \
 	zgetset \
-	zaddi \
-	zsubi \
-	zmuli \
-	zdivi \
-	zremi \
 	zadd \
+	zaddi \
+	zaddu \
 	zsub \
+	zsubi \
+	zsubu \
 	zmul \
+	zmuli \
+	zmulu \
 	zdiv \
+	zdivi \
+	zdivu \
 	zrem \
+	zremi \
+	zremu \
 	zshl \
 	zshr
 
@@ -229,6 +234,7 @@ CHECK_SRC := \
 	bc \
 	zcheckbinop \
 	zcheckbinopi64 \
+	zcheckbinopu64 \
 	zpermutation
 
 CHECK_P_BIN := $(CHECK_P:%=check/p/%)

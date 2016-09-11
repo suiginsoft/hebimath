@@ -54,8 +54,10 @@ zpermutation(long x, long n, int p, ...)
 		z = va_arg(ap, hebi_zptr);
 		if (y < check_num_i64values) {
 			hebi_zseti(z, check_i64values[y]);
+		} else if (y < check_num_i64values + check_num_u64values - 3) {
+			hebi_zsetu(z, check_u64values[y - check_num_i64values + 3]);
 		} else {
-			y -= check_num_i64values;
+			y -= check_num_i64values + check_num_u64values - 3;
 			s = bcprintf("zrand(%d,%ld)", seeds[i%4], y);
 			hebi_zsetstr(z, s, NULL, 10);
 			free(s);
