@@ -27,7 +27,7 @@ hebi_pshl(hebi_packet *r, const hebi_packet *a, size_t b, size_t n)
 	al = LIMB_PTR(a);
 
 	i = rn * LIMB_PER_PACKET - limbs;
-	while (i > n * LIMB_PER_PACKET)
+	while (i - 1 >= n * LIMB_PER_PACKET)
 		rl[--i] = 0;
 
 	if (LIKELY(bits)) {
