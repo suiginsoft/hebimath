@@ -27,7 +27,7 @@ hebi_zshr(hebi_zptr r, hebi_zsrcptr a, size_t b)
 
 	rn = au - rn;
 	if (rn > r->hz_resv)
-		hebi_zrealloc_copyif(r, rn, r == a);
+		hebi_zrealloc_copyif__(r, rn, r == a);
 
 	if (LIKELY(rn = hebi_pshr(r->hz_packs, a->hz_packs, b, au))) {
 		r->hz_used = rn;

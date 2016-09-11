@@ -13,5 +13,5 @@ hebi_zgetsu(hebi_zsrcptr a)
 		return 0;
 	else if (a->hz_used > 1)
 		return UINT64_MAX;
-	return hebi_pgetsu(a->hz_packs);
+	return hebi_pgetsu__(a->hz_packs);
 }

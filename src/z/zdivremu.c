@@ -36,7 +36,7 @@ hebi_zdivremu(hebi_zptr q, hebi_zsrcptr a, uint64_t b)
 		q->hz_used = hebi_pnorm(p, n);
 		q->hz_sign = q->hz_used ? s : 0;
 	} else {
-		p = hebi_pscratch(n);
+		p = hebi_pscratch__(n);
 		r = hebi_pdivremu(p, a->hz_packs, b, n);
 	}
 

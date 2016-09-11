@@ -30,7 +30,7 @@ hebi_zshl(hebi_zptr r, hebi_zsrcptr a, size_t b)
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
 
 	if (rn > r->hz_resv)
-		hebi_zrealloc_copyif(r, rn, r == a);
+		hebi_zrealloc_copyif__(r, rn, r == a);
 
 	r->hz_used = hebi_pshl(r->hz_packs, a->hz_packs, b, au);
 	r->hz_sign = as;

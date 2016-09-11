@@ -36,7 +36,7 @@ hebi_zmul(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 		hebi_zinit_push__((rz = rtmp), hebi_zallocator(r));
 
 	if (an > KARATSUBA_MUL_CUTOFF) {
-		wp = hebi_pscratch(hebi_pmul_karatsuba_space(an, bn));
+		wp = hebi_pscratch__(hebi_pmul_karatsuba_space(an, bn));
 		if (rn > rz->hz_resv)
 			hebi_zrealloczero(rz, rn);
 		rp = rz->hz_packs;

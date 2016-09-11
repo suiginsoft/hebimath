@@ -11,8 +11,8 @@
 #define LIMB_BIT 64
 #define LIMB_MAX UINT64_MAX
 #define LIMB_PER_PACKET HEBI_PACKET_LIMBS64
-#define LIMB_CLZ(X) hebi_clz64(X)
-#define LIMB_CTZ(X) hebi_ctz64(X)
+#define LIMB_CLZ(X) hebi_clz64__(X)
+#define LIMB_CTZ(X) hebi_ctz64__(X)
 #define LIMB_PTR(X) (X)->hp_limbs64
 
 #else /* USE_INT128 */
@@ -21,8 +21,8 @@
 #define LIMB_BIT 32
 #define LIMB_MAX UINT32_MAX
 #define LIMB_PER_PACKET HEBI_PACKET_LIMBS32
-#define LIMB_CLZ(X) hebi_clz32(X)
-#define LIMB_CTZ(X) hebi_ctz32(X)
+#define LIMB_CLZ(X) hebi_clz32__(X)
+#define LIMB_CTZ(X) hebi_ctz32__(X)
 #define LIMB_PTR(X) (X)->hp_limbs32
 
 #endif /* USE_INT128 */
@@ -35,7 +35,7 @@
 #define MLIMB_HIGH_BIT (UINT64_C(1)<<63)
 #define MLIMB_MAX UINT64_MAX
 #define MLIMB_PER_PACKET HEBI_PACKET_LIMBS64
-#define MLIMB_CLZ(X) hebi_clz64(X)
+#define MLIMB_CLZ(X) hebi_clz64__(X)
 #define MLIMB_PTR(X) (X)->hp_limbs64
 
 #define RECIPU_2x1 hebi_recipu64_2x1__
@@ -93,7 +93,7 @@ uint64_t hebi_pdivremr64__(hebi_packet *HEBI_RESTRICT, hebi_packet *HEBI_RESTRIC
 #define MLIMB_HIGH_BIT (UINT32_C(1)<<31)
 #define MLIMB_MAX UINT32_MAX
 #define MLIMB_PER_PACKET HEBI_PACKET_LIMBS32
-#define MLIMB_CLZ(X) hebi_clz32(X)
+#define MLIMB_CLZ(X) hebi_clz32__(X)
 #define MLIMB_PTR(X) (X)->hp_limbs32
 
 #define RECIPU_2x1 hebi_recipu32_2x1__

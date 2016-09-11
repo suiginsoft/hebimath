@@ -29,7 +29,7 @@ hebi_zsubu(hebi_zptr r, hebi_zsrcptr a, uint64_t b)
 		++n;
 
 	if (n > r->hz_resv)
-		hebi_zrealloc_copyif(r, n, r == a);
+		hebi_zrealloc_copyif__(r, n, r == a);
 
 	rp = r->hz_packs;
 	ap = a->hz_packs;
@@ -37,7 +37,7 @@ hebi_zsubu(hebi_zptr r, hebi_zsrcptr a, uint64_t b)
 	if (s <= 0) {
 		if ((carry = hebi_paddu(rp, ap, b, u)))
 			hebi_psetu(rp + u++, carry);
-	} else if (u > 1 || ap->hp_limbs64[0] > b || hebi_pcmpgtui64max(ap)) {
+	} else if (u > 1 || ap->hp_limbs64[0] > b || hebi_pcmpgtui64max__(ap)) {
 		(void)hebi_psubu(rp, ap, b, u);
 		u = hebi_pnorm(rp, u);
 	} else {

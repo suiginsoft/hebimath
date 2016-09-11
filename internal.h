@@ -381,7 +381,7 @@ HEBI_NORETURN void hebi_hwcaps_fatal__(void);
 /* ⌈log2(x)⌉ */
 static inline HEBI_ALWAYSINLINE HEBI_CONST
 size_t
-hebi_ceillog2sz(size_t x)
+hebi_ceillog2sz__(size_t x)
 {
 #if __has_builtin(__builtin_clzl)
 	return ((size_t)__builtin_clzl(x | 1) ^
@@ -398,7 +398,7 @@ hebi_ceillog2sz(size_t x)
 /* ⌊log2(x)⌋ */
 static inline HEBI_ALWAYSINLINE HEBI_CONST
 size_t
-hebi_floorlog2sz(size_t x)
+hebi_floorlog2sz__(size_t x)
 {
 #if __has_builtin(__builtin_clzl)
 	return (size_t)__builtin_clzl(x | 1) ^
@@ -413,7 +413,7 @@ hebi_floorlog2sz(size_t x)
 /* count leading-zeros of 32-bit unsigned integer */
 static inline HEBI_ALWAYSINLINE HEBI_CONST
 int
-hebi_clz32(uint32_t x)
+hebi_clz32__(uint32_t x)
 {
 #if __has_builtin(__builtin_clz)
 	return __builtin_clz(x);
@@ -427,7 +427,7 @@ hebi_clz32(uint32_t x)
 /* count trailing-zeros of 32-bit unsigned integer */
 static inline HEBI_ALWAYSINLINE HEBI_CONST
 int
-hebi_ctz32(uint32_t x)
+hebi_ctz32__(uint32_t x)
 {
 #if __has_builtin(__builtin_ctz)
 	return __builtin_ctz(x);
@@ -441,7 +441,7 @@ hebi_ctz32(uint32_t x)
 /* count leading-zeros of 64-bit unsigned integer */
 static inline HEBI_ALWAYSINLINE HEBI_CONST
 int
-hebi_clz64(uint64_t x)
+hebi_clz64__(uint64_t x)
 {
 #if __has_builtin(__builtin_clzll)
 	return __builtin_clzll(x);
@@ -455,7 +455,7 @@ hebi_clz64(uint64_t x)
 /* count trailing-zeros of 64-bit unsigned integer */
 static inline HEBI_ALWAYSINLINE HEBI_CONST
 int
-hebi_ctz64(uint64_t x)
+hebi_ctz64__(uint64_t x)
 {
 #if __has_builtin(__builtin_ctzll)
 	return __builtin_ctzll(x);
@@ -469,7 +469,7 @@ hebi_ctz64(uint64_t x)
 /* compare single packet 'a' against UINT_64MAX */
 static inline HEBI_ALWAYSINLINE
 int
-hebi_pcmpgtui64max(const hebi_packet *a)
+hebi_pcmpgtui64max__(const hebi_packet *a)
 {
 #if defined HEBI_SIMD && defined __SSE2__
 
@@ -521,7 +521,7 @@ hebi_pcmpgtui64max(const hebi_packet *a)
 /* convert single packet to unsigned 64-bit integer with saturation */
 static inline HEBI_ALWAYSINLINE
 uint64_t
-hebi_pgetsu(const hebi_packet *a)
+hebi_pgetsu__(const hebi_packet *a)
 {
 #if defined HEBI_SIMD && defined __SSE2__
 
@@ -575,7 +575,7 @@ hebi_pgetsu(const hebi_packet *a)
 
 static inline HEBI_ALWAYSINLINE HEBI_ALLOC HEBI_WARNUNUSED
 void *
-hebi_scratch(size_t n)
+hebi_scratch__(size_t n)
 {
 	struct hebi_context *ctx = hebi_context_get();
 	const struct hebi_alloc_callbacks *cb;
@@ -590,12 +590,12 @@ hebi_scratch(size_t n)
 
 static inline HEBI_ALWAYSINLINE HEBI_ALLOC HEBI_WARNUNUSED
 hebi_packet *
-hebi_pscratch(size_t n)
+hebi_pscratch__(size_t n)
 {
 	size_t sz = n * sizeof(hebi_packet);
 	if (UNLIKELY(sz / sizeof(hebi_packet) != n))
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
-	return (hebi_packet *)hebi_scratch(sz);
+	return (hebi_packet *)hebi_scratch__(sz);
 }
 
 static inline HEBI_ALWAYSINLINE
@@ -623,7 +623,7 @@ hebi_zdestroy_pop__(hebi_zptr r)
 
 static inline HEBI_ALWAYSINLINE
 void
-hebi_zrealloc_copyif(hebi_zptr r, size_t n, int c)
+hebi_zrealloc_copyif__(hebi_zptr r, size_t n, int c)
 {
 	if (c)
 		hebi_zrealloc(r, n);
@@ -633,9 +633,9 @@ hebi_zrealloc_copyif(hebi_zptr r, size_t n, int c)
 
 static inline HEBI_ALWAYSINLINE
 hebi_packet *
-hebi_zgrow_copyif(hebi_zptr r, size_t n, int c)
+hebi_zgrow_copyif__(hebi_zptr r, size_t n, int c)
 {
 	if (n > r->hz_resv)
-		hebi_zrealloc_copyif(r, n, c);
+		hebi_zrealloc_copyif__(r, n, c);
 	return r->hz_packs;
 }

@@ -30,7 +30,7 @@ hebi_zsqr(hebi_zptr r, hebi_zsrcptr a)
 		hebi_zinit_allocator((t = temp), hebi_zallocator(r));
 
 	if (au > KARATSUBA_SQR_CUTOFF) {
-		wp = hebi_pscratch(hebi_psqr_karatsuba_space(au));
+		wp = hebi_pscratch__(hebi_psqr_karatsuba_space(au));
 		if (tn > t->hz_resv)
 			hebi_zrealloczero(t, tn);
 		tp = t->hz_packs;

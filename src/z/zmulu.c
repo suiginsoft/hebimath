@@ -25,7 +25,7 @@ hebi_zmulu(hebi_zptr r, hebi_zsrcptr a, uint64_t b)
 
 	n = u = a->hz_used;
 	if (++n > r->hz_resv)
-		hebi_zrealloc_copyif(r, n, r == a);
+		hebi_zrealloc_copyif__(r, n, r == a);
 
 	p = r->hz_packs;
 	if ((overflow = hebi_pmulu(p, a->hz_packs, b, u)))

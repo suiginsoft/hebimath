@@ -22,7 +22,7 @@ hebi_zgetsi(hebi_zsrcptr a)
 	if (u <= 1) {
 		p = a->hz_packs;
 		x = (int64_t)p->hp_limbs64[0];
-		if (x >= 0 && !hebi_pcmpgtui64max(p))
+		if (x >= 0 && !hebi_pcmpgtui64max__(p))
 			return s < 0 ? -x : x;
 	}
 

@@ -45,7 +45,7 @@ hebi_zdivrem(hebi_zptr q, hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 	qn = an - bn + 1;
 	rn = bn;
 	wn = an + bn + 2;
-	wp = hebi_pscratch(wn + (q ? 0 : qn));
+	wp = hebi_pscratch__(wn + (q ? 0 : qn));
 
 	qz = q;
 	if (qz) {
