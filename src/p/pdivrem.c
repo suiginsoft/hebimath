@@ -50,8 +50,10 @@ hebi_pdivrem(
 		if (UNLIKELY((qh = PDIVREMR(q, u, d, m, n, limbs, v))))
 			hebi_psetu(q+m++, qh);
 
-		if (r != NULL || rn != NULL)
-			n = hebi_pshr(r != NULL ? r : u, u, bits, n);
+		if (r || rn) {
+			n = hebi_pnorm(u, n);
+			n = hebi_pshr(r ? r : u, u, bits, n);
+		}
 	} else {
 		/* division with small divisor */
 		MLIMB *restrict ql;
@@ -85,10 +87,10 @@ hebi_pdivrem(
 #ifdef USE_LIMB64_MULDIV
 			d0 = (MLIMB)(u & MLIMB_MAX);
 			d1 = (MLIMB)(u >> MLIMB_BIT);
-			if ((n = (d0 || d1)) && r != NULL)
+			if ((n = (d0 || d1)) && r)
 				hebi_psetu2(r, d0, d1);
 #else
-			if ((n = (u != 0)) && r != NULL)
+			if ((n = (u != 0)) && r)
 				hebi_psetu(r, u);
 #endif
 		} else {
@@ -98,14 +100,14 @@ hebi_pdivrem(
 			d0 = PDIVREMRU_2x1(ql, al, an, shft, d0, v);
 
 			/* store remainder */
-			if ((n = (d0 != 0)) && r != NULL)
+			if ((n = (d0 != 0)) && r)
 				hebi_psetu(r, d0);
 		}
 
 	}
 
 	/* store length of remainder and normalize length of quotient */
-	if (rn != NULL)
+	if (rn)
 		*rn = n;
 
 	return hebi_pnorm(q, m);

@@ -14,7 +14,7 @@ hebi_zdivrem(hebi_zptr q, hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 	hebi_zptr restrict rz;
 	hebi_packet *restrict qp, *restrict rp, *restrict wp;
 	size_t qn, rn, wn, an, bn, *restrict rpn;
-	int c, e, qs, rs;
+	int e, qs, rs;
 
 	qs = b->hz_sign;
 	rs = a->hz_sign;
@@ -30,30 +30,19 @@ hebi_zdivrem(hebi_zptr q, hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 		return;
 	}
 
-	qs = (qs ^ rs) < 0 ? -1 : 1;
 	an = a->hz_used;
 	bn = b->hz_used;
 
-	/* TODO: can we get rid of this pcmp? */
-	c = 1;
-	if (an == bn)
-		c = hebi_pcmp(a->hz_packs, b->hz_packs, an);
-	if (UNLIKELY(an < bn))
-		c = -1;
-
-	if (UNLIKELY(c <= 0)) {
-		if (r) {
-			if (c < 0)
-				hebi_zset(r, a);
-			else
-				hebi_zsetu(r, 0);
-		}
+	if (UNLIKELY(an < bn)) {
+		if (r)
+			hebi_zset(r, a);
 		if (q)
-			hebi_zseti(q, c < 0 ? 0 : qs);
+			hebi_zsetzero(q);
 		return;
 	}
 
-	qn = an - bn + 2; /* TODO: this should be 1 instead of 2 */
+	qs = (qs ^ rs) < 0 ? -1 : 1;
+	qn = an - bn + 1;
 	rn = bn;
 	wn = an + bn + 2;
 	wp = hebi_pscratch(wn + (q ? 0 : qn));
@@ -95,7 +84,7 @@ hebi_zdivrem(hebi_zptr q, hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 
 	if (qz) {
 		qz->hz_used = qn;
-		qz->hz_sign = qs;
+		qz->hz_sign = qn ? qs : 0;
 		if (qz != q) {
 			hebi_zswap(qz, q);
 			hebi_zdestroy_pop__(qz);
