@@ -31,6 +31,7 @@ static char bczrand[] =
 "}\n";
 
 static int initialized;
+static int seeds[4] = { 61937, 57397, 39769, 41777 };
 
 void
 zpermutation(long x, long n, int p, ...)
@@ -55,7 +56,7 @@ zpermutation(long x, long n, int p, ...)
 			hebi_zseti(z, check_i64values[y]);
 		} else {
 			y -= check_num_i64values;
-			s = bcprintf("zrand(61939,%ld)", y);
+			s = bcprintf("zrand(%d,%ld)", seeds[i%4], y);
 			hebi_zsetstr(z, s, NULL, 10);
 			free(s);
 		}
