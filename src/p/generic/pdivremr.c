@@ -9,19 +9,27 @@ HEBI_API
 size_t
 PDIVREMR(
 		hebi_packet *restrict q,
-		MLIMB *restrict ul,
-		const MLIMB *restrict dl,
+		hebi_packet *restrict u,
+		const hebi_packet *restrict d,
 		MLIMB v,
 		size_t m,
-		size_t n )
+		size_t n,
+		size_t l )
 {
-	MLIMB *restrict ql;
+	MLIMB *restrict ql, *restrict ul;
+	const MLIMB *restrict dl;
 	MLIMB qhat, p1, p0, u1, u0, c1, c0;
 	DLIMB p;
 	size_t i, j;
 
+	ql = MLIMB_PTR(q);
+	ul = MLIMB_PTR(u);
+	dl = MLIMB_PTR(d);
+	m = m * MLIMB_PER_PACKET;
+	n = n * MLIMB_PER_PACKET;
+
 	ASSERT(m >= n);
-	ASSERT(n > 2);
+	ASSERT(n > l+2);
 	ASSERT((dl[n-1] & MLIMB_HIGH_BIT) != 0);
 
 	/*
@@ -34,7 +42,6 @@ PDIVREMR(
 
 	u1 = ul[j+n+1];
 	u0 = ul[j+n+0];
-	ql = MLIMB_PTR(q);
 
 	/* TODO: need to compare with entire divisor */
 	if (UNLIKELY(u1 > dl[n+1] || (u1 == dl[n+1] && u0 >= dl[n+0]))) {
@@ -43,13 +50,9 @@ PDIVREMR(
 		u0 -= dl[n+0];
 		ul[j+n+1] = u1;
 		ul[j+n+0] = u0;
-		ql[m++] = 1;
+		hebi_psetu(q+m/MLIMB_PER_PACKET, 1);
+		m+=4;
 	}
-
-	/* clear top of last packet in quotient */
-	if ((i = m % MLIMB_PER_PACKET) != 0)
-		for ( ; i < MLIMB_PER_PACKET; i++)
-			ql[m++] = 0;
 
 	/* perform multi-word 3x2 reciprocal division */
 	while (j--) {
@@ -61,7 +64,7 @@ PDIVREMR(
 
 		/* multiply and subtract to compute remainder */
 		c1 = 0;
-		for (i = 0; i < n; i++) {
+		for (i = l; i < n; i++) {
 			p = (DLIMB)qhat * dl[i];
 			p0 = (MLIMB)(p & MLIMB_MAX);
 			p1 = (MLIMB)(p >> MLIMB_BIT);
@@ -81,7 +84,7 @@ PDIVREMR(
 		/* adjust if quotient estimate was too large */
 		if (UNLIKELY(c1)) {
 			c1 = 0;
-			for (i = 0; i < n + 1; i++) {
+			for (i = l; i < n+1; i++) {
 				c0 = ul[j+i] + dl[i] + c1;
 				c1 = (c0 < ul[j+i]) || (c0 == ul[j+i] && c1);
 				ul[j+i] = c0;
@@ -94,11 +97,6 @@ PDIVREMR(
 	}
 
 	ul[++n] = u1;
-
-	/* clear top of last packet in remainder */
-	if ((i = ++n % MLIMB_PER_PACKET) != 0)
-		for ( ; i < MLIMB_PER_PACKET; i++)
-			ul[n++] = 0;
 
 	/* length of quotient in packets*/
 	return m / MLIMB_PER_PACKET;
