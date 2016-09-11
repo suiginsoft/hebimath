@@ -22,34 +22,34 @@ hebi_pshr(hebi_packet *r, const hebi_packet *a, size_t b, size_t n)
 	bits = (int)(b % LIMB_BIT);
 	limbs = b / LIMB_BIT;
 
-	rn = n - rn;
 	rl = LIMB_PTR(r);
+	rn = n - rn;
+
 	al = LIMB_PTR(a) + limbs;
+	limbs = limbs % LIMB_PER_PACKET;
+	j = rn * LIMB_PER_PACKET - limbs;
 
 	if (LIKELY(bits)) {
 		q = al[0] >> bits;
-		for (i = 1; i < rn * LIMB_PER_PACKET; i++) {
+		for (i = 1; i < j; i++) {
 			s = al[i];
 			rl[i-1] = s << (LIMB_BIT - bits) | q;
 			q = s >> bits;
 		}
 		rl[i-1] = q;
 	} else {
-		(void)memmove(rl, al, rn * sizeof(hebi_packet));
-		i = rn * LIMB_PER_PACKET;
+		(void)memmove(rl, al, j * sizeof(LIMB));
 	}
 
-	if ((j = i & ~(LIMB_PER_PACKET - 1)) != i)
-	{
-		k = i;
-		for (limbs %= LIMB_PER_PACKET; limbs > 0; limbs--)
+	if ((i = j & ~(LIMB_PER_PACKET - 1)) != j) {
+		for (k = j; limbs > 0; limbs--)
 			rl[k++] = 0;
 	} else {
-		j -= LIMB_PER_PACKET;
+		i -= LIMB_PER_PACKET;
 	}
 
-	for ( ; j < i; j++)
-		if (rl[j])
+	for ( ; i < j; i++)
+		if (rl[i])
 			return rn;
 
 	return rn - 1;
