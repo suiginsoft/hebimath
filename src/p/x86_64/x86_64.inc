@@ -101,7 +101,7 @@ hebi_\Name\()_ptr__:
 .endm
 
 .macro MVFUNC_JMP Name, Dest
-	jmp		*hebi_\Name\()_ptr__(%rip)
+	jmp	*hebi_\Name\()_ptr__(%rip)
 .endm
 
 .macro MVFUNC_USE Name, Src, Temp
@@ -160,7 +160,7 @@ hebi_\Name:
 .endm
 
 .macro MVFUNC_JMP Name, Dest
-	jmp		hebi_\Name
+	jmp	hebi_\Name
 .endm
 
 .macro MVFUNC_USE Name, Src, Temp
