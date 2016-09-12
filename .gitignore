@@ -48,3 +48,5 @@ libhebimath.a
 libhebimath.so
 **/*.o
 **/*.po
+**/*.lst
+**/*.log
