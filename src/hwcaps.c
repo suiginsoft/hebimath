@@ -187,7 +187,7 @@ init_hwcaps(void)
 #endif
 }
 
-HEBI_PURE
+HEBI_HIDDEN HEBI_PURE
 unsigned long
 hebi_hwcaps__(void)
 {
@@ -204,7 +204,7 @@ hebi_hwcaps__(void)
 	return hwcaps;
 }
 
-HEBI_NORETURN
+HEBI_HIDDEN HEBI_NORETURN
 void
 hebi_hwcaps_fatal__(void)
 {

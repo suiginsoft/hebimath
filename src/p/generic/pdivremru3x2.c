@@ -5,6 +5,7 @@
 
 #include "generic.h"
 
+HEBI_HIDDEN
 DLIMB
 PDIVREMRU_3x2(
 		MLIMB *q,

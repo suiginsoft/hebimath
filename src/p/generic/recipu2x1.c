@@ -7,7 +7,7 @@
 
 #ifdef USE_LIMB64_MULDIV
 
-HEBI_CONST
+HEBI_HIDDEN HEBI_CONST
 uint64_t
 hebi_recipu64_2x1__(uint64_t d)
 {
@@ -43,7 +43,7 @@ hebi_recipu64_2x1__(uint64_t d)
 
 #else
 
-HEBI_CONST
+HEBI_HIDDEN HEBI_CONST
 uint32_t
 hebi_recipu32_2x1__(uint32_t d)
 {

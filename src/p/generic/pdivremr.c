@@ -5,7 +5,7 @@
 
 #include "generic.h"
 
-HEBI_API
+HEBI_HIDDEN
 MLIMB
 PDIVREMR(
 		hebi_packet *restrict q,

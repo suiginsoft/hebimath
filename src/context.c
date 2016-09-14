@@ -22,11 +22,11 @@ STATIC_ASSERT(ZSTACK_MAX_SIZE > 0, "must be greater than zero");
 
 #if defined USE_C11_THREAD_LOCAL
 
-EXTENSION _Thread_local struct hebi_context hebi_context__;
+EXTENSION HEBI_HIDDEN _Thread_local struct hebi_context hebi_context__;
 
 #elif defined USE_GNUC_THREAD_LOCAL
 
-EXTENSION __thread struct hebi_context hebi_context__;
+EXTENSION HEBI_HIDDEN __thread struct hebi_context hebi_context__;
 
 #elif defined USE_THREADS
 
@@ -142,7 +142,7 @@ ctxraise(hebi_errhandler handler, void *arg, int e)
 	abort();
 }
 
-HEBI_PURE HEBI_WARNUNUSED
+HEBI_HIDDEN HEBI_PURE HEBI_WARNUNUSED
 struct hebi_context *
 hebi_context_get__(hebi_errhandler handler, void *arg)
 {
@@ -179,6 +179,6 @@ hebi_context_get__(hebi_errhandler handler, void *arg)
 
 #else /* !defined USE_THREADS */
 
-struct hebi_context hebi_context__;
+HEBI_HIDDEN struct hebi_context hebi_context__;
 
 #endif /* !defined USE_THREADS */

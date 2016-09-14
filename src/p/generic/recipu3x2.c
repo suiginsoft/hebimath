@@ -5,7 +5,7 @@
 
 #include "generic.h"
 
-HEBI_CONST
+HEBI_HIDDEN HEBI_CONST
 MLIMB
 RECIPU_3x2(MLIMB d1, MLIMB d0)
 {

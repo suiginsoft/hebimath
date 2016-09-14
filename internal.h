@@ -15,6 +15,13 @@
 #define GNUC_VERSION_AT_LEAST(M,m,p) (GNUC_VERSION >= GNUC_VERSION_ORDINAL(M,m,p))
 #define GNUC_VERSION_LESS_THAN(M,m,p) (GNUC_VERSION < GNUC_VERSION_ORDINAL(M,m,p))
 
+#ifndef __has_attribute
+#define __has_attribute(X) GNUC_ATTRIBUTE_##X
+#define GNUC_ATTRIBUTE_always_inline 1
+#define GNUC_ATTRIBUTE_hidden 1
+#define GNUC_ATTRIBUTE_pure 1
+#endif
+
 #ifndef __has_builtin
 #define __has_builtin(X) GNUC_BUILTIN_##X
 #define GNUC_BUILTIN___builtin_clz GNUC_VERSION_AT_LEAST(3,4,0)
@@ -34,6 +41,10 @@
 #define GNUC_EXTENSION_c_static_assert GNUC_VERSION_AT_LEAST(4,6,0)
 #endif
 
+#endif
+
+#ifndef __has_attribute
+#define __has_attribute(X) 0
 #endif
 
 #ifndef __has_builtin
@@ -197,15 +208,27 @@ EXTENSION typedef unsigned __int128 hebi_uint128;
 
 #endif /* USE_KERN_GENERIC */
 
-/* vector shuffle/swizzle */
-#ifdef HEBI_SIMD
-#if defined __clang__
-#define SHUFFLE2(A,B,X,Y) __builtin_shufflevector((A),(B),(X),(Y))
-#define SHUFFLE4(A,B,X,Y,Z,W) __builtin_shufflevector((A),(B),(X),(Y),(Z),(W))
-#elif defined __GNUC__
-#define SHUFFLE2(A,B,X,Y) __builtin_shuffle((A),(B), EXTENSION (hebi_v2di){(X),(Y)})
-#define SHUFFLE4(A,B,X,Y,Z,W) __builtin_shuffle((A),(B), EXTENSION (hebi_v4si){(X),(Y),(Z),(W)})
+/* internal-use attributes */
+#if __has_attribute(always_inline)
+#if __has_attribute(hidden)
+#define HEBI_ALWAYSINLINE __attribute__((__always_inline__,__hidden__))
+#else
+#define HEBI_ALWAYSINLINE __attribute__((__always_inline__))
 #endif
+#else
+#define HEBI_ALWAYSINLINE
+#endif
+
+#if __has_attribute(hidden)
+#define HEBI_HIDDEN __attribute__((__hidden__))
+#else
+#define HEBI_HIDDEN
+#endif
+
+#if __has_attribute(pure)
+#define HEBI_PURE __attribute__((__pure__))
+#else
+#define HEBI_PURE
 #endif
 
 /* common macros */
@@ -245,6 +268,17 @@ HEBI_NORETURN void hebi_error_assert__(const char *, const char *, const char *,
 #define STATIC_ASSERT(E,S) _Static_assert(E, S)
 #else
 #define STATIC_ASSERT(E,S) typedef char CONCAT(static_assert_on_line_, __LINE__)[(!!(E))*2-1]
+#endif
+
+/* vector shuffle/swizzle */
+#ifdef HEBI_SIMD
+#if defined __clang__
+#define SHUFFLE2(A,B,X,Y) __builtin_shufflevector((A),(B),(X),(Y))
+#define SHUFFLE4(A,B,X,Y,Z,W) __builtin_shufflevector((A),(B),(X),(Y),(Z),(W))
+#elif defined __GNUC__
+#define SHUFFLE2(A,B,X,Y) __builtin_shuffle((A),(B), EXTENSION (hebi_v2di){(X),(Y)})
+#define SHUFFLE4(A,B,X,Y,Z,W) __builtin_shuffle((A),(B), EXTENSION (hebi_v4si){(X),(Y),(Z),(W)})
+#endif
 #endif
 
 /* hebi_errstate field names */
@@ -316,19 +350,16 @@ struct hebi_context {
 
 #if defined USE_C11_THREAD_LOCAL
 #define hebi_context_get() (&hebi_context__)
-EXTENSION extern _Thread_local struct hebi_context hebi_context__;
+EXTENSION extern HEBI_HIDDEN _Thread_local struct hebi_context hebi_context__;
 #elif defined USE_GNUC_THREAD_LOCAL
 #define hebi_context_get() (&hebi_context__)
-EXTENSION extern __thread struct hebi_context hebi_context__;
+EXTENSION extern HEBI_HIDDEN __thread struct hebi_context hebi_context__;
 #elif defined USE_THREADS
 #define hebi_context_get() (hebi_context_get__(NULL, NULL))
-HEBI_PURE HEBI_WARNUNUSED struct hebi_context *hebi_context_get__(hebi_errhandler, void *);
-#ifdef USE_GLOBAL_DESTRUCTORS
-void hebi_context_shutdown__(void);
-#endif
+HEBI_HIDDEN HEBI_PURE HEBI_WARNUNUSED struct hebi_context *hebi_context_get__(hebi_errhandler, void *);
 #else
 #define hebi_context_get() (&hebi_context__)
-extern struct hebi_context hebi_context__;
+extern HEBI_HIDDEN struct hebi_context hebi_context__;
 #endif
 
 /* hwcaps detection for multi-versioning */
@@ -373,8 +404,8 @@ enum {
 #endif
 };
 
-HEBI_PURE unsigned long hebi_hwcaps__(void);
-HEBI_NORETURN void hebi_hwcaps_fatal__(void);
+HEBI_HIDDEN HEBI_PURE unsigned long hebi_hwcaps__(void);
+HEBI_HIDDEN HEBI_NORETURN void hebi_hwcaps_fatal__(void);
 
 #endif /* HEBI_MULTI_VERSIONING */
 

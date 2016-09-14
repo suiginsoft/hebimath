@@ -58,18 +58,14 @@ extern "C" {
 #endif
 
 #if defined __GNUC__
-#define HEBI_ALWAYSINLINE __attribute__((__always_inline__))
 #define HEBI_CONST __attribute__((__const__))
-#define HEBI_PURE __attribute__((__pure__))
 #define HEBI_ALLOC __attribute__((__malloc__))
 #define HEBI_NOTHROW __attribute__((__nothrow__))
 #define HEBI_WARNUNUSED __attribute__((__warn_unused_result__))
 #define HEBI_LIKELY(E) __builtin_expect(!!(E),1)
 #define HEBI_UNLIKELY(E) __builtin_expect(!!(E),0)
 #else
-#define HEBI_ALWAYSINLINE
 #define HEBI_CONST
-#define HEBI_PURE
 #define HEBI_ALLOC
 #define HEBI_NOTHROW
 #define HEBI_WARNUNUSED

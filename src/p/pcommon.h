@@ -8,19 +8,19 @@
 #ifdef HEBI_MULTI_VERSIONING
 
 #define INTERNAL_MVFUNC(R,N,P,A) \
-extern R (* N##_ptr__) P; \
+extern HEBI_HIDDEN R (* N##_ptr__) P; \
 static inline HEBI_ALWAYSINLINE \
 R N##__ P { return (*N##_ptr__) A; }
 
 #define INTERNAL_MVFUNC_ATTRIB(R,N,P,A,X) \
-extern R (* N##_ptr__) P; \
+extern HEBI_HIDDEN R (* N##_ptr__) P; \
 static inline HEBI_ALWAYSINLINE X \
 R N##__ P { return (*N##_ptr__) A; }
 
 #else
 
-#define INTERNAL_MVFUNC(R,N,P,A) R N##__ P;
-#define INTERNAL_MVFUNC_ATTRIB(R,N,P,A,X) X R N##__ P;
+#define INTERNAL_MVFUNC(R,N,P,A) HEBI_HIDDEN R N##__ P;
+#define INTERNAL_MVFUNC_ATTRIB(R,N,P,A,X) HEBI_HIDDEN X R N##__ P;
 
 #endif
 
