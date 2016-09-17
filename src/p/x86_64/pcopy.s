@@ -8,7 +8,7 @@
 #-------------------------------------------------------------------------------
 
 .if HAS_HWCAP_AVX2
-MVFUNC_BEGIN pcopy, _avx2, 16
+MVFUNC_BEGIN pcopy, avx2
 
     mov         %rdx, %rcx
     shr         $2, %rcx
@@ -42,13 +42,13 @@ MVFUNC_BEGIN pcopy, _avx2, 16
     VZEROPUPPER
     retq
 
-MVFUNC_END pcopy, _avx2
+MVFUNC_END
 .endif
 
 #-------------------------------------------------------------------------------
 
 .if HAS_HWCAP_AVX
-MVFUNC_BEGIN pcopy, _avx, 16
+MVFUNC_BEGIN pcopy, avx
 
     mov         %rdx, %rcx
     shr         $1, %rcx
@@ -79,13 +79,13 @@ MVFUNC_BEGIN pcopy, _avx, 16
 3:  mov         %rdi, %rax
     retq
 
-MVFUNC_END pcopy, _avx
+MVFUNC_END
 .endif
 
 #-------------------------------------------------------------------------------
 
 .if HAS_HWCAP_SSE2
-MVFUNC_BEGIN pcopy, _sse2, 16
+MVFUNC_BEGIN pcopy, sse2
 
     mov         %rdx, %rcx
     shr         $1, %rcx
@@ -116,17 +116,13 @@ MVFUNC_BEGIN pcopy, _sse2, 16
 3:  mov         %rdi, %rax
     retq
 
-MVFUNC_END pcopy, _sse2
+MVFUNC_END
 .endif
 
 #-------------------------------------------------------------------------------
 
 .ifdef HAS_MULTI_VERSIONING
-
-.text
-.align 16, 0x90
-.type pcopy_select, @function
-pcopy_select:
+MVFUNC_DISPATCH_BEGIN pcopy
 
     pushq       %rdx
     pushq       %rsi
@@ -140,7 +136,7 @@ pcopy_select:
 .if HAS_HWCAP_AVX2
     test        $hebi_hwcap_avx2, %eax
     jz          1f
-    lea         pcopy_avx2(%rip), %r10
+    lea         hebi_pcopy_avx2__(%rip), %r10
     jmp         3f
 .endif
 
@@ -148,22 +144,19 @@ pcopy_select:
 .if HAS_HWCAP_AVX
     test        $hebi_hwcap_avx, %eax
     jz          2f
-    lea         pcopy_avx(%rip), %r10
+    lea         hebi_pcopy_avx__(%rip), %r10
     jmp         3f
 .endif
 
 2:
 .if HAS_HWCAP_SSE2
-    lea         pcopy_sse2(%rip), %r10
+    lea         hebi_pcopy_sse2__(%rip), %r10
 .endif
 
 3:  test        %r10, %r10
     jz          4f
-    MVFUNC_USE  pcopy, %r10, %rax
+    MVFUNC_USE  %r10
 4:  jmp         hebi_hwcaps_fatal__
 
-.size pcopy_select, .-pcopy_select
-
-MVFUNC_PTR pcopy, _select
-
+MVFUNC_DISPATCH_END
 .endif

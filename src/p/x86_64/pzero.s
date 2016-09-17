@@ -8,7 +8,7 @@
 #-------------------------------------------------------------------------------
 
 .if HAS_HWCAP_AVX2
-MVFUNC_BEGIN pzero, _avx2, 16
+MVFUNC_BEGIN pzero, avx2
 
     mov         %rsi, %rcx
     vpxor       %ymm0, %ymm0, %ymm0
@@ -36,13 +36,13 @@ MVFUNC_BEGIN pzero, _avx2, 16
     VZEROUPPER
     retq
 
-MVFUNC_END pzero, _avx2
+MVFUNC_END
 .endif
 
 #-------------------------------------------------------------------------------
 
 .if HAS_HWCAP_AVX
-MVFUNC_BEGIN pzero, _avx, 16
+MVFUNC_BEGIN pzero, avx
 
     mov         %rsi, %rcx
     vpxor       %xmm0, %xmm0, %xmm0
@@ -67,14 +67,14 @@ MVFUNC_BEGIN pzero, _avx, 16
 3:  mov         %rdi, %rax
     retq
 
-MVFUNC_END pzero, _avx
+MVFUNC_END
 .endif
 
 
 #-------------------------------------------------------------------------------
 
 .if HAS_HWCAP_SSE2
-MVFUNC_BEGIN pzero, _sse2, 16
+MVFUNC_BEGIN pzero, sse2
 
     mov         %rsi, %rcx
     pxor        %xmm0, %xmm0
@@ -99,17 +99,13 @@ MVFUNC_BEGIN pzero, _sse2, 16
 3:  mov         %rdi, %rax
     retq
 
-MVFUNC_END pzero, _sse2
+MVFUNC_END
 .endif
 
 #-------------------------------------------------------------------------------
 
 .ifdef HAS_MULTI_VERSIONING
-
-.text
-.align 16, 0x90
-.type pzero_select, @function
-pzero_select:
+MVFUNC_DISPATCH_BEGIN pzero
 
     push        %rsi
     push        %rdi
@@ -121,7 +117,7 @@ pzero_select:
 .if HAS_HWCAP_AVX2
     test        $hebi_hwcap_avx2, %eax
     jz          1f
-    lea         pzero_avx2(%rip), %r10
+    lea         hebi_pzero_avx2__(%rip), %r10
     jmp         3f
 .endif
 
@@ -129,22 +125,19 @@ pzero_select:
 .if HAS_HWCAP_AVX
     test        $hebi_hwcap_avx, %eax
     jz          2f
-    lea         pzero_avx(%rip), %r10
+    lea         hebi_pzero_avx__(%rip), %r10
     jmp         3f
 .endif
 
 2:
 .if HAS_HWCAP_SSE2
-    lea         pzero_sse2(%rip), %r10
+    lea         hebi_pzero_sse2__(%rip), %r10
 .endif
 
 3:  test        %r10, %r10
     jz          4f
-    MVFUNC_USE  pzero, %r10, %rax
+    MVFUNC_USE  %r10
 4:  jmp         hebi_hwcaps_fatal__
 
-.size pzero_select, .-pzero_select
-
-MVFUNC_PTR pzero, _select
-
+MVFUNC_DISPATCH_END
 .endif

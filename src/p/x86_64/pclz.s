@@ -8,7 +8,7 @@
 #------------------------------------------------------------------------------
 
 .if HAS_HWCAP_AVX && HAS_HWCAP_LZCNT
-MVFUNC_BEGIN pclz, _avx_lzcnt, 16
+MVFUNC_BEGIN pclz, avx_lzcnt
 
     mov         %rsi, %rcx
     shl         $5, %rsi
@@ -44,13 +44,13 @@ MVFUNC_BEGIN pclz, _avx_lzcnt, 16
     vmovdqa     %xmm1, %xmm0
     jmp         4b
 
-MVFUNC_END pclz, _avx_lzcnt
+MVFUNC_END
 .endif
 
 #------------------------------------------------------------------------------
 
 .if HAS_HWCAP_SSE41
-MVFUNC_BEGIN pclz, _sse41, 16
+MVFUNC_BEGIN pclz, sse41
 
     mov         %rsi, %rcx
     shl         $5, %rsi
@@ -87,13 +87,13 @@ MVFUNC_BEGIN pclz, _sse41, 16
     movdqa      %xmm1, %xmm0
     jmp         4b
 
-MVFUNC_END pclz, _sse41
+MVFUNC_END
 .endif
 
 #------------------------------------------------------------------------------
 
 .if HAS_HWCAP_SSE2
-MVFUNC_BEGIN pclz, _sse2, 16
+MVFUNC_BEGIN pclz, sse2
 
     mov         %rsi, %rcx
     shl         $5, %rsi
@@ -137,17 +137,13 @@ MVFUNC_BEGIN pclz, _sse2, 16
     movdqa      %xmm1, %xmm0
     jmp         4b
 
-MVFUNC_END pclz, _sse2
+MVFUNC_END
 .endif
 
 #------------------------------------------------------------------------------
 
 .ifdef HAS_MULTI_VERSIONING
-
-.text
-.align 16, 0x90
-.type pclz_select, @function
-pclz_select:
+MVFUNC_DISPATCH_BEGIN pclz
 
     pushq       %rsi
     pushq       %rdi
@@ -161,7 +157,7 @@ pclz_select:
     and         $(hebi_hwcap_avx+hebi_hwcap_lzcnt), %r11d
     cmp         $(hebi_hwcap_avx+hebi_hwcap_lzcnt), %r11d
     jne         4f
-    lea         pclz_avx_lzcnt(%rip), %r10
+    lea         hebi_pclz_avx_lzcnt__(%rip), %r10
     jmp         1f
 .endif
 
@@ -169,22 +165,19 @@ pclz_select:
 .if HAS_HWCAP_SSE41
     test        $hebi_hwcap_sse41, %eax
     jz          2f
-    lea         pclz_sse41(%rip), %r10
+    lea         hebi_pclz_sse41__(%rip), %r10
     jmp         3f
 .endif
 
 2:
 .if HAS_HWCAP_SSE2
-    lea         pclz_sse2(%rip), %r10
+    lea         hebi_pclz_sse2__(%rip), %r10
 .endif
 
 3:  test        %r10, %r10
     jz          4f
-    MVFUNC_USE  pclz, %r10, %rax
+    MVFUNC_USE  %r10
 4:  jmp         hebi_hwcaps_fatal__
 
-.size pclz_select, .-pclz_select
-
-MVFUNC_PTR pclz, _select
-
+MVFUNC_DISPATCH_END
 .endif

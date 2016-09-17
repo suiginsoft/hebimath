@@ -7,7 +7,7 @@
 
 #-------------------------------------------------------------------------------
 
-MVFUNC_BEGIN psqr, _x86_64, 16
+MVFUNC_BEGIN psqr, x86_64
 
     test        %rdx, %rdx
     jz          5f
@@ -78,12 +78,10 @@ MVFUNC_BEGIN psqr, _x86_64, 16
     pop         %rbx
 5:  retq
 
-MVFUNC_END psqr, _x86_64
+MVFUNC_END
 
 #-------------------------------------------------------------------------------
 
 .ifdef HAS_MULTI_VERSIONING
-
-MVFUNC_PTR psqr, _x86_64
-
+MVFUNC_DISPATCH_PTR psqr, x86_64
 .endif

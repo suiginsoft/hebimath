@@ -8,7 +8,7 @@
 #-------------------------------------------------------------------------------
 
 .if HAS_HWCAP_AVX
-MVFUNC_BEGIN pshr, _avx, 16
+MVFUNC_BEGIN pshr, avx
 
     # Compute number of quadwords to shift
 
@@ -86,13 +86,13 @@ MVFUNC_BEGIN pshr, _avx, 16
 5:  sub         %rcx, %rax
     retq
 
-MVFUNC_END pshr, _avx
+MVFUNC_END
 .endif
 
 #-------------------------------------------------------------------------------
 
 .if HAS_HWCAP_SSE2
-MVFUNC_BEGIN pshr, _sse2, 16
+MVFUNC_BEGIN pshr, sse2
 
     # Compute number of quadwords to shift
 
@@ -178,17 +178,13 @@ MVFUNC_BEGIN pshr, _sse2, 16
 5:  sub         %rcx, %rax
     retq
 
-MVFUNC_END pshr, _sse2
+MVFUNC_END
 .endif
 
 #-------------------------------------------------------------------------------
 
 .ifdef HAS_MULTI_VERSIONING
-
-.text
-.align 16, 0x90
-.type pshr_select, @function
-pshr_select:
+MVFUNC_DISPATCH_BEGIN pshr
 
     pushq       %rdi
     pushq       %rsi
@@ -204,22 +200,19 @@ pshr_select:
 .if HAS_HWCAP_AVX
     test        $hebi_hwcap_avx, %eax
     jz          1f
-    lea         pshr_avx(%rip), %r10
+    lea         hebi_pshr_avx__(%rip), %r10
     jmp         2f
 .endif
 
 1:
 .if HAS_HWCAP_SSE2
-    lea         pshr_sse2(%rip), %r10
+    lea         hebi_pshr_sse2__(%rip), %r10
 .endif
 
 2:  test        %r10, %r10
     jz          3f
-    MVFUNC_USE  pshr, %r10, %rax
+    MVFUNC_USE  %r10
 3:  jmp         hebi_hwcaps_fatal__
 
-.size pshr_select, .-pshr_select
-
-MVFUNC_PTR pshr, _select
-
+MVFUNC_DISPATCH_END
 .endif

@@ -6,12 +6,9 @@
 .ifdef HAS_MULTI_VERSIONING
 
 .extern hebi_hwcaps__
-.extern hebi_hwcaps_fatal__
-
-.ifdef HAS_PIC
 .hidden hebi_hwcaps__
+.extern hebi_hwcaps_fatal__
 .hidden hebi_hwcaps_fatal__
-.endif
 
 .equ hebi_hwcap_sse,        0x00000001
 .equ hebi_hwcap_sse2,       0x00000002
@@ -42,129 +39,215 @@
 .equ hebi_hwcap_avx512ifma, 0x04000000
 .equ hebi_hwcap_avx512vbmi, 0x08000000
 
-.macro MVFUNC_BEGIN Name, Suffix, Alignment
-	.text
-	.align \Alignment, 0x90
-	.type \Name\Suffix, @function
-\Name\Suffix:
+.macro MVFUNC_BEGIN Name:req, Version:req, Scope=@public, Access=@opaque
+.text
+.p2align 4,,15
+.ifc \Access,@explicit
+.global hebi_\Name\()_\Version\()__
+.hidden hebi_\Name\()_\Version\()__
+.endif
+.type hebi_\Name\()_\Version\()__, @function
+hebi_\Name\()_\Version\()__:
 .endm
 
-.macro MVFUNC_END Name, Suffix
-	.size \Name\Suffix, .-\Name\Suffix
+.macro MVFUNC_END Name:req, Version:req
+.size hebi_\Name\()_\Version\()__, .-hebi_\Name\()_\Version\()__
 .endm
 
 .ifdef HAS_PIC
 
-.macro MVFUNC_PTR Name, DefaultSuffix
-	.text
-	.global hebi_\Name\()_ptr__
-	.section .data.rel.local,"aw",@progbits
-	.align 8
-	.type hebi_\Name\()_ptr__, @object
-	.size hebi_\Name\()_ptr__, 8
+.macro MVFUNC_DISPATCH_PTR Name:req, DefaultVersion:req
+.text
+.section .data.rel.local,"aw",@progbits
+.p2align 3,,7
+.global hebi_\Name\()_ptr__
+.type hebi_\Name\()_ptr__, @object
+.size hebi_\Name\()_ptr__, 8
 hebi_\Name\()_ptr__:
-	.quad \Name\DefaultSuffix
+.quad hebi_\Name\()_\DefaultVersion\()__
 .endm
 
-.macro MVFUNC_CALL Name, Dest
-	movq	hebi_\Name\()_ptr__@GOTPCREL(%rip), \Dest
-	movq	(\Dest), \Dest
-	call	*\Dest
+.macro MVFUNC_DISPATCH_USE_IMPL__ Name:req, Src:req
+movq	hebi_\Name\()_ptr__@GOTPCREL(%rip), %rax
+movq	\Src, (%rax)
+jmpq	*\Src
 .endm
 
-.macro MVFUNC_JMP Name, Dest
-	movq	hebi_\Name\()_ptr__@GOTPCREL(%rip), \Dest
-	movq	(\Dest), \Dest
-	jmpq	*\Dest
+.macro MVFUNC_CALL Name:req, Dst:req
+movq	hebi_\Name\()_ptr__@GOTPCREL(%rip), \Dst
+movq	(\Dst), \Dst
+call	*\Dst
 .endm
 
-.macro MVFUNC_USE Name, Src, Temp
-	movq	hebi_\Name\()_ptr__@GOTPCREL(%rip), \Temp
-	movq	\Src, (\Temp)
-	jmpq	*\Src
+.macro MVFUNC_JMP Name:req, Dst:req
+movq	hebi_\Name\()_ptr__@GOTPCREL(%rip), \Dst
+movq	(\Dst), \Dst
+jmpq	*\Dst
 .endm
 
 .else # HAS_PIC
 
-.macro MVFUNC_PTR Name, DefaultSuffix
-	.data
-	.global hebi_\Name\()_ptr__
-	.align 8
-	.type hebi_\Name\()_ptr__, @object
-	.size hebi_\Name\()_ptr__, 8
+.macro MVFUNC_DISPATCH_PTR Name:req, DefaultVersion:req
+.data
+.p2align 3,,7
+.global hebi_\Name\()_ptr__
+.type hebi_\Name\()_ptr__, @object
+.size hebi_\Name\()_ptr__, 8
 hebi_\Name\()_ptr__:
-	.quad \Name\DefaultSuffix
+.quad hebi_\Name\()_\DefaultVersion\()__
 .endm
 
-.macro MVFUNC_CALL Name, Dest
-	call	*hebi_\Name\()_ptr__(%rip)
+.macro MVFUNC_DISPATCH_USE_IMPL__ Name:req, Src:req
+movq	\Src, hebi_\Name\()_ptr__(%rip)
+jmpq	*\Src
 .endm
 
-.macro MVFUNC_JMP Name, Dest
-	jmp	*hebi_\Name\()_ptr__(%rip)
+.macro MVFUNC_CALL Name:req, Dst:req
+callq	*hebi_\Name\()_ptr__(%rip)
 .endm
 
-.macro MVFUNC_USE Name, Src, Temp
-	movq	\Src, hebi_\Name\()_ptr__(%rip)
-	jmpq	*\Src
+.macro MVFUNC_JMP Name:req, Dst:req
+jmpq	*hebi_\Name\()_ptr__(%rip)
 .endm
 
 .endif # HAS_PIC
 
+.macro MVFUNC_DISPATCH_BEGIN Name:req
+.macro MVFUNC_DISPATCH_END_IMPL__
+.size hebi_\Name\()_dispatch__, .-hebi_\Name\()_dispatch__
+MVFUNC_DISPATCH_PTR \Name, dispatch
+.endm
+.macro MVFUNC_USE \Src
+MVFUNC_DISPATCH_USE_IMPL__ \Name, \Src
+.endm
+.text
+.p2align 4,,15
+.type hebi_\Name\()_dispatch__, @function
+hebi_\Name\()_dispatch__:
+.endm
+
+.macro MVFUNC_DISPATCH_END
+MVFUNC_DISPATCH_END_IMPL__
+.purgem MVFUNC_DISPATCH_END_IMPL__
+.purgem MVFUNC_USE
+.endm
+
+.macro MVFUNC_CALL_EXPLICIT Name:req, Version:req
+call	hebi_\Name\()_\Version\()__
+.endm
+
+.macro MVFUNC_JMP_EXPLICIT Name:req, Version:req
+jmp	hebi_\Name\()_\Version\()__
+.endm
+
 .else # HAS_MULTI_VERSIONING
 
-.macro MVFUNC_BEGIN Name, Suffix, Alignment
-	.text
-	.align \Alignment, 0x90
-	.global hebi_\Name
-	.type hebi_\Name, @function
-hebi_\Name:
+.macro MVFUNC_BEGIN_OPAQUE__ Name:req, Scope:req
+.macro MVFUNC_END_IMPL__
+.size \Name, .-\Name
+.endm
+.global \Name
+.ifc \Scope,@private
+.hidden \Name
+.endif
+.type \Name, @function
+\Name\():
 .endm
 
-.macro MVFUNC_END Name, Suffix
-	.size hebi_\Name, .-hebi_\Name
-	.equ HAS_HWCAP_SSE,         0
-	.equ HAS_HWCAP_SSE2,        0
-	.equ HAS_HWCAP_SSE3,        0
-	.equ HAS_HWCAP_SSE41,       0
-	.equ HAS_HWCAP_SSE42,       0
-	.equ HAS_HWCAP_AESNI,       0
-	.equ HAS_HWCAP_CLMUL,       0
-	.equ HAS_HWCAP_POPCNT,      0
-	.equ HAS_HWCAP_LZCNT,       0
-	.equ HAS_HWCAP_F16C,        0
-	.equ HAS_HWCAP_FMA,         0
-	.equ HAS_HWCAP_AVX,         0
-	.equ HAS_HWCAP_AVX2,        0
-	.equ HAS_HWCAP_BMI,         0
-	.equ HAS_HWCAP_BMI2,        0
-	.equ HAS_HWCAP_ERMSB,       0
-	.equ HAS_HWCAP_ADX,         0
-	.equ HAS_HWCAP_SHA,         0
-	.equ HAS_HWCAP_AVX512F,     0
-	.equ HAS_HWCAP_AVX512BW,    0
-	.equ HAS_HWCAP_AVX512CD,    0
-	.equ HAS_HWCAP_AVX512DQ,    0
-	.equ HAS_HWCAP_AVX512ER,    0
-	.equ HAS_HWCAP_AVX512PF,    0
-	.equ HAS_HWCAP_AVX512VL,    0
-	.equ HAS_HWCAP_AVX512IFMA,  0
-	.equ HAS_HWCAP_AVX512VBMI,  0
+.macro MVFUNC_BEGIN_EXPLICIT__ Name:req, ExplicitName:req, Scope:req
+.macro MVFUNC_END_IMPL__
+.size \Name, .-\Name
+.size \ExplicitName, .-\ExplicitName
+.endm
+.global \Name
+.ifc \Scope,@private
+.hidden \Name
+.endif
+.global \ExplicitName
+.hidden \ExplicitName
+.type \Name, @function
+.type \ExplicitName, @function
+\Name\():
+\ExplicitName\():
 .endm
 
-.macro MVFUNC_PTR Name, DefaultSuffix
+.macro MVFUNC_BEGIN Name:req, Version:req, Scope=@public, Access=@opaque
+.text
+.p2align 4,,15
+.ifc \Access,@opaque
+.ifc \Scope,@public
+MVFUNC_BEGIN_OPAQUE__ hebi_\Name, @public
+.endif
+.ifc \Scope,@private
+MVFUNC_BEGIN_OPAQUE__ hebi_\Name\()__, @private
+.endif
+.endif
+.ifc \Access,@explicit
+.ifc \Scope,@public
+MVFUNC_BEGIN_EXPLICIT__ hebi_\Name, hebi_\Name\()_\Version\()__, @public
+.endif
+.ifc \Scope,@private
+MVFUNC_BEGIN_EXPLICIT__ hebi_\Name\()__, hebi_\Name\()_\Version\()__, @private
+.endif
+.endif
+.endm
+
+.macro MVFUNC_END
+MVFUNC_END_IMPL__
+.purgem MVFUNC_END_IMPL__
+.equ HAS_HWCAP_SSE,         0
+.equ HAS_HWCAP_SSE2,        0
+.equ HAS_HWCAP_SSE3,        0
+.equ HAS_HWCAP_SSE41,       0
+.equ HAS_HWCAP_SSE42,       0
+.equ HAS_HWCAP_AESNI,       0
+.equ HAS_HWCAP_CLMUL,       0
+.equ HAS_HWCAP_POPCNT,      0
+.equ HAS_HWCAP_LZCNT,       0
+.equ HAS_HWCAP_F16C,        0
+.equ HAS_HWCAP_FMA,         0
+.equ HAS_HWCAP_AVX,         0
+.equ HAS_HWCAP_AVX2,        0
+.equ HAS_HWCAP_BMI,         0
+.equ HAS_HWCAP_BMI2,        0
+.equ HAS_HWCAP_ERMSB,       0
+.equ HAS_HWCAP_ADX,         0
+.equ HAS_HWCAP_SHA,         0
+.equ HAS_HWCAP_AVX512F,     0
+.equ HAS_HWCAP_AVX512BW,    0
+.equ HAS_HWCAP_AVX512CD,    0
+.equ HAS_HWCAP_AVX512DQ,    0
+.equ HAS_HWCAP_AVX512ER,    0
+.equ HAS_HWCAP_AVX512PF,    0
+.equ HAS_HWCAP_AVX512VL,    0
+.equ HAS_HWCAP_AVX512IFMA,  0
+.equ HAS_HWCAP_AVX512VBMI,  0
+.endm
+
+.macro MVFUNC_DISPATCH_PTR Name:req, DefaultVersion=dispatch
+.endm
+
+.macro MVFUNC_DISPATCH_BEGIN Name:req
+.endm
+
+.macro MVFUNC_DISPATCH_END Name:req
 .endm
 
 .macro MVFUNC_CALL Name, Dest
-	call	hebi_\Name
+call	hebi_\Name
 .endm
 
 .macro MVFUNC_JMP Name, Dest
-	jmp	hebi_\Name
+jmp	hebi_\Name
 .endm
 
-.macro MVFUNC_USE Name, Src, Temp
-	jmpq	*\Src
+.macro MVFUNC_CALL_EXPLICIT Name:req, Version:req
+call	hebi_\Name\()_\Version\()__
+.endm
+
+.macro MVFUNC_JMP_EXPLICIT Name:req, Version:req
+jmp	hebi_\Name\()_\Version\()__
 .endm
 
 .endif # HAS_MULTI_VERSIONING
+

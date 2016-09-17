@@ -7,7 +7,7 @@
 
 #-------------------------------------------------------------------------------
 
-MVFUNC_BEGIN pmulu, _x86_64, 16
+MVFUNC_BEGIN pmulu, x86_64
 
     xor         %r8, %r8
     mov         %rdx, %r10
@@ -35,12 +35,10 @@ MVFUNC_BEGIN pmulu, _x86_64, 16
 2:  mov         %r8, %rax
     retq
 
-MVFUNC_END pmulu, _x86_64
+MVFUNC_END
 
 #-------------------------------------------------------------------------------
 
 .ifdef HAS_MULTI_VERSIONING
-
-MVFUNC_PTR pmulu, _x86_64
-
+MVFUNC_DISPATCH_PTR pmulu, x86_64
 .endif

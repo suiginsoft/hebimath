@@ -8,7 +8,7 @@
 #-------------------------------------------------------------------------------
 
 .if HAS_HWCAP_AVX2
-MVFUNC_BEGIN pcmp, _avx2, 16
+MVFUNC_BEGIN pcmp, avx2
 
     mov         %rdx, %rcx
     shl         $5, %rcx
@@ -43,13 +43,13 @@ MVFUNC_BEGIN pcmp, _avx2, 16
     VZEROUPPER
     retq
 
-MVFUNC_END pcmp, _avx2
+MVFUNC_END
 .endif
 
 #-------------------------------------------------------------------------------
 
 .if HAS_HWCAP_AVX
-MVFUNC_BEGIN pcmp, _avx, 16
+MVFUNC_BEGIN pcmp, avx
 
     mov         %rdx, %rcx
     shl         $5, %rcx
@@ -87,13 +87,13 @@ MVFUNC_BEGIN pcmp, _avx, 16
     sub         %edx, %eax
     retq
 
-MVFUNC_END pcmp, _avx
+MVFUNC_END
 .endif
 
 #-------------------------------------------------------------------------------
 
 .if HAS_HWCAP_SSE41
-MVFUNC_BEGIN pcmp, _sse41, 16
+MVFUNC_BEGIN pcmp, sse41
 
     mov         %rdx, %rcx
     shl         $5, %rcx
@@ -132,13 +132,13 @@ MVFUNC_BEGIN pcmp, _sse41, 16
     sub         %edx, %eax
     retq
 
-MVFUNC_END pcmp, _sse41
+MVFUNC_END
 .endif
 
 #-------------------------------------------------------------------------------
 
 .if HAS_HWCAP_SSE2
-MVFUNC_BEGIN pcmp, _sse2, 16
+MVFUNC_BEGIN pcmp, sse2
 
     mov         %rdx, %rcx
     shl         $5, %rcx
@@ -179,17 +179,13 @@ MVFUNC_BEGIN pcmp, _sse2, 16
     sub         %edx, %eax
     retq
 
-MVFUNC_END pcmp, _sse2
+MVFUNC_END
 .endif
 
 #-------------------------------------------------------------------------------
 
 .ifdef HAS_MULTI_VERSIONING
-
-.text
-.align 16, 0x90
-.type pcmp_select, @function
-pcmp_select:
+MVFUNC_DISPATCH_BEGIN pcmp
 
     pushq       %rdx
     pushq       %rsi
@@ -203,7 +199,7 @@ pcmp_select:
 .if HAS_HWCAP_AVX2
     test        $hebi_hwcap_avx2, %eax
     jz          1f
-    lea         pcmp_avx2(%rip), %r10
+    lea         hebi_pcmp_avx2__(%rip), %r10
     jmp         4f
 .endif
 
@@ -211,7 +207,7 @@ pcmp_select:
 .if HAS_HWCAP_AVX
     test        $hebi_hwcap_avx, %eax
     jz          2f
-    lea         pcmp_avx(%rip), %r10
+    lea         hebi_pcmp_avx__(%rip), %r10
     jmp         4f
 .endif
 
@@ -219,22 +215,19 @@ pcmp_select:
 .if HAS_HWCAP_SSE41
     test        $hebi_hwcap_sse41, %eax
     jz          3f
-    lea         pcmp_sse41(%rip), %r10
+    lea         hebi_pcmp_sse41__(%rip), %r10
     jmp         4f
 .endif
 
 3:
 .if HAS_HWCAP_SSE2
-    lea         pcmp_sse2(%rip), %r10
+    lea         hebi_pcmp_sse2__(%rip), %r10
 .endif
 
 4:  test        %r10, %r10
     jz          5f
-    MVFUNC_USE  pcmp, %r10, %rax
+    MVFUNC_USE  %r10
 5:  jmp         hebi_hwcaps_fatal__
 
-.size pcmp_select, .-pcmp_select
-
-MVFUNC_PTR pcmp, _select
-
+MVFUNC_DISPATCH_END
 .endif

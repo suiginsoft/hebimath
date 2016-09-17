@@ -7,7 +7,7 @@
 
 #-------------------------------------------------------------------------------
 
-MVFUNC_BEGIN pmul, _x86_64, 16
+MVFUNC_BEGIN pmul, x86_64
 
     test        %r8, %r8
     jnz         1f
@@ -95,12 +95,10 @@ MVFUNC_BEGIN pmul, _x86_64, 16
     pop         %rbx
     retq
 
-MVFUNC_END pmul, _x86_64
+MVFUNC_END
 
 #-------------------------------------------------------------------------------
 
 .ifdef HAS_MULTI_VERSIONING
-
-MVFUNC_PTR pmul, _x86_64
-
+MVFUNC_DISPATCH_PTR pmul, x86_64
 .endif

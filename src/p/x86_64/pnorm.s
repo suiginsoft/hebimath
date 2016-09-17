@@ -8,7 +8,7 @@
 #------------------------------------------------------------------------------
 
 .if HAS_HWCAP_AVX
-MVFUNC_BEGIN pnorm, _avx, 16
+MVFUNC_BEGIN pnorm, avx
 
     mov         %rsi, %rax
     mov         %rsi, %rcx
@@ -56,13 +56,13 @@ MVFUNC_BEGIN pnorm, _avx, 16
     sub         %rcx, %rax
     retq
 
-MVFUNC_END pnorm, _avx
+MVFUNC_END
 .endif
 
 #------------------------------------------------------------------------------
 
 .if HAS_HWCAP_SSE41
-MVFUNC_BEGIN pnorm, _sse41, 16
+MVFUNC_BEGIN pnorm, sse41
 
     mov         %rsi, %rax
     mov         %rsi, %rcx
@@ -110,13 +110,13 @@ MVFUNC_BEGIN pnorm, _sse41, 16
     sub         %rcx, %rax
     retq
 
-MVFUNC_END pnorm, _sse41
+MVFUNC_END
 .endif
 
 #------------------------------------------------------------------------------
 
 .if HAS_HWCAP_SSE2
-MVFUNC_BEGIN pnorm, _sse2, 16
+MVFUNC_BEGIN pnorm, sse2
 
     mov         %rsi, %rcx
     shl         $5, %rsi
@@ -159,17 +159,13 @@ MVFUNC_BEGIN pnorm, _sse2, 16
     lea         -1(%rcx), %rax
     retq
 
-MVFUNC_END pnorm, _sse2
+MVFUNC_END
 .endif
 
 #------------------------------------------------------------------------------
 
 .ifdef HAS_MULTI_VERSIONING
-
-.text
-.align 16, 0x90
-.type pnorm_select, @function
-pnorm_select:
+MVFUNC_DISPATCH_BEGIN pnorm
 
     pushq       %rsi
     pushq       %rdi
@@ -181,7 +177,7 @@ pnorm_select:
 .if HAS_HWCAP_AVX
     test        $hebi_hwcap_avx, %eax
     jz          1f
-    lea         pnorm_avx(%rip), %r10
+    lea         hebi_pnorm_avx__(%rip), %r10
     jmp         3f
 .endif
 
@@ -189,22 +185,19 @@ pnorm_select:
 .if HAS_HWCAP_SSE41
     test        $hebi_hwcap_sse41, %eax
     jz          2f
-    lea         pnorm_sse41(%rip), %r10
+    lea         hebi_pnorm_sse41__(%rip), %r10
     jmp         3f
 .endif
 
 2:
 .if HAS_HWCAP_SSE2
-    lea         pnorm_sse2(%rip), %r10
+    lea         hebi_pnorm_sse2__(%rip), %r10
 .endif
 
 3:  test        %r10, %r10
     jz          4f
-    MVFUNC_USE  pnorm, %r10, %rax
+    MVFUNC_USE  %r10
 4:  jmp         hebi_hwcaps_fatal__
 
-.size pnorm_select, .-pnorm_select
-
-MVFUNC_PTR pnorm, _select
-
+MVFUNC_DISPATCH_END
 .endif

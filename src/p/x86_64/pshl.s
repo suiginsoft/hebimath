@@ -8,7 +8,7 @@
 #-------------------------------------------------------------------------------
 
 .if HAS_HWCAP_AVX
-MVFUNC_BEGIN pshl, _avx, 16
+MVFUNC_BEGIN pshl, avx
 
     # Check if we have any packets to shift
 
@@ -104,13 +104,13 @@ MVFUNC_BEGIN pshl, _avx, 16
     popq        %r9
     jmp         3b
 
-MVFUNC_END pshl, _avx
+MVFUNC_END
 .endif
 
 #-------------------------------------------------------------------------------
 
 .if HAS_HWCAP_SSE2
-MVFUNC_BEGIN pshl, _sse2, 16
+MVFUNC_BEGIN pshl, sse2
 
     # Check if we have any packets to shift
 
@@ -212,17 +212,13 @@ MVFUNC_BEGIN pshl, _sse2, 16
     popq        %r9
     jmp         3b
 
-MVFUNC_END pshl, _sse2
+MVFUNC_END
 .endif
 
 #-------------------------------------------------------------------------------
 
 .ifdef HAS_MULTI_VERSIONING
-
-.text
-.align 16, 0x90
-.type pshl_select, @function
-pshl_select:
+MVFUNC_DISPATCH_BEGIN pshl
 
     pushq       %rdi
     pushq       %rsi
@@ -238,22 +234,19 @@ pshl_select:
 .if HAS_HWCAP_AVX
     test        $hebi_hwcap_avx, %eax
     jz          1f
-    lea         pshl_avx(%rip), %r10
+    lea         hebi_pshl_avx__(%rip), %r10
     jmp         2f
 .endif
 
 1:
 .if HAS_HWCAP_SSE2
-    lea         pshl_sse2(%rip), %r10
+    lea         hebi_pshl_sse2__(%rip), %r10
 .endif
 
 2:  test        %r10, %r10
     jz          3f
-    MVFUNC_USE  pshl, %r10, %rax
+    MVFUNC_USE  %r10
 3:  jmp         hebi_hwcaps_fatal__
 
-.size pshl_select, .-pshl_select
-
-MVFUNC_PTR pshl, _select
-
+MVFUNC_DISPATCH_END
 .endif

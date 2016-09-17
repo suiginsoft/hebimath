@@ -5,22 +5,18 @@
 
 .include "src/p/x86_64/x86_64.inc"
 
+#-------------------------------------------------------------------------------
+
 .macro ADCSBB src, dst
 sbb \src, \dst
 .endm
 
-#-------------------------------------------------------------------------------
-
-MVFUNC_BEGIN psub, _x86_64, 16
-
+MVFUNC_BEGIN psub, x86_64
 .include "src/p/x86_64/paddsub.inc"
-
-MVFUNC_END psub, _x86_64
+MVFUNC_END
 
 #-------------------------------------------------------------------------------
 
 .ifdef HAS_MULTI_VERSIONING
-
-MVFUNC_PTR psub, _x86_64
-
+MVFUNC_DISPATCH_PTR psub, x86_64
 .endif
