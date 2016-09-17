@@ -8,6 +8,7 @@
  * It should be included by a kernel-backend specific source file.
  */
 
+HEBI_HIDDEN
 uint16_t hebi_recipu64_v0lut__[256] =
 {
 	0x07FD, 0x07F5, 0x07ED, 0x07E5, 0x07DD, 0x07D5, 0x07CE, 0x07C6,
@@ -54,6 +55,7 @@ int main(int argc, char **argv)
 {
 	int x, i, j;
 
+	puts("HEBI_HIDDEN");
 	puts("uint16_t hebi_recipu64_v0lut__[256] =");
 	puts("{");
 
