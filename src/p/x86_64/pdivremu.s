@@ -3,12 +3,12 @@
 
 # uint64_t hebi_pdivremu(hebi_packet *q, const hebi_packet *a, uint64_t b, size_t n);
 
-# NOTE: Our implementation of hebi_recipu64_2x1_x86_64__ doesn't touch registers
-# r8 through r11, so use these instead of the stack to save state.
-
 .include "src/p/x86_64/x86_64.inc"
 
 #-------------------------------------------------------------------------------
+
+# NOTE: Our implementation of hebi_recipu64_2x1_x86_64__ doesn't touch registers
+# r8 through r11, so use these registers instead of the stack to save state.
 
 .extern hebi_recipu64_2x1_x86_64__
 .hidden hebi_recipu64_2x1_x86_64__

@@ -7,54 +7,52 @@
 
 #-------------------------------------------------------------------------------
 
-.if HAS_HWCAP_BMI2
-.extern hebi_recipu64_2x1_bmi2__
-.hidden hebi_recipu64_2x1_bmi2__
-MVFUNC_BEGIN recipu64_3x2, bmi2, @private, @explicit
+# NOTE: Our implementation of hebi_recipu64_2x1_x86_64__ doesn't touch registers
+# r8 through r11, so use these registers instead of the stack to save state.
 
-    push        %rbp
-    push        %rbx
-    mov         %rdi, %rbx
-    mov         %rsi, %rbp
-    sub         $8, %rsp
-    call        hebi_recipu64_2x1_bmi2__
-    mov         %rbx, %rdx
+.extern hebi_recipu64_2x1_x86_64__
+.hidden hebi_recipu64_2x1_x86_64__
+
+#-------------------------------------------------------------------------------
+
+.if HAS_HWCAP_BMI2
+MVFUNC_BEGIN recipu64_3x2, bmi2, @private
+
+    mov         %rdi, %r10
+    mov         %rsi, %r11
+    call        hebi_recipu64_2x1_x86_64__
+    mov         %r10, %rdx
     imul        %rax, %rdx
-    add         $8, %rsp
-    add         %rbp, %rdx
+    add         %r11, %rdx
     mov         %rdx, %r8
     jnc         2f
-    cmp         %rdx, %rbx
+    cmp         %rdx, %r10
     jbe         3f
     dec         %rax
-1:  sub         %rbx, %r8
+1:  sub         %r10, %r8
 2:  mov         %rax, %rdx
-    mulx        %rbp, %rsi, %rdi
+    mulx        %r11, %rsi, %rdi
     mov         %r8, %rdx
     add         %rdi, %rdx
     jc          4f
-    pop         %rbx
-    pop         %rbp
     ret
 
     .p2align 4,,7
 3:  sub         $2, %rax
-    sub         %rbx, %r8
+    sub         %r10, %r8
     jmp         1b
-4:  cmp         %rdx, %rbx
+
+    .p2align 4,,7
+4:  cmp         %rdx, %r10
     jb          5f
     jne         6f
-    cmp         %rsi, %rbp
+    cmp         %rsi, %r11
     ja          6f
 5:  sub         $2, %rax
-    pop         %rbx
-    pop         %rbp
     ret
 
     .p2align 4,,7
 6:  dec         %rax
-    pop         %rbx
-    pop         %rbp
     ret
 
 MVFUNC_END
@@ -63,55 +61,43 @@ MVFUNC_END
 #-------------------------------------------------------------------------------
 
 .if HAS_HWCAP_X86_64
-.extern hebi_recipu64_2x1_x86_64__
-.hidden hebi_recipu64_2x1_x86_64__
-MVFUNC_BEGIN recipu64_3x2, x86_64, @private, @explicit
+MVFUNC_BEGIN recipu64_3x2, x86_64, @private
 
-    push        %rbp
-    push        %rbx
-    mov         %rsi, %rbp
-    mov         %rdi, %rbx
-    sub         $8, %rsp
+    mov         %rdi, %r8
+    mov         %rsi, %r9
     call        hebi_recipu64_2x1_x86_64__
-    mov         %rbx, %rcx
+    mov         %r8, %rcx
     imul        %rax, %rcx
-    add         $8, %rsp
     mov         %rax, %rdi
-    add         %rbp, %rcx
+    add         %r9, %rcx
     jnc         2f
-    cmp         %rcx, %rbx
+    cmp         %rcx, %r8
     jbe         3f
     dec         %rdi
-1:  sub         %rbx, %rcx
+1:  sub         %r8, %rcx
 2:  mov         %rdi, %rax
-    mul         %rbp
+    mul         %r9
     add         %rdx, %rcx
     jc          4f
     mov         %rdi, %rax
-    pop         %rbx
-    pop         %rbp
     ret
 
     .p2align 4,,7
 3:  sub         $2, %rdi
-    sub         %rbx, %rcx
+    sub         %r8, %rcx
     jmp         1b
-4:  cmp         %rcx, %rbx
+
+    .p2align 4,,7
+4:  cmp         %rcx, %r8
     jb          5f
     jne         6f
-    cmp         %rax, %rbp
+    cmp         %rax, %r9
     ja          6f
-5:  sub         $2, %rdi
-    pop         %rbx
-    mov         %rdi, %rax
-    pop         %rbp
+5:  lea         -2(,%rdi), %rax
     ret
 
     .p2align 4,,7
-6:  dec         %rdi
-    pop         %rbx
-    mov         %rdi, %rax
-    pop         %rbp
+6:  lea         -1(,%rdi), %rax
     ret
 
 MVFUNC_END
