@@ -18,7 +18,7 @@ MVFUNC_BEGIN pnorm, avx
     shr         $2, %rcx
     jz          3f
 
-    .p2align 4,,15
+    .p2align 4
 2:  vmovdqa     (%rdi), %xmm0
     vpor        -16(%rdi), %xmm0, %xmm0
     vmovdqa     -32(%rdi), %xmm1
@@ -72,7 +72,7 @@ MVFUNC_BEGIN pnorm, sse41
     shr         $2, %rcx
     jz          3f
 
-    .p2align 4,,15
+    .p2align 4
 2:  movdqa      (%rdi), %xmm0
     por         -16(%rdi), %xmm0
     movdqa      -32(%rdi), %xmm1
@@ -134,7 +134,7 @@ MVFUNC_BEGIN pnorm, sse2
 1:  shr         $1, %rcx
     jrcxz       3f
 
-.align 16
+    .p2align 4
 2:  movdqa      (%rdi), %xmm0
     por         -16(%rdi), %xmm0
     movdqa      -32(%rdi), %xmm1
