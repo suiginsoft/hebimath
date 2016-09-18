@@ -44,7 +44,7 @@ MVFUNC_BEGIN pdivremru64_2x1, x86_64, @private, @explicit
     shld        %cl, %rbp, %rax
     jmp         2f
 
-    # Main division loop with shifting
+    # Division loop with shifting
 
     .p2align 4
 1:  mov         -8(%rsi,%rbx,8), %rbp
@@ -56,8 +56,8 @@ MVFUNC_BEGIN pdivremru64_2x1, x86_64, @private, @explicit
     mov         %rax, %r10
     mov         %rdx, %r11
     imul        %r8, %rdx
-    sub         %rdx, %r12
     mov         %r8, %rax
+    sub         %rdx, %r12
     add         %r12, %rax
     cmp         %r10, %r12
     cmovb       %r12, %rax
@@ -79,8 +79,8 @@ MVFUNC_BEGIN pdivremru64_2x1, x86_64, @private, @explicit
     mov         %rax, %r10
     mov         %rdx, %r11
     imul        %r8, %rdx
-    sub         %rdx, %r12
     mov         %r8, %rax
+    sub         %rdx, %r12
     add         %r12, %rax
     cmp         %r10, %r12
     cmovb       %r12, %rax
@@ -90,7 +90,7 @@ MVFUNC_BEGIN pdivremru64_2x1, x86_64, @private, @explicit
 3:  mov         %r11, (%rdi,%rbx,8)
     shr         %cl, %rax
 
-    # All done  remainder is in %rax
+    # All done remainder is in %rax
 
     pop         %r12
     pop         %rbp
@@ -109,7 +109,7 @@ MVFUNC_BEGIN pdivremru64_2x1, x86_64, @private, @explicit
     sub         %r8, %rax
     jmp         3b
 
-    # Main division loop without shifting
+    # Division loop without shifting
 
     .p2align 4
 6:  mov         -8(%rsi,%rbx,8), %r12
@@ -120,8 +120,8 @@ MVFUNC_BEGIN pdivremru64_2x1, x86_64, @private, @explicit
     mov         %rax, %r10
     mov         %rdx, %r11
     imul        %r8, %rdx
-    sub         %rdx, %r12
     mov         %r8, %rax
+    sub         %rdx, %r12
     add         %r12, %rax
     cmp         %r10, %r12
     cmovb       %r12, %rax
@@ -139,7 +139,7 @@ MVFUNC_BEGIN pdivremru64_2x1, x86_64, @private, @explicit
     pop         %rbx
     ret
 
-    # Entry point if bits were zero, start division without shifting
+    # Entry point if 'bits 'is zero, start division without shifting
 
     .p2align 4,,7
 8:  cmp         %r8, %rax
