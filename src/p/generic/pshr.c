@@ -11,46 +11,44 @@ size_t
 hebi_pshr(hebi_packet *r, const hebi_packet *a, size_t b, size_t n)
 {
 	int bits;
-	size_t i, j, k, rn, limbs;
+	size_t i, j, m, limbs;
 	LIMB *rl, q, s;
 	const LIMB *al;
 
-	rn = b / HEBI_PACKET_BIT;
-	if (UNLIKELY(n <= rn))
+	limbs = b / LIMB_BIT;
+	if (UNLIKELY(n * LIMB_PER_PACKET <= limbs))
 		return 0;
 
 	bits = (int)(b % LIMB_BIT);
-	limbs = b / LIMB_BIT;
+	m = n * LIMB_PER_PACKET - limbs;
 
 	rl = LIMB_PTR(r);
-	rn = n - rn;
-
 	al = LIMB_PTR(a) + limbs;
-	limbs = limbs % LIMB_PER_PACKET;
-	j = rn * LIMB_PER_PACKET - limbs;
 
 	if (LIKELY(bits)) {
 		q = al[0] >> bits;
-		for (i = 1; i < j; i++) {
+		for (i = 1; i < m; i++) {
 			s = al[i];
 			rl[i-1] = s << (LIMB_BIT - bits) | q;
 			q = s >> bits;
 		}
 		rl[i-1] = q;
 	} else {
-		(void)memmove(rl, al, j * sizeof(LIMB));
+		(void)memmove(rl, al, m * sizeof(LIMB));
+	}
+	
+	j = m;
+	i = m - LIMB_PER_PACKET;
+	if ((limbs %= LIMB_PER_PACKET)) {
+		i += limbs;
+		for ( ; limbs > 0; limbs--)
+			rl[m++] = 0;
 	}
 
-	if ((i = j & ~(LIMB_PER_PACKET - 1)) != j) {
-		for (k = j; limbs > 0; limbs--)
-			rl[k++] = 0;
-	} else {
-		i -= LIMB_PER_PACKET;
-	}
-
+	m /= LIMB_PER_PACKET;
 	for ( ; i < j; i++)
 		if (rl[i])
-			return rn;
+			return m;
 
-	return rn - 1;
+	return m - 1;
 }
