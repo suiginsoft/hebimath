@@ -3,76 +3,16 @@
 
 # uint64_t hebi_recipu64_2x1__(uint64_t d);
 
+# NOTE: It's important that hebi_recipu64_2x1__ doesn't use registers r8
+# through r11, as callees will use these registers to save state instead
+# of using the stack.
+
 .include "src/p/x86_64/x86_64.inc"
 
 #-------------------------------------------------------------------------------
 
 .extern hebi_recipu64_v0lut__
 .hidden hebi_recipu64_v0lut__
-
-#-------------------------------------------------------------------------------
-
-.if HAS_HWCAP_BMI2
-MVFUNC_BEGIN recipu64_2x1, bmi2, @private, @explicit
-
-#
-# TODO: optimize how we compute d63 and mask values
-#
-
-.ifdef HAS_PIC
-    mov         hebi_recipu64_v0lut__@GOTPCREL(%rip), %rdx
-.endif
-    mov         %rdi, %rax
-    mov         %rdi, %rsi
-    mov         %rdi, %rcx
-    shr         $55, %rax
-    shr         $24, %rsi
-    and         $1, %ecx
-    movzb       %al, %eax
-    inc         %rsi
-    mov         %rcx, %r9
-.ifdef HAS_PIC
-    movzw       (%rdx,%rax,2), %eax
-.else
-    movzw       hebi_recipu64_v0lut__(%rax,%rax), %eax
-.endif
-    neg         %r9
-    mov         %eax, %edx
-    imul        %eax, %eax
-    shl         $11, %edx
-    dec         %rdx
-    imul        %rsi, %rax
-    shr         $40, %rax
-    sub         %rax, %rdx
-    movabs      $1152921504606846976, %rax
-    imul        %rdx, %rsi
-    sub         %rsi, %rax
-    imul        %rdx, %rax
-    shl         $13, %rdx
-    shr         $47, %rax
-    add         %rdx, %rax
-    mov         %rdi, %rdx
-    shr         %rdx
-    and         %rax, %r9
-    add         %rdx, %rcx
-    shr         %r9
-    imul        %rax, %rcx
-    sub         %rcx, %r9
-    mov         %r9, %rdx
-    mulx        %rax, %r9, %r10
-    shl         $31, %rax
-    mov         %r10, %rdx
-    shr         %rdx
-    add         %rdx, %rax
-    mov         %rax, %rdx
-    sub         %rdi, %rax
-    mulx        %rdi, %r9, %r10
-    add         %r9, %rdi
-    sbb         %r10, %rax
-    ret
-
-MVFUNC_END
-.endif
 
 #-------------------------------------------------------------------------------
 
@@ -133,24 +73,5 @@ MVFUNC_END
 #-------------------------------------------------------------------------------
 
 .ifdef HAS_MULTI_VERSIONING
-MVFUNC_DISPATCH_BEGIN recipu64_2x1
-
-    push        %rdi
-    call        hebi_hwcaps__
-    xor         %r10, %r10
-    pop         %rdi
-
-.if HAS_HWCAP_BMI2
-    test        $hebi_hwcap_bmi2, %eax
-    jz          1f
-    lea         hebi_recipu64_2x1_bmi2__(%rip), %r10
-    BREAK
-.endif
-
-1:
-.if HAS_HWCAP_X86_64
-    lea         hebi_recipu64_2x1_x86_64__(%rip), %r10
-.endif
-
-MVFUNC_DISPATCH_END
+MVFUNC_DISPATCH_PTR recipu64_2x1, x86_64
 .endif
