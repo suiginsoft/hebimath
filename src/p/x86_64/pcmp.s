@@ -17,7 +17,7 @@ MVFUNC_BEGIN pcmp, avx2
     sub         $32, %rsi
     vpxor       %ymm1, %ymm1, %ymm1
 
-.align 16
+    .p2align 4,,15
 1:  vmovdqa     (%rdi,%rcx), %ymm0
     vpxor       (%rsi,%rcx), %ymm0, %ymm0
     vptest      %ymm0, %ymm1
@@ -27,9 +27,9 @@ MVFUNC_BEGIN pcmp, avx2
     VZEROUPPER
 
 2:  xor         %eax, %eax
-    retq
+    ret
 
-.align 8
+    .p2align 4,,7
 3:  vpcmpeqd    %ymm3, %ymm3, %ymm3
     vmovdqa     (%rsi,%rcx), %ymm1
     vpslld      $31, %ymm3, %ymm3
@@ -41,7 +41,7 @@ MVFUNC_BEGIN pcmp, avx2
     vpmovmskb   %ymm1, %edx
     sub         %edx, %eax
     VZEROUPPER
-    retq
+    ret
 
 MVFUNC_END
 .endif
@@ -58,7 +58,7 @@ MVFUNC_BEGIN pcmp, avx
     sub         $16, %rsi
     vpxor       %xmm1, %xmm1, %xmm1
 
-.align 16
+    .p2align 4,,15
 1:  vmovdqa     (%rdi,%rcx), %xmm0
     vpxor       (%rsi,%rcx), %xmm0, %xmm0
     vptest      %xmm0, %xmm1
@@ -71,9 +71,9 @@ MVFUNC_BEGIN pcmp, avx
     jnz         1b
 
 2:  xor         %eax, %eax
-    retq
+    ret
 
-.align 8
+    .p2align 4,,7
 3:  sub         $16, %rcx
 4:  vpcmpeqd    %xmm3, %xmm3, %xmm3
     vmovdqa     (%rsi,%rcx), %xmm1
@@ -85,7 +85,7 @@ MVFUNC_BEGIN pcmp, avx
     vpmovmskb   %xmm2, %eax
     vpmovmskb   %xmm1, %edx
     sub         %edx, %eax
-    retq
+    ret
 
 MVFUNC_END
 .endif
@@ -102,7 +102,7 @@ MVFUNC_BEGIN pcmp, sse41
     sub         $16, %rsi
     pxor        %xmm1, %xmm1
 
-.align 16
+    .p2align 4,,15
 1:  movdqa      (%rdi,%rcx), %xmm0
     pxor        (%rsi,%rcx), %xmm0
     ptest       %xmm0, %xmm1
@@ -115,9 +115,9 @@ MVFUNC_BEGIN pcmp, sse41
     jnz         1b
 
 2:  xor         %eax, %eax
-    retq
+    ret
 
-.align 8
+    .p2align 4,,7
 3:  sub         $16, %rcx
 4:  pcmpeqd     %xmm3, %xmm3
     movdqa      (%rsi,%rcx), %xmm1
@@ -130,7 +130,7 @@ MVFUNC_BEGIN pcmp, sse41
     pmovmskb    %xmm0, %eax
     pmovmskb    %xmm1, %edx
     sub         %edx, %eax
-    retq
+    ret
 
 MVFUNC_END
 .endif
@@ -146,7 +146,7 @@ MVFUNC_BEGIN pcmp, sse2
     sub         $16, %rdi
     sub         $16, %rsi
 
-.align 16
+    .p2align 4,,15
 1:  movdqa      (%rdi,%rcx), %xmm0
     pcmpeqb     (%rsi,%rcx), %xmm0
     pmovmskb    %xmm0, %eax
@@ -161,9 +161,9 @@ MVFUNC_BEGIN pcmp, sse2
     jnz         1b
 
 2:  xor         %eax, %eax
-    retq
+    ret
 
-.align 8
+    .p2align 4,,7
 3:  sub         $16, %rcx
 4:  pcmpeqd     %xmm3, %xmm3
     movdqa      (%rdi,%rcx), %xmm0
@@ -177,7 +177,7 @@ MVFUNC_BEGIN pcmp, sse2
     pmovmskb    %xmm0, %eax
     pmovmskb    %xmm1, %edx
     sub         %edx, %eax
-    retq
+    ret
 
 MVFUNC_END
 .endif
@@ -187,20 +187,20 @@ MVFUNC_END
 .ifdef HAS_MULTI_VERSIONING
 MVFUNC_DISPATCH_BEGIN pcmp
 
-    pushq       %rdx
-    pushq       %rsi
-    pushq       %rdi
+    push        %rdx
+    push        %rsi
+    push        %rdi
     call        hebi_hwcaps__
-    popq        %rdi
-    popq        %rsi
-    popq        %rdx
+    pop         %rdi
+    pop         %rsi
     xor         %r10, %r10
+    pop         %rdx
 
 .if HAS_HWCAP_AVX2
     test        $hebi_hwcap_avx2, %eax
     jz          1f
     lea         hebi_pcmp_avx2__(%rip), %r10
-    jmp         4f
+    BREAK
 .endif
 
 1:
@@ -208,7 +208,7 @@ MVFUNC_DISPATCH_BEGIN pcmp
     test        $hebi_hwcap_avx, %eax
     jz          2f
     lea         hebi_pcmp_avx__(%rip), %r10
-    jmp         4f
+    BREAK
 .endif
 
 2:
@@ -216,18 +216,15 @@ MVFUNC_DISPATCH_BEGIN pcmp
     test        $hebi_hwcap_sse41, %eax
     jz          3f
     lea         hebi_pcmp_sse41__(%rip), %r10
-    jmp         4f
+    BREAK
 .endif
 
 3:
 .if HAS_HWCAP_SSE2
+    test        $hebi_hwcap_sse2, %eax
+    BREAKZ
     lea         hebi_pcmp_sse2__(%rip), %r10
 .endif
-
-4:  test        %r10, %r10
-    jz          5f
-    MVFUNC_USE  %r10
-5:  jmp         hebi_hwcaps_fatal__
 
 MVFUNC_DISPATCH_END
 .endif

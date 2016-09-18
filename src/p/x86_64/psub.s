@@ -7,8 +7,8 @@
 
 #-------------------------------------------------------------------------------
 
-.macro ADCSBB src, dst
-sbb \src, \dst
+.macro ADCSBB Src, Dst
+sbb \Src, \Dst
 .endm
 
 MVFUNC_BEGIN psub, x86_64

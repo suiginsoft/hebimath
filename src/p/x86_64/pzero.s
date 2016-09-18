@@ -34,7 +34,7 @@ MVFUNC_BEGIN pzero, avx2
 
 4:  mov         %rdi, %rax
     VZEROUPPER
-    retq
+    ret
 
 MVFUNC_END
 .endif
@@ -65,7 +65,7 @@ MVFUNC_BEGIN pzero, avx
     add         $32, %rdi
 
 3:  mov         %rdi, %rax
-    retq
+    ret
 
 MVFUNC_END
 .endif
@@ -97,7 +97,7 @@ MVFUNC_BEGIN pzero, sse2
     add         $32, %rdi
 
 3:  mov         %rdi, %rax
-    retq
+    ret
 
 MVFUNC_END
 .endif
@@ -109,16 +109,18 @@ MVFUNC_DISPATCH_BEGIN pzero
 
     push        %rsi
     push        %rdi
+    sub         $8, %rsp
     call        hebi_hwcaps__
-    popq        %rdi
-    popq        %rsi
+    add         $8, %rsp
     xor         %r10, %r10
+    pop         %rdi
+    pop         %rsi
 
 .if HAS_HWCAP_AVX2
     test        $hebi_hwcap_avx2, %eax
     jz          1f
     lea         hebi_pzero_avx2__(%rip), %r10
-    jmp         3f
+    BREAK
 .endif
 
 1:
@@ -126,18 +128,15 @@ MVFUNC_DISPATCH_BEGIN pzero
     test        $hebi_hwcap_avx, %eax
     jz          2f
     lea         hebi_pzero_avx__(%rip), %r10
-    jmp         3f
+    BREAK
 .endif
 
 2:
 .if HAS_HWCAP_SSE2
+    test        $hebi_hwcap_sse2, %eax
+    BREAKZ
     lea         hebi_pzero_sse2__(%rip), %r10
 .endif
-
-3:  test        %r10, %r10
-    jz          4f
-    MVFUNC_USE  %r10
-4:  jmp         hebi_hwcaps_fatal__
 
 MVFUNC_DISPATCH_END
 .endif

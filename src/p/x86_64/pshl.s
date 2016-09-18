@@ -53,7 +53,7 @@ MVFUNC_BEGIN pshl, avx
     vmovd       %edx, %xmm5             # xmm5 := bits = b % QWORD_BITS
     vmovd       %eax, %xmm6             # xmm6 := rbits = QWORD_BITS - (b % QWORD_BITS)
 
-.align 16
+    .p2align 4,,15
 2:  vmovdqa     (%rsi), %xmm2           # xmm2 := s = aw[i]
     sub         $16, %rdi
     vpsrlq      %xmm6, %xmm2, %xmm1     # xmm1 := |0R 0r| = s >> rbits
@@ -89,19 +89,20 @@ MVFUNC_BEGIN pshl, avx
     vptest      %xmm0, %xmm0
     setz        %cl
 5:  sub         %rcx, %rax
-    retq
+    ret
 
     # Shift is aligned on quadword boundary, move packets (note
     # that hebi_pmove can handle unaligned destination address)
 
+    .p2align 4,,7
 6:  mov         %rcx, %rdx
-    pushq       %r9
-    pushq       %r10
-    pushq       %r11
+    push        %r9
+    push        %r10
+    push        %r11
     MVFUNC_CALL pmove, %rax
-    popq        %r11
-    popq        %r10
-    popq        %r9
+    pop         %r11
+    pop         %r10
+    pop         %r9
     jmp         3b
 
 MVFUNC_END
@@ -154,7 +155,7 @@ MVFUNC_BEGIN pshl, sse2
     movd        %edx, %xmm5             # xmm7 := bits = b % QWORD_BITS
     movd        %eax, %xmm6             # xmm6 := rbits = QWORD_BITS - (b % QWORD_BITS)
 
-.align 16
+    .p2align 4,,15
 2:  movdqa      (%rsi), %xmm1           # xmm1 := s = aw[i]
     sub         $16, %rdi
     pxor        %xmm4, %xmm4            # xmm4 := |00 00|
@@ -197,19 +198,20 @@ MVFUNC_BEGIN pshl, sse2
     cmp         $0xFFFF, %edx
     setz        %cl
 5:  sub         %rcx, %rax
-    retq
+    ret
 
     # Shift is aligned on quadword boundary, move packets (note
     # that hebi_pmove can handle unaligned destination address)
 
+    .p2align 4,,7
 6:  mov         %rcx, %rdx
-    pushq       %r9
-    pushq       %r10
-    pushq       %r11
+    push        %r9
+    push        %r10
+    push        %r11
     MVFUNC_CALL pmove, %rax
-    popq        %r11
-    popq        %r10
-    popq        %r9
+    pop         %r11
+    pop         %r10
+    pop         %r9
     jmp         3b
 
 MVFUNC_END
@@ -220,33 +222,32 @@ MVFUNC_END
 .ifdef HAS_MULTI_VERSIONING
 MVFUNC_DISPATCH_BEGIN pshl
 
-    pushq       %rdi
-    pushq       %rsi
-    pushq       %rdx
-    pushq       %rcx
+    push        %rdi
+    push        %rsi
+    push        %rdx
+    push        %rcx
+    sub         $8, %rsp
     call        hebi_hwcaps__
-    popq        %rcx
-    popq        %rdx
-    popq        %rsi
-    popq        %rdi
+    add         $8, %rsp
     xor         %r10, %r10
+    pop         %rcx
+    pop         %rdx
+    pop         %rsi
+    pop         %rdi
 
 .if HAS_HWCAP_AVX
     test        $hebi_hwcap_avx, %eax
     jz          1f
     lea         hebi_pshl_avx__(%rip), %r10
-    jmp         2f
+    BREAK
 .endif
 
 1:
 .if HAS_HWCAP_SSE2
+    test        $hebi_hwcap_sse2, %eax
+    BREAKZ
     lea         hebi_pshl_sse2__(%rip), %r10
 .endif
-
-2:  test        %r10, %r10
-    jz          3f
-    MVFUNC_USE  %r10
-3:  jmp         hebi_hwcaps_fatal__
 
 MVFUNC_DISPATCH_END
 .endif

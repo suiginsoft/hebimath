@@ -57,7 +57,7 @@ MVFUNC_BEGIN pmove, avx2
 
 5:  lea         (%rdi,%r8), %rax
     VZEROUPPER
-    retq
+    ret
 
 MVFUNC_END
 .endif
@@ -108,7 +108,7 @@ MVFUNC_BEGIN pmove, avx
     vmovdqu     %xmm1, 16(%rdi,%rcx)
     add         %rax, %rdi
 4:  lea         (%rdi,%r8), %rax
-    retq
+    ret
 
 MVFUNC_END
 .endif
@@ -159,7 +159,7 @@ MVFUNC_BEGIN pmove, _sse2
     movdqu      %xmm1, 16(%rdi,%rcx)
     add         %rax, %rdi
 4:  lea         (%rdi,%r8), %rax
-    retq
+    ret
 
 MVFUNC_END
 .endif
@@ -169,20 +169,20 @@ MVFUNC_END
 .ifdef HAS_MULTI_VERSIONING
 MVFUNC_DISPATCH_BEGIN pmove
 
-    pushq       %rdx
-    pushq       %rsi
-    pushq       %rdi
+    push        %rdx
+    push        %rsi
+    push        %rdi
     call        hebi_hwcaps__
-    popq        %rdi
-    popq        %rsi
-    popq        %rdx
+    pop         %rdi
+    pop         %rsi
     xor         %r10, %r10
+    pop         %rdx
 
 .if HAS_HWCAP_AVX2
     test        $hebi_hwcap_avx2, %eax
     jz          1f
     lea         hebi_pmove_avx2__(%rip), %r10
-    jmp         3f
+    BREAK
 .endif
 
 1:
@@ -190,18 +190,15 @@ MVFUNC_DISPATCH_BEGIN pmove
     test        $hebi_hwcap_avx, %eax
     jz          2f
     lea         hebi_pmove_avx__(%rip), %r10
-    jmp         3f
+    BREAK
 .endif
 
 2:
 .if HAS_HWCAP_SSE2
+    test        $hebi_hwcap_sse2, %eax
+    BREAKZ
     lea         hebi_pmove_sse2__(%rip), %r10
 .endif
-
-3:  test        %r10, %r10
-    jz          4f
-    MVFUNC_USE  %r10
-4:  jmp         hebi_hwcaps_fatal__
 
 MVFUNC_DISPATCH_END
 .endif

@@ -18,7 +18,7 @@ MVFUNC_BEGIN pnorm, avx
     shr         $2, %rcx
     jz          3f
 
-.align 16
+    .p2align 4,,15
 2:  vmovdqa     (%rdi), %xmm0
     vpor        -16(%rdi), %xmm0, %xmm0
     vmovdqa     -32(%rdi), %xmm1
@@ -46,7 +46,7 @@ MVFUNC_BEGIN pnorm, avx
     sub         $32, %rdi
     dec         %eax
     jnz         4b
-5:  retq
+5:  ret
 
 7:  sub         $2, %rax
 6:  lea         (%rax,%rcx,4), %rax
@@ -54,7 +54,7 @@ MVFUNC_BEGIN pnorm, avx
     vptest      %xmm0, %xmm0
     setz        %cl
     sub         %rcx, %rax
-    retq
+    ret
 
 MVFUNC_END
 .endif
@@ -72,7 +72,7 @@ MVFUNC_BEGIN pnorm, sse41
     shr         $2, %rcx
     jz          3f
 
-.align 16
+    .p2align 4,,15
 2:  movdqa      (%rdi), %xmm0
     por         -16(%rdi), %xmm0
     movdqa      -32(%rdi), %xmm1
@@ -100,7 +100,7 @@ MVFUNC_BEGIN pnorm, sse41
     sub         $32, %rdi
     dec         %eax
     jnz         4b
-5:  retq
+5:  ret
 
 7:  sub         $2, %rax
 6:  lea         (%rax,%rcx,4), %rax
@@ -108,7 +108,7 @@ MVFUNC_BEGIN pnorm, sse41
     ptest       %xmm0, %xmm0
     setz        %cl
     sub         %rcx, %rax
-    retq
+    ret
 
 MVFUNC_END
 .endif
@@ -149,7 +149,7 @@ MVFUNC_BEGIN pnorm, sse2
     jnz         2b
 
 3:  mov         %rcx, %rax
-    retq
+    ret
 
 4:  shl         $1, %rcx
     pcmpeqd     %xmm2, %xmm0
@@ -157,7 +157,7 @@ MVFUNC_BEGIN pnorm, sse2
     cmp         $0xFFFF, %eax
     jne         3b
     lea         -1(%rcx), %rax
-    retq
+    ret
 
 MVFUNC_END
 .endif
@@ -167,18 +167,20 @@ MVFUNC_END
 .ifdef HAS_MULTI_VERSIONING
 MVFUNC_DISPATCH_BEGIN pnorm
 
-    pushq       %rsi
-    pushq       %rdi
+    push        %rsi
+    push        %rdi
+    sub         $8, %rsp
     call        hebi_hwcaps__
-    popq        %rdi
-    popq        %rsi
+    add         $8, %rsp
     xor         %r10, %r10
+    pop         %rdi
+    pop         %rsi
 
 .if HAS_HWCAP_AVX
     test        $hebi_hwcap_avx, %eax
     jz          1f
     lea         hebi_pnorm_avx__(%rip), %r10
-    jmp         3f
+    BREAK
 .endif
 
 1:
@@ -186,18 +188,15 @@ MVFUNC_DISPATCH_BEGIN pnorm
     test        $hebi_hwcap_sse41, %eax
     jz          2f
     lea         hebi_pnorm_sse41__(%rip), %r10
-    jmp         3f
+    BREAK
 .endif
 
 2:
 .if HAS_HWCAP_SSE2
+    test        $hebi_hwcap_sse2, %eax
+    BREAKZ
     lea         hebi_pnorm_sse2__(%rip), %r10
 .endif
-
-3:  test        %r10, %r10
-    jz          4f
-    MVFUNC_USE  %r10
-4:  jmp         hebi_hwcaps_fatal__
 
 MVFUNC_DISPATCH_END
 .endif

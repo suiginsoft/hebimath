@@ -15,57 +15,61 @@
 .if HAS_HWCAP_BMI2
 MVFUNC_BEGIN recipu64_2x1, bmi2, @private, @explicit
 
+#
+# TODO: optimize how we compute d63 and mask values
+#
+
 .ifdef HAS_PIC
-	movq        hebi_recipu64_v0lut__@GOTPCREL(%rip), %rdx
+    mov         hebi_recipu64_v0lut__@GOTPCREL(%rip), %rdx
 .endif
-	movq        %rdi, %rax
-	movq        %rdi, %rsi
-	movq        %rdi, %rcx
-	shrq        $55, %rax
-	shrq        $24, %rsi
-	andl        $1, %ecx
-	movzbl      %al, %eax
-	incq        %rsi
-	movq        %rcx, %r9
+    mov         %rdi, %rax
+    mov         %rdi, %rsi
+    mov         %rdi, %rcx
+    shr         $55, %rax
+    shr         $24, %rsi
+    and         $1, %ecx
+    movzb       %al, %eax
+    inc         %rsi
+    mov         %rcx, %r9
 .ifdef HAS_PIC
-	movzwl      (%rdx,%rax,2), %eax
+    movzw       (%rdx,%rax,2), %eax
 .else
-	movzwl      hebi_recipu64_v0lut__(%rax,%rax), %eax
+    movzw       hebi_recipu64_v0lut__(%rax,%rax), %eax
 .endif
-	negq        %r9
-	movl        %eax, %edx
-	imull       %eax, %eax
-	shll        $11, %edx
-	decq        %rdx
-	imulq       %rsi, %rax
-	shrq        $40, %rax
-	subq        %rax, %rdx
-	movabsq     $1152921504606846976, %rax
-	imulq       %rdx, %rsi
-	subq        %rsi, %rax
-	imulq       %rdx, %rax
-	shlq        $13, %rdx
-	shrq        $47, %rax
-	addq        %rdx, %rax
-	movq        %rdi, %rdx
-	shrq        %rdx
-	andq        %rax, %r9
-	addq        %rdx, %rcx
-	shrq        %r9
-	imulq       %rax, %rcx
-	subq        %rcx, %r9
-	movq        %r9, %rdx
-	mulxq       %rax, %r9, %r10
-	shlq        $31, %rax
-	movq        %r10, %rdx
-	shrq        %rdx
-	addq        %rdx, %rax
-	movq        %rax, %rdx
-	subq        %rdi, %rax
-	mulxq       %rdi, %r9, %r10
-	addq        %r9, %rdi
-	sbbq        %r10, %rax
-	retq
+    neg         %r9
+    mov         %eax, %edx
+    imul        %eax, %eax
+    shl         $11, %edx
+    dec         %rdx
+    imul        %rsi, %rax
+    shr         $40, %rax
+    sub         %rax, %rdx
+    movabs      $1152921504606846976, %rax
+    imul        %rdx, %rsi
+    sub         %rsi, %rax
+    imul        %rdx, %rax
+    shl         $13, %rdx
+    shr         $47, %rax
+    add         %rdx, %rax
+    mov         %rdi, %rdx
+    shr         %rdx
+    and         %rax, %r9
+    add         %rdx, %rcx
+    shr         %r9
+    imul        %rax, %rcx
+    sub         %rcx, %r9
+    mov         %r9, %rdx
+    mulx        %rax, %r9, %r10
+    shl         $31, %rax
+    mov         %r10, %rdx
+    shr         %rdx
+    add         %rdx, %rax
+    mov         %rax, %rdx
+    sub         %rdi, %rax
+    mulx        %rdi, %r9, %r10
+    add         %r9, %rdi
+    sbb         %r10, %rax
+    ret
 
 MVFUNC_END
 .endif
@@ -75,58 +79,53 @@ MVFUNC_END
 .if HAS_HWCAP_SSE
 MVFUNC_BEGIN recipu64_2x1, x86_64, @private, @explicit
 
+    mov         %rdi, %rax
+    mov         %rdi, %rsi
+    shr         $55, %rax
 .ifdef HAS_PIC
-	movq        hebi_recipu64_v0lut__@GOTPCREL(%rip), %rdx
+    mov         hebi_recipu64_v0lut__@GOTPCREL(%rip), %rdx
 .endif
-	movq        %rdi, %rax
-	movq        %rdi, %rsi
-	movq        %rdi, %rdx
-	shrq        $55, %rax
-	shrq        $24, %rsi
-	andl        $1, %edx
-	movzbl      %al, %eax
-	incq        %rsi
+    movzb       %al, %eax
+    shr         $24, %rsi
 .ifdef HAS_PIC
-	movzwl      (%rdx,%rax,2), %eax
+    movzw       (%rdx,%rax,2), %eax
 .else
-	movzwl      hebi_recipu64_v0lut__(%rax,%rax), %eax
+    movzw       hebi_recipu64_v0lut__(%rax,%rax), %eax
 .endif
-	movl        %eax, %ecx
-	imull       %eax, %eax
-	shll        $11, %ecx
-	decq        %rcx
-	imulq       %rsi, %rax
-	shrq        $40, %rax
-	subq        %rax, %rcx
-	movabsq     $1152921504606846976, %rax
-	imulq       %rcx, %rsi
-	subq        %rsi, %rax
-	movq        %rdi, %rsi
-	imulq       %rcx, %rax
-	shrq        %rsi
-	shlq        $13, %rcx
-	shrq        $47, %rax
-	addq        %rax, %rcx
-	movq        %rdx, %rax
-	addq        %rsi, %rdx
-	imulq       %rcx, %rdx
-	negq        %rax
-	andq        %rcx, %rax
-	shrq        %rax
-	subq        %rdx, %rax
-	mulq        %rcx
-	shlq        $31, %rcx
-	movq        %rdx, %rax
-	shrq        %rax
-	addq        %rax, %rcx
-	movq        %rcx, %rax
-	subq        %rdi, %rcx
-	mulq        %rdi
-	movq        %rax, %rsi
-	addq        %rsi, %rdi
-	sbbq        %rdx, %rcx
-	movq        %rcx, %rax
-	retq
+    inc         %rsi
+    mov         %eax, %ecx
+    imul        %eax, %eax
+    shl         $11, %ecx
+    dec         %rcx
+    imul        %rsi, %rax
+    shr         $40, %rax
+    sub         %rax, %rcx
+    movabs      $1152921504606846976, %rax
+    imul        %rcx, %rsi
+    sub         %rsi, %rax
+    mov         %rdi, %rsi
+    imul        %rcx, %rax
+    shl         $13, %rcx
+    shr         $47, %rax
+    add         %rax, %rcx
+    shr         %rsi
+    sbb         %rax, %rax
+    sub         %rax, %rsi
+    imul        %rcx, %rsi
+    and         %rcx, %rax
+    shr         %rax
+    sub         %rsi, %rax
+    mul         %rcx
+    shl         $31, %rcx
+    shr         %rdx
+    add         %rdx, %rcx
+    mov         %rdi, %rax
+    mul         %rcx
+    add         %rdi, %rax
+    mov         %rcx, %rax
+    adc         %rdi, %rdx
+    sub         %rdx, %rax
+    ret
 
 MVFUNC_END
 .endif
@@ -136,18 +135,22 @@ MVFUNC_END
 .ifdef HAS_MULTI_VERSIONING
 MVFUNC_DISPATCH_BEGIN recipu64_2x1
 
-	pushq       %rdi
-	call        hebi_hwcaps__
-	popq        %rdi
-	leaq        hebi_recipu64_2x1_x86_64__(%rip), %r10
+    push        %rdi
+    call        hebi_hwcaps__
+    xor         %r10, %r10
+    pop         %rdi
 
 .if HAS_HWCAP_BMI2
-	testl       $(hebi_hwcap_bmi2), %eax
-	jz          1f
-	leaq        hebi_recipu64_2x1_bmi2__(%rip), %r10
+    test        $hebi_hwcap_bmi2, %eax
+    jz          1f
+    lea         hebi_recipu64_2x1_bmi2__(%rip), %r10
+    BREAK
 .endif
 
-1:	MVFUNC_USE  %r10
+1:
+.if HAS_HWCAP_X86_64
+    lea         hebi_recipu64_2x1_x86_64__(%rip), %r10
+.endif
 
 MVFUNC_DISPATCH_END
 .endif

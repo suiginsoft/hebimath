@@ -14,7 +14,7 @@ MVFUNC_BEGIN pcopy, avx2
     shr         $2, %rcx
     jz          2f
 
-.align 16
+    .p2align 4,,15
 1:  vmovdqa     (%rsi), %ymm0
     vmovdqa     32(%rsi), %ymm1
     vmovdqa     64(%rsi), %ymm2
@@ -40,7 +40,7 @@ MVFUNC_BEGIN pcopy, avx2
 
 4:  mov         %rdi, %rax
     VZEROPUPPER
-    retq
+    ret
 
 MVFUNC_END
 .endif
@@ -54,7 +54,7 @@ MVFUNC_BEGIN pcopy, avx
     shr         $1, %rcx
     jz          2f
 
-.align 16
+    .p2align 4,,15
 1:  vmovdqa     (%rsi), %xmm0
     vmovdqa     16(%rsi), %xmm1
     vmovdqa     32(%rsi), %xmm2
@@ -77,7 +77,7 @@ MVFUNC_BEGIN pcopy, avx
     add         $32, %rdi
 
 3:  mov         %rdi, %rax
-    retq
+    ret
 
 MVFUNC_END
 .endif
@@ -91,7 +91,7 @@ MVFUNC_BEGIN pcopy, sse2
     shr         $1, %rcx
     jz          2f
 
-.align 16
+    .p2align 4,,15
 1:  movdqa      (%rsi), %xmm0
     movdqa      16(%rsi), %xmm1
     movdqa      32(%rsi), %xmm2
@@ -114,7 +114,7 @@ MVFUNC_BEGIN pcopy, sse2
     add         $32, %rdi
 
 3:  mov         %rdi, %rax
-    retq
+    ret
 
 MVFUNC_END
 .endif
@@ -124,20 +124,20 @@ MVFUNC_END
 .ifdef HAS_MULTI_VERSIONING
 MVFUNC_DISPATCH_BEGIN pcopy
 
-    pushq       %rdx
-    pushq       %rsi
-    pushq       %rdi
+    push        %rdx
+    push        %rsi
+    push        %rdi
     call        hebi_hwcaps__
-    popq        %rdi
-    popq        %rsi
-    popq        %rdx
+    pop         %rdi
+    pop         %rsi
     xor         %r10, %r10
+    pop         %rdx
 
 .if HAS_HWCAP_AVX2
     test        $hebi_hwcap_avx2, %eax
     jz          1f
     lea         hebi_pcopy_avx2__(%rip), %r10
-    jmp         3f
+    BREAK
 .endif
 
 1:
@@ -145,18 +145,15 @@ MVFUNC_DISPATCH_BEGIN pcopy
     test        $hebi_hwcap_avx, %eax
     jz          2f
     lea         hebi_pcopy_avx__(%rip), %r10
-    jmp         3f
+    BREAK
 .endif
 
 2:
 .if HAS_HWCAP_SSE2
+    test        $hebi_hwcap_sse2, %eax
+    BREAKZ
     lea         hebi_pcopy_sse2__(%rip), %r10
 .endif
-
-3:  test        %r10, %r10
-    jz          4f
-    MVFUNC_USE  %r10
-4:  jmp         hebi_hwcaps_fatal__
 
 MVFUNC_DISPATCH_END
 .endif

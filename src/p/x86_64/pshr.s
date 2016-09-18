@@ -84,7 +84,7 @@ MVFUNC_BEGIN pshr, avx
     vptest      %xmm0, %xmm0
     setz        %cl
 5:  sub         %rcx, %rax
-    retq
+    ret
 
 MVFUNC_END
 .endif
@@ -176,7 +176,7 @@ MVFUNC_BEGIN pshr, sse2
     cmp         $0xFFFF, %edx
     setz        %cl
 5:  sub         %rcx, %rax
-    retq
+    ret
 
 MVFUNC_END
 .endif
@@ -186,33 +186,32 @@ MVFUNC_END
 .ifdef HAS_MULTI_VERSIONING
 MVFUNC_DISPATCH_BEGIN pshr
 
-    pushq       %rdi
-    pushq       %rsi
-    pushq       %rdx
-    pushq       %rcx
+    push        %rdi
+    push        %rsi
+    push        %rdx
+    push        %rcx
+    sub         $8, %rsp
     call        hebi_hwcaps__
-    popq        %rcx
-    popq        %rdx
-    popq        %rsi
-    popq        %rdi
+    add         $8, %rsp
     xor         %r10, %r10
+    pop         %rcx
+    pop         %rdx
+    pop         %rsi
+    pop         %rdi
 
 .if HAS_HWCAP_AVX
     test        $hebi_hwcap_avx, %eax
     jz          1f
     lea         hebi_pshr_avx__(%rip), %r10
-    jmp         2f
+    BREAK
 .endif
 
 1:
 .if HAS_HWCAP_SSE2
+    test        $hebi_hwcap_sse2, %eax
+    BREAKZ
     lea         hebi_pshr_sse2__(%rip), %r10
 .endif
-
-2:  test        %r10, %r10
-    jz          3f
-    MVFUNC_USE  %r10
-3:  jmp         hebi_hwcaps_fatal__
 
 MVFUNC_DISPATCH_END
 .endif
