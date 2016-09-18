@@ -10,29 +10,27 @@
 .if HAS_HWCAP_AVX
 MVFUNC_BEGIN pshr, avx
 
-    # Compute number of quadwords to shift
+    # Compute number of limbs to shift
 
     mov         %rdx, %r8
-    shl         $2, %rcx                # rcx := nqwords = n * PACKET_QWORDS
-    shr         $6, %r8                 # r8 := bqwords = b / WORD_BITS
-    mov         %rcx, %rax
-    cmp         %r8, %rcx
+    shl         $2, %rcx
+    shr         $6, %r8                 # r8 := b / LIMB_BIT
+    sub         %r8, %rcx               # rcx := n * LIMB_PER_PACKET - b / LIMB_BIT
     jle         5f
 
     # Compute number of bits to shift, source start offset, load first quadword
     # from source and setup for bit-shifting loop
 
-    sub         %r8, %rcx               # rcx := nqwords - bqwords
-    and         $63, %edx               # edx := b % QWORD_BITS
-    lea         (%rsi,%r8,8), %rsi      # rsi := aw = aw + nqwords
+    and         $63, %edx               # edx := b % LIMB_BIT
+    lea         (%rsi,%r8,8), %rsi      # rsi := al + limbs shifted
     mov         $64, %eax
     vmovq       (%rsi), %xmm0
     sub         %edx, %eax
     dec         %rcx
-    vmovd       %edx, %xmm5             # xmm5 := b % QWORD_BITS
-    vmovd       %eax, %xmm6             # xmm6 := QWORD_BITS - (b % QWORD_BITS)
-    add         $8, %rsi                # rsi := aw + n * PACKET_SIZE - 16
-    sub         $16, %rdi               # rdi := rw + n * PACKET_SIZE + 8
+    vmovd       %edx, %xmm5             # xmm5 := b % LIMB_BIT
+    vmovd       %eax, %xmm6             # xmm6 := LIMB_BIT - (b % LIMB_BIT)
+    add         $8, %rsi                # rsi := al + n * PACKET_SIZE - 16
+    sub         $16, %rdi               # rdi := rl + n * PACKET_SIZE + 8
     mov         %rcx, %rdx
     vpsrlq      %xmm5, %xmm0, %xmm0     # xmm0 := |00 0q|
     vpxor       %xmm4, %xmm4, %xmm4
@@ -41,8 +39,8 @@ MVFUNC_BEGIN pshr, avx
 
     # Bit-shifting loop, process one octaword at a time
 
-.align 16
-1:  vmovdqu     (%rsi), %xmm2           # xmm2 := aw[i+1]
+    .p2align 4
+1:  vmovdqu     (%rsi), %xmm2           # xmm2 := al[i+1]
     add         $16, %rdi
     vpsllq      %xmm6, %xmm2, %xmm1     # xmm1 := |L0 l0|
     vpsrlq      %xmm5, %xmm2, %xmm2     # xmm2 := |0R 0r|
@@ -51,7 +49,7 @@ MVFUNC_BEGIN pshr, avx
     add         $16, %rsi
     vpor        %xmm3, %xmm1, %xmm1     # xmm1 := |Lr lq|
     vpunpckhqdq %xmm4, %xmm2, %xmm0     # xmm0 := |00 0R|
-    vmovdqa     %xmm1, (%rdi)           # rw[i] = aw[i+1] << rbits | q
+    vmovdqa     %xmm1, (%rdi)           # rw[i] = al[i+1] << rbits | q
     dec         %rcx
     jnz         1b
 
@@ -60,12 +58,12 @@ MVFUNC_BEGIN pshr, avx
 
 2:  test        $1, %dl
     jz          3f
-    vmovq       (%rsi), %xmm2           # xmm2 := aw[i+1]
+    vmovq       (%rsi), %xmm2           # xmm2 := al[i+1]
     vpsllq      %xmm6, %xmm2, %xmm3     # xmm3 := |00 l0|
     vpsrlq      %xmm5, %xmm2, %xmm2     # xmm2 := |00 0r|
     vpor        %xmm3, %xmm0, %xmm0     # xmm0 := |00 lq|
-    vpunpcklqdq %xmm2, %xmm4, %xmm4     # xmm4 := |0r 00|
-    vpor        %xmm4, %xmm0, %xmm0     # xmm0 := |0r lq|
+    vpunpcklqdq %xmm2, %xmm4, %xmm2     # xmm4 := |0r 00|
+    vpor        %xmm2, %xmm0, %xmm0     # xmm0 := |0r lq|
 3:  vmovdqa     %xmm0, 16(%rdi)
 
     # Zero last octaword of destination, if shifted odd number of octawords
@@ -83,7 +81,12 @@ MVFUNC_BEGIN pshr, avx
     shr         $2, %rax
     vptest      %xmm0, %xmm0
     setz        %cl
-5:  sub         %rcx, %rax
+    sub         %rcx, %rax
+    ret
+
+    # Shifted more bits than in input, return zero length result
+
+5:  xor         %rax, %rax
     ret
 
 MVFUNC_END
@@ -97,26 +100,24 @@ MVFUNC_BEGIN pshr, sse2
     # Compute number of quadwords to shift
 
     mov         %rdx, %r8
-    shl         $2, %rcx                # rcx := nqwords = n * PACKET_QWORDS
-    shr         $6, %r8                 # r8 := bqwords = b / WORD_BITS
-    mov         %rcx, %rax
-    cmp         %r8, %rcx
+    shl         $2, %rcx
+    shr         $6, %r8                 # r8 := b / LIMB_BIT
+    sub         %r8, %rcx               # rcx := n * LIMB_PER_PACKET - b / LIMB_BIT
     jle         5f
 
     # Compute number of bits to shift, source start offset, load first quadword
     # from source and setup for bit-shifting loop
 
-    sub         %r8, %rcx               # rcx := nqwords - bqwords
-    and         $63, %edx               # edx := b % QWORD_BITS
-    lea         (%rsi,%r8,8), %rsi      # rsi := aw = aw + nqwords
+    and         $63, %edx               # edx := b % LIMB_BIT
+    lea         (%rsi,%r8,8), %rsi      # rsi := al + number of limbs shifted
     mov         $64, %eax
     movq        (%rsi), %xmm0
     sub         %edx, %eax
     dec         %rcx
-    movd        %edx, %xmm5             # xmm5 := b % QWORD_BITS
-    movd        %eax, %xmm6             # xmm6 := QWORD_BITS - (b % QWORD_BITS)
-    add         $8, %rsi                # rsi := aw + n * PACKET_SIZE - 16
-    sub         $16, %rdi               # rdi := rw + n * PACKET_SIZE + 8
+    movd        %edx, %xmm5             # xmm5 := b % LIMB_BIT
+    movd        %eax, %xmm6             # xmm6 := LIMB_BIT - (b % LIMB_BIT)
+    add         $8, %rsi                # rsi := al + n * PACKET_SIZE - 16
+    sub         $16, %rdi               # rdi := rl + n * PACKET_SIZE + 8
     mov         %rcx, %rdx
     psrlq       %xmm5, %xmm0            # xmm0 := |00 0q|
     shr         $1, %rcx
@@ -124,8 +125,8 @@ MVFUNC_BEGIN pshr, sse2
 
     # Bit-shifting loop, process one octaword at a time
 
-.align 16
-1:  movdqu      (%rsi), %xmm1           # xmm2 := aw[i+1]
+    .p2align 4
+1:  movdqu      (%rsi), %xmm1           # xmm2 := al[i+1]
     add         $16, %rdi
     pxor        %xmm4, %xmm4
     movdqa      %xmm1, %xmm2
@@ -138,7 +139,7 @@ MVFUNC_BEGIN pshr, sse2
     add         $16, %rsi
     por         %xmm4, %xmm1            # xmm1 := |Lr lq|
     movdqa      %xmm2, %xmm0            # xmm0 := q = s >> bits
-    movdqa      %xmm1, (%rdi)           # rw[i] = aw[i+1] << rbits | q
+    movdqa      %xmm1, (%rdi)           # rl[i] = al[i+1] << rbits | q
     dec         %rcx
     jnz         1b
 
@@ -147,7 +148,7 @@ MVFUNC_BEGIN pshr, sse2
 
 2:  test        $1, %dl
     jz          3f
-    movq        (%rsi), %xmm2           # xmm2 := aw[i+1]
+    movq        (%rsi), %xmm2           # xmm2 := al[i+1]
     pxor        %xmm4, %xmm4
     movdqa      %xmm2, %xmm3
     psllq       %xmm6, %xmm2            # xmm2 := |00 l0|
@@ -175,7 +176,12 @@ MVFUNC_BEGIN pshr, sse2
     shr         $2, %rax
     cmp         $0xFFFF, %edx
     setz        %cl
-5:  sub         %rcx, %rax
+    sub         %rcx, %rax
+    ret
+
+    # Shifted more bits than in input, return zero length result
+
+5:  xor         %rax, %rax
     ret
 
 MVFUNC_END
