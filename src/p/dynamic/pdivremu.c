@@ -6,4 +6,4 @@
 #include "../../../internal.h"
 
 extern HEBI_API
-uint64_t hebi_pdivmodu(hebi_packet *, const hebi_packet *, uint64_t, size_t);
+uint64_t hebi_pdivremu(hebi_packet *, const hebi_packet *, uint64_t, size_t);
