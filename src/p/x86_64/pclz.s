@@ -14,35 +14,36 @@ MVFUNC_BEGIN pclz, avx_lzcnt
     shl         $5, %rsi
     vpcmpeqd    %xmm4, %xmm4, %xmm4
     lea         -16(%rdi,%rsi), %rdi
-    jrcxz       3f
 
-    .p2align 4,,15
-2:  vmovdqa     (%rdi), %xmm0
+    .p2align 4
+1:  vmovdqa     (%rdi), %xmm0
     vmovdqa     -16(%rdi), %xmm1
     vptest      %xmm4, %xmm0
-    jnz         4f
+    jnz         2f
     vptest      %xmm4, %xmm1
-    jnz         6f
+    jnz         4f
     sub         $32, %rdi
     dec         %rcx
-    jnz         2b
-3:  lea         (,%rsi,8), %rax
+    jnz         1b
+    lea         (,%rsi,8), %rax
     ret
 
-4:  vpextrq     $1, %xmm0, %rax
+    .p2align 4,,7
+2:  vpextrq     $1, %xmm0, %rax
     shl         $5, %rcx
     test        %rax, %rax
-    jnz         5f
+    jnz         3f
     vmovq       %xmm0, %rax
     add         $8, %rsi
-5:  lzcnt       %rax, %rax
+3:  lzcnt       %rax, %rax
     sub         %rcx, %rsi
     lea         (%rax,%rsi,8), %rax
     ret
 
-6:  add         $16, %rsi
+    .p2align 4,,7
+4:  add         $16, %rsi
     vmovdqa     %xmm1, %xmm0
-    jmp         4b
+    jmp         2b
 
 MVFUNC_END
 .endif
@@ -56,36 +57,37 @@ MVFUNC_BEGIN pclz, sse41
     shl         $5, %rsi
     pcmpeqd     %xmm4, %xmm4
     lea         -16(%rdi,%rsi), %rdi
-    jrcxz       3f
 
-    .p2align 4,,15
-2:  movdqa      (%rdi), %xmm0
+    .p2align 4
+1:  movdqa      (%rdi), %xmm0
     movdqa      -16(%rdi), %xmm1
     ptest       %xmm4, %xmm0
-    jnz         4f
+    jnz         2f
     ptest       %xmm4, %xmm1
-    jnz         6f
+    jnz         4f
     sub         $32, %rdi
     dec         %rcx
-    jnz         2b
-3:  lea         (,%rsi,8), %rax
+    jnz         1b
+    lea         (,%rsi,8), %rax
     ret
 
-4:  pextrq      $1, %xmm0, %rax
+    .p2align 4,,7
+2:  pextrq      $1, %xmm0, %rax
     shl         $5, %rcx
     test        %rax, %rax
-    jnz         5f
+    jnz         3f
     movq        %xmm0, %rax
     add         $8, %rsi
-5:  bsr         %rax, %rax
+3:  bsr         %rax, %rax
     sub         %rcx, %rsi
     xor         $63, %rax
     lea         (%rax,%rsi,8), %rax
     ret
 
-6:  add         $16, %rsi
+    .p2align 4,,7
+4:  add         $16, %rsi
     movdqa      %xmm1, %xmm0
-    jmp         4b
+    jmp         2b
 
 MVFUNC_END
 .endif
@@ -99,10 +101,9 @@ MVFUNC_BEGIN pclz, sse2
     shl         $5, %rsi
     pxor        %xmm4, %xmm4
     lea         -16(%rdi,%rsi), %rdi
-    jrcxz       3f
 
-    .p2align 4,,15
-2:  movdqa      (%rdi), %xmm0
+    .p2align 4
+1:  movdqa      (%rdi), %xmm0
     movdqa      -16(%rdi), %xmm1
     movdqa      %xmm0, %xmm2
     movdqa      %xmm1, %xmm3
@@ -111,31 +112,33 @@ MVFUNC_BEGIN pclz, sse2
     pmovmskb    %xmm2, %eax
     pmovmskb    %xmm3, %edx
     cmp         $0xFFFF, %eax
-    jne         4f
+    jne         2f
     cmp         $0xFFFF, %edx
-    jne         6f
+    jne         4f
     sub         $32, %rdi
     dec         %rcx
-    jnz         2b
-3:  lea         (,%rsi,8), %rax
+    jnz         1b
+    lea         (,%rsi,8), %rax
     ret
 
-4:  shl         $5, %rcx
+    .p2align 4,,7
+2:  shl         $5, %rcx
     cmp         $0xFF, %ah
-    je          5f
+    je          3f
     punpckhqdq  %xmm0, %xmm0
     sub         $8, %rsi
-5:  movq        %xmm0, %rax
+3:  movq        %xmm0, %rax
     bsr         %rax, %rax
     sub         %rcx, %rsi
     xor         $63, %rax
     lea         64(%rax,%rsi,8), %rax
     ret
 
-6:  add         $16, %rsi
+    .p2align 4,,7
+4:  add         $16, %rsi
     mov         %edx, %eax
     movdqa      %xmm1, %xmm0
-    jmp         4b
+    jmp         2b
 
 MVFUNC_END
 .endif

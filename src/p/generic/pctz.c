@@ -12,16 +12,18 @@ hebi_pctz(const hebi_packet *a, size_t n)
 	const LIMB *al;
 	size_t i, r;
 
-	al = LIMB_PTR(a);
-	r = 0;
+	ASSERT(n > 0);
 
-	for (i = 0; i < n * LIMB_PER_PACKET; i++) {
+	al = LIMB_PTR(a);
+	n *= LIMB_PER_PACKET;
+	i = r = 0;
+
+	do {
 		if (al[i]) {
-			r += LIMB_CTZ(al[i]);
+			r = LIMB_CTZ(al[i]);
 			break;
 		}
-		r += LIMB_BIT;
-	}
+	} while (++i < n);
 
-	return r;
+	return i * LIMB_BIT + r;
 }
