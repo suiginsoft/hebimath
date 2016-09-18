@@ -25,9 +25,9 @@ PDIVREMRU_2x1(
 	a1 = a[n-1];
 
 	if (bits) {
-		u1 = a1 << bits;
 		u0 = a1 >> (MLIMB_BIT - bits);
-		if (u1 < d && !u0) {
+		u1 = a1 << bits;
+		if (!u0 && u1 < d) {
 			q[--n] = 0;
 			a1 = a[n-1];
 			u1 |= a1 >> (MLIMB_BIT - bits);
@@ -49,8 +49,8 @@ PDIVREMRU_2x1(
 			u0 = 1;
 			u1 -= d;
 		}
-		q[n - 1] = u0;
-		for (i = n - 1; i--; ) {
+		q[n-1] = u0;
+		for (i = n-1; i--; ) {
 			u0 = a[i];
 			DIVREMRU_2x1(q+i, &u1, u0, d, v);
 		}
