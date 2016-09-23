@@ -8,8 +8,11 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define COUNTOF(X) (long)(sizeof(X) / sizeof((X)[0]))
+#define IGNORE(...) ((void)sizeof(ignore(0, __VA_ARGS__)))
+extern int ignore(int, ...);
 
 const int64_t check_i64values[] =
 {
@@ -71,6 +74,61 @@ long check_max_perm;
 int check_skip_error;
 int check_verbose;
 
+static void*
+checkalloc(void *ctx, size_t alignment, size_t size)
+{
+	void *p;
+	int e;
+
+	IGNORE(ctx);
+
+	if (alignment < sizeof(void*))
+		alignment = sizeof(void*);
+
+	if (size & (alignment - 1)) {
+		errno = EINVAL;
+		return NULL;
+	}
+
+	e = posix_memalign(&p, alignment, size);
+	if (e) {
+		errno = e;
+		return NULL;
+	}
+
+	memset(p, 0xDC, size);
+	return p;
+}
+
+static void
+checkfree(void *ctx, void *p, size_t size)
+{
+	IGNORE(ctx, size);
+
+	if (p) {
+		memset(p, 0xEF, size);
+		free(p);
+	}
+}
+
+static const struct hebi_alloc_callbacks checkaf =
+{
+	.hac_alloc = checkalloc,
+	.hac_free = checkfree,
+	.hac_arg = NULL
+};
+	
+static hebi_alloc_id checkaid = HEBI_ALLOC_INVALID;
+
+static void
+checkshut(void)
+{
+	if (checkaid != HEBI_ALLOC_INVALID) {
+		hebi_alloc_remove(checkaid);
+		checkaid = HEBI_ALLOC_INVALID;
+	}
+}
+
 void
 checkinit(int argc, char *argv[])
 {
@@ -104,4 +162,9 @@ checkinit(int argc, char *argv[])
 			abort();
 		}
 	}
+
+	checkaid = hebi_alloc_add(&checkaf);
+	atexit(checkshut);
+
+	hebi_alloc_set_default(checkaid);
 }
