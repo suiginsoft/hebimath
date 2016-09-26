@@ -44,6 +44,7 @@ char *vbcprintf(const char *format, va_list ap);
 void scheckbc(const char *restrict hres, const char *restrict bcop, ...);
 void zcheckbc(hebi_zsrcptr restrict hres, const char *restrict bcop, ...);
 
+void zdirty(hebi_zptr, ...);
 void zpermutation(long x, long n, int p, ...);
 void zcheckbinop(void (*f)(hebi_zptr, hebi_zsrcptr, hebi_zsrcptr), const char* op, int flags);
 void zcheckbinopi64(void (*f)(hebi_zptr, hebi_zsrcptr, int64_t), const char* op, int flags);

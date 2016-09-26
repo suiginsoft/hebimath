@@ -20,6 +20,7 @@ main(int argc, char *argv[])
 	hebi_zsetu(two, 2);
 
 	for (i = 1; i < 2048; ++i) {
+		zdirty(a, c, NULL);
 		hebi_zshl(a, c, i);
 		hebi_zmul(b, b, two);
 		assert(!hebi_zcmp(a, b));
@@ -28,6 +29,7 @@ main(int argc, char *argv[])
 	hebi_zseti(a, 1);
 	for (i = 0; i < HEBI_PACKET_BIT; ++i) {
 		assert(hebi_zbits(a) == i + 1);
+		zdirty(a, NULL);
 		hebi_zshl(a, a, 1);
 	}
 	assert(hebi_zbits(a) == HEBI_PACKET_BIT + 1);

@@ -11,7 +11,7 @@ hebi_zaddu(hebi_zptr r, hebi_zsrcptr a, uint64_t b)
 {
 	const hebi_packet *ap;
 	hebi_packet *rp;
-	uint64_t carry;
+	uint64_t c;
 	size_t n, u;
 	int s;
 
@@ -34,14 +34,15 @@ hebi_zaddu(hebi_zptr r, hebi_zsrcptr a, uint64_t b)
 	ap = a->hz_packs;
 
 	if (s >= 0) {
-		if ((carry = hebi_paddu(rp, ap, b, u)))
-			hebi_psetu(rp + u++, carry);
+		if ((c = hebi_paddu(rp, ap, b, u)))
+			hebi_psetu(rp + u++, c);
 	} else if (u > 1 || ap->hp_limbs64[0] > b || hebi_pcmpgtui64max__(ap)) {
 		(void)hebi_psubu(rp, ap, b, u);
 		u = hebi_pnorm(rp, u);
 	} else {
-		rp->hp_limbs64[0] = b - ap->hp_limbs64[0];
-		u = s = rp->hp_limbs64[0] ? 1 : 0;
+		c = b - ap->hp_limbs64[0];
+		hebi_psetu(rp, c);
+		u = s = c ? 1 : 0;
 	}
 
 	r->hz_used = u;

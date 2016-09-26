@@ -21,6 +21,7 @@ int main(int argc, char *argv[])
 	hebi_zshl(b, b, 2048);
 
 	for (i = 1; i < 2048; ++i) {
+		zdirty(a, c, NULL);
 		hebi_zshr(a, c, i);
 		hebi_zdivu(b, b, 2);
 		assert(!hebi_zcmp(a, b));

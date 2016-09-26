@@ -34,6 +34,7 @@ zcheckbinopu64(
 			b = check_u64values[check_pass];
 			if ((flags & RHS_NONZERO) && !b)
 				continue;
+			zdirty(r, a, NULL);
 			(*f)(r, a, b);
 			zcheckbc(r, "%Z %s %llu", a, op, (unsigned long long)b);
 		}
@@ -44,6 +45,7 @@ zcheckbinopu64(
 			if ((flags & RHS_NONZERO) && !b)
 				continue;
 			hebi_zset(r, a);
+			zdirty(r, a, NULL);
 			(*f)(a, a, b);
 			zcheckbc(a, "%Z %s %llu", r, op, (unsigned long long)b);
 			if (hebi_zzero(a))
