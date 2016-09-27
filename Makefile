@@ -43,8 +43,7 @@ PKERNELS := \
 	psubu \
 	pzero \
 	recipu2x1 \
-	recipu3x2 \
-	recipulut
+	recipu3x2
 
 PKERNELS_dynamic := $(PKERNELS:%=p/dynamic/%)
 
@@ -63,7 +62,8 @@ PFUNCTIONS := \
 	p/psqr_karatsuba \
 	p/psqr_karatsuba_space \
 	$(PKERNELS_$(KERNMV_kern)) \
-	$(PKERNELS:%=p/$(KERN_detected)/%)
+	$(PKERNELS:%=p/$(KERN_detected)/%) \
+	p/$(KERN_detected)/recipulut
 
 ZFUNCTIONS := \
 	z/zinit \
@@ -160,9 +160,9 @@ SRC := $(FUNCTIONS) $(MODULES)
 CFG_TARGETS_generic := config.h
 CFG_TARGETS_x86_64 := config.h config.inc
 
-DEPS_generic := config.h src/p/generic/generic.h
-DEPS_x86_64 := config.h config.inc src/p/x86_64/x86_64.inc
-DEPS := $(CONFIG) hebimath.h internal.h $(DEPS_$(KERN_detected))
+DEPS_generic := src/p/generic/generic.h
+DEPS_x86_64 := config.inc src/p/x86_64/x86_64.inc
+DEPS := $(CONFIG) hebimath.h config.h internal.h src/p/pcommon.h $(DEPS_$(KERN_detected))
 
 OBJ_shared := $(SRC:%=src/%.po)
 OBJ_static := $(SRC:%=src/%.o)
@@ -235,6 +235,7 @@ CHECK_SRC := \
 	zcheckbinop \
 	zcheckbinopi64 \
 	zcheckbinopu64 \
+	zdirty \
 	zpermutation
 
 CHECK_P_BIN := $(CHECK_P:%=check/p/%)

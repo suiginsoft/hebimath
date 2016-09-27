@@ -5,9 +5,22 @@
 
 #include "generic.h"
 
-HEBI_HIDDEN
+/* TODO: remove these macros after porting to x86-64 assembly */
+#ifdef HEBI_MULTI_VERSIONING
+#define STATIC static
+#ifdef USE_LIMB64_MULDIV
+#define PDIVREMR_IMPL hebi_pdivremr64_impl__
+#else
+#define PDIVREMR_IMPL hebi_pdivremr32_impl__
+#endif
+#else
+#define STATIC
+#define PDIVREMR_IMPL PDIVREMR
+#endif
+
+STATIC HEBI_HIDDEN
 MLIMB
-PDIVREMR(
+PDIVREMR_IMPL(
 		hebi_packet *restrict q,
 		hebi_packet *restrict u,
 		const hebi_packet *restrict d,
@@ -25,7 +38,6 @@ PDIVREMR(
 	ql = MLIMB_PTR(q);
 	ul = MLIMB_PTR(u);
 	dl = MLIMB_PTR(d);
-
 	m = un * MLIMB_PER_PACKET;
 	n = dn * MLIMB_PER_PACKET;
 
@@ -101,3 +113,11 @@ PDIVREMR(
 	ul[n+1] = u1;
 	return qh;
 }
+
+#ifdef HEBI_MULTI_VERSIONING
+#ifdef USE_LIMB64_MULDIV
+HEBI_HIDDEN MLIMB (*hebi_pdivremr64_ptr__)(hebi_packet *, hebi_packet *, const hebi_packet *, size_t, size_t, size_t, MLIMB) = hebi_pdivremr64_impl__;
+#else
+HEBI_HIDDEN MLIMB (*hebi_pdivremr32_ptr__)(hebi_packet *, hebi_packet *, const hebi_packet *, size_t, size_t, size_t, MLIMB) = hebi_pdivremr32_impl__;
+#endif
+#endif
