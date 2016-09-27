@@ -44,7 +44,7 @@ MVFUNC_BEGIN pshl, avx
     # Bit-shifting loop
 
     shl         $5, %rax
-    shl         $1, %rcx
+    shl         %rcx
     lea         -16(%rsi,%rax), %rsi    # rsi := aw + n * PACKET_SIZE - 16
     lea         8(%rdi,%rax), %rdi      # rdi := rw + n * PACKET_SIZE + 8
     mov         $64, %eax
@@ -147,7 +147,7 @@ MVFUNC_BEGIN pshl, sse2
     # Bit-shifting loop
 
     shl         $5, %rax
-    shl         $1, %rcx
+    shl         %rcx
     lea         -16(%rsi,%rax), %rsi    # rsi := aw + n * PACKET_SIZE - 16
     lea         8(%rdi,%rax), %rdi      # rdi := rw + n * PACKET_SIZE + 8
     mov         $64, %eax

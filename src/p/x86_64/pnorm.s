@@ -131,7 +131,7 @@ MVFUNC_BEGIN pnorm, sse2
     cmp         $0xFFFF, %eax
     jne         3f
     sub         $32, %rdi
-1:  shr         $1, %rcx
+1:  shr         %rcx
     jrcxz       3f
 
     .p2align 4
@@ -151,7 +151,7 @@ MVFUNC_BEGIN pnorm, sse2
 3:  mov         %rcx, %rax
     ret
 
-4:  shl         $1, %rcx
+4:  shl         %rcx
     pcmpeqd     %xmm2, %xmm0
     pmovmskb    %xmm0, %eax
     cmp         $0xFFFF, %eax

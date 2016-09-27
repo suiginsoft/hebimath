@@ -78,7 +78,7 @@ MVFUNC_BEGIN pmove, avx
     lea         -64(%rsi,%r8), %rsi
     lea         -64(%rdi,%r8), %rdi
     sub         %rax, %r8
-1:  shr         $1, %rcx
+1:  shr         %rcx
     jz          3f
 
 .align 16
@@ -129,7 +129,7 @@ MVFUNC_BEGIN pmove, _sse2
     lea         -64(%rsi,%r8), %rsi
     lea         -64(%rdi,%r8), %rdi
     sub         %rax, %r8
-1:  shr         $1, %rcx
+1:  shr         %rcx
     jz          3f
 
 .align 16

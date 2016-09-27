@@ -46,7 +46,7 @@ MVFUNC_BEGIN pzero, avx
 
     mov         %rsi, %rcx
     vpxor       %xmm0, %xmm0, %xmm0
-    shr         $1, %rcx
+    shr         %rcx
     jz          2f
 
 .align 16
@@ -78,7 +78,7 @@ MVFUNC_BEGIN pzero, sse2
 
     mov         %rsi, %rcx
     pxor        %xmm0, %xmm0
-    shr         $1, %rcx
+    shr         %rcx
     jz          2f
 
 .align 16

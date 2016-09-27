@@ -34,7 +34,7 @@ MVFUNC_BEGIN pshr, avx
     mov         %rcx, %rdx
     vpsrlq      %xmm5, %xmm0, %xmm0     # xmm0 := |00 0q|
     vpxor       %xmm4, %xmm4, %xmm4
-    shr         $1, %rcx
+    shr         %rcx
     jz          2f
 
     # Bit-shifting loop, process one octaword at a time
@@ -120,7 +120,7 @@ MVFUNC_BEGIN pshr, sse2
     sub         $16, %rdi               # rdi := rl + n * PACKET_SIZE + 8
     mov         %rcx, %rdx
     psrlq       %xmm5, %xmm0            # xmm0 := |00 0q|
-    shr         $1, %rcx
+    shr         %rcx
     jz          2f
 
     # Bit-shifting loop, process one octaword at a time

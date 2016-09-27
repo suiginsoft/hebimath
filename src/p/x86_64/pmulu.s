@@ -11,7 +11,7 @@ MVFUNC_BEGIN pmulu, x86_64
 
     xor         %r8, %r8
     mov         %rdx, %r10
-    shl         $1, %rcx
+    shl         %rcx
     jz          2f
 
 .align 16

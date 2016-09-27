@@ -23,7 +23,7 @@ MVFUNC_BEGIN pmul, x86_64
 
     mov         %rdx, %rbp
     mov         %rdi, %r12
-    shl         $1, %r8
+    shl         %r8
     mov         %rdx, %r13
     mov         %r8, %r14
     mov         (%rsi), %r9

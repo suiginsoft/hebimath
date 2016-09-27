@@ -51,7 +51,7 @@ MVFUNC_END
 MVFUNC_BEGIN pcopy, avx
 
     mov         %rdx, %rcx
-    shr         $1, %rcx
+    shr         %rcx
     jz          2f
 
     .p2align 4,,15
@@ -88,7 +88,7 @@ MVFUNC_END
 MVFUNC_BEGIN pcopy, sse2
 
     mov         %rdx, %rcx
-    shr         $1, %rcx
+    shr         %rcx
     jz          2f
 
     .p2align 4,,15
