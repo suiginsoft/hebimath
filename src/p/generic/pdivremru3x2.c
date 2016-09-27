@@ -14,11 +14,11 @@
 #define PDIVREMRU_3x2_IMPL hebi_pdivremru32_3x2_impl__
 #endif
 #else
-#define STATIC
+#define STATIC HEBI_HIDDEN
 #define PDIVREMRU_3x2_IMPL PDIVREMRU_3x2
 #endif
 
-STATIC HEBI_HIDDEN
+STATIC
 DLIMB
 PDIVREMRU_3x2_IMPL(
 		MLIMB *q,

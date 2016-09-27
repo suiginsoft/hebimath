@@ -18,8 +18,8 @@
 #ifndef __has_attribute
 #define __has_attribute(X) GNUC_ATTRIBUTE_##X
 #define GNUC_ATTRIBUTE_always_inline 1
-#define GNUC_ATTRIBUTE_hidden 1
 #define GNUC_ATTRIBUTE_pure 1
+#define GNUC_ATTRIBUTE_visibility 1
 #endif
 
 #ifndef __has_builtin
@@ -211,7 +211,7 @@ EXTENSION typedef unsigned __int128 hebi_uint128;
 /* internal-use attributes */
 #if __has_attribute(always_inline)
 #if __has_attribute(hidden)
-#define HEBI_ALWAYSINLINE __attribute__((__always_inline__,__hidden__))
+#define HEBI_ALWAYSINLINE __attribute__((__always_inline__,__visibility__("hidden")))
 #else
 #define HEBI_ALWAYSINLINE __attribute__((__always_inline__))
 #endif
@@ -219,8 +219,8 @@ EXTENSION typedef unsigned __int128 hebi_uint128;
 #define HEBI_ALWAYSINLINE
 #endif
 
-#if __has_attribute(hidden)
-#define HEBI_HIDDEN __attribute__((__hidden__))
+#if __has_attribute(visibility)
+#define HEBI_HIDDEN __attribute__((__visibility__("hidden")))
 #else
 #define HEBI_HIDDEN
 #endif

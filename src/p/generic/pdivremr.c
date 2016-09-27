@@ -14,11 +14,11 @@
 #define PDIVREMR_IMPL hebi_pdivremr32_impl__
 #endif
 #else
-#define STATIC
+#define STATIC HEBI_HIDDEN
 #define PDIVREMR_IMPL PDIVREMR
 #endif
 
-STATIC HEBI_HIDDEN
+STATIC
 MLIMB
 PDIVREMR_IMPL(
 		hebi_packet *restrict q,
