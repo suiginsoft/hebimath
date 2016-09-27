@@ -15,6 +15,7 @@
 # matching the enabled features is linked in. All other functions are
 # stripped out of the library.
 
+.equ HAS_HWCAP_X86_64,      1
 .equ HAS_HWCAP_SSE,         1
 .equ HAS_HWCAP_SSE2,        1
 .equ HAS_HWCAP_SSE3,        1

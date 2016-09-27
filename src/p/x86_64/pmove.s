@@ -116,7 +116,7 @@ MVFUNC_END
 #-------------------------------------------------------------------------------
 
 .if HAS_HWCAP_SSE2
-MVFUNC_BEGIN pmove, _sse2
+MVFUNC_BEGIN pmove, sse2
 
     xor         %r8, %r8
     mov         $64, %rax

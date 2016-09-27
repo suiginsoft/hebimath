@@ -120,13 +120,13 @@ MVFUNC_DISPATCH_BEGIN recipu64_3x2
 .if HAS_HWCAP_BMI2
     test        $hebi_hwcap_bmi2, %eax
     jz          1f
-    lea         recipu64_3x2_bmi2__(%rip), %r10
+    lea         hebi_recipu64_3x2_bmi2__(%rip), %r10
     BREAK
 .endif
 
 1:
 .if HAS_HWCAP_X86_64
-    lea         recipu64_3x2_x86_64__(%rip), %r10
+    lea         hebi_recipu64_3x2_x86_64__(%rip), %r10
 .endif
 
 MVFUNC_DISPATCH_END

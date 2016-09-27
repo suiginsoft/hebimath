@@ -3,5 +3,5 @@
  * See LICENSE file for copyright and license details
  */
 
-#include "x86_64.h"
+#include "../pcommon.h"
 #include "../recipu64lut.c"
