@@ -20,9 +20,10 @@ MVFUNC_BEGIN pdivremru64_2x1, x86_64, @private, @explicit
 
     push        %rbx
     push        %rbp
+    sub         $8, %rsi
     mov         %rdx, %rbx
     push        %r12
-    mov         -8(%rsi,%rbx,8), %rax
+    mov         (%rsi,%rbx,8), %rax
     mov         %ecx, %edx
     xor         %r11, %r11
     mov         %rax, %r12
@@ -40,14 +41,14 @@ MVFUNC_BEGIN pdivremru64_2x1, x86_64, @private, @explicit
     cmp         %r8, %r10
     jae         1f
     mov         %r12, %rax
-    mov         -8(%rsi,%rbx,8), %rbp
+    mov         (%rsi,%rbx,8), %rbp
     shld        %cl, %rbp, %rax
     jmp         2f
 
     # Division loop with shifting
 
     .p2align 4
-1:  mov         -8(%rsi,%rbx,8), %rbp
+1:  mov         (%rsi,%rbx,8), %rbp
     lea         1(%rax), %r10
     shld        %cl, %rbp, %r12
     mul         %r9
@@ -112,7 +113,7 @@ MVFUNC_BEGIN pdivremru64_2x1, x86_64, @private, @explicit
     # Division loop without shifting
 
     .p2align 4
-6:  mov         -8(%rsi,%rbx,8), %r12
+6:  mov         (%rsi,%rbx,8), %r12
     lea         1(%rax), %r10
     mul         %r9
     add         %r12, %rax
@@ -128,7 +129,7 @@ MVFUNC_BEGIN pdivremru64_2x1, x86_64, @private, @explicit
     adc         $-1, %r11
     cmp         %r8, %rax
     jae         9f
-7:  mov         %r11, -8(%rdi,%rbx,8)
+7:  mov         %r11, (%rdi,%rbx,8)
     dec         %rbx
     jnz         6b
 
@@ -142,7 +143,8 @@ MVFUNC_BEGIN pdivremru64_2x1, x86_64, @private, @explicit
     # Entry point if 'bits 'is zero, start division without shifting
 
     .p2align 4,,7
-8:  cmp         %r8, %rax
+8:  sub         $8, %rdi
+    cmp         %r8, %rax
     jb          7b
 
     # Remainder was too large, adjust and continue
