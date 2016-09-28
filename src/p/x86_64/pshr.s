@@ -154,7 +154,7 @@ MVFUNC_BEGIN pshr, sse2
     psllq       %xmm6, %xmm2            # xmm2 := |00 l0|
     psrlq       %xmm5, %xmm3            # xmm3 := |00 0r|
     por         %xmm2, %xmm0            # xmm0 := |00 lq|
-    punpcklqdq  %xmm2, %xmm4            # xmm2 := |0r 00|
+    punpcklqdq  %xmm3, %xmm4            # xmm2 := |0r 00|
     por         %xmm4, %xmm0            # xmm0 := |0r lq|
 3:  movdqa      %xmm0, 16(%rdi)
 
