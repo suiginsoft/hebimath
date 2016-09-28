@@ -25,12 +25,12 @@ MVFUNC_BEGIN recipu64_2x1, x86_64, @private, @explicit
 .ifdef HAS_PIC
     mov         hebi_recipu64_v0lut__@GOTPCREL(%rip), %rdx
 .endif
-    movzb       %al, %eax
+    movzbl      %al, %eax
     shr         $24, %rsi
 .ifdef HAS_PIC
-    movzw       (%rdx,%rax,2), %eax
+    movzwl      (%rdx,%rax,2), %eax
 .else
-    movzw       hebi_recipu64_v0lut__(%rax,%rax), %eax
+    movzwl      hebi_recipu64_v0lut__(%rax,%rax), %eax
 .endif
     inc         %rsi
     mov         %eax, %ecx
