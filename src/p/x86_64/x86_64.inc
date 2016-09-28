@@ -248,6 +248,18 @@ MVFUNC_END_IMPL__
 .equ HAS_HWCAP_AVX512VBMI,  0
 .endm
 
+.ifdef HAS_PIC
+
+.macro MVFUNC_CALL Name, Dest
+    call    hebi_\Name\()@PLT
+.endm
+
+.macro MVFUNC_JMP Name, Dest
+    jmp     hebi_\Name\()@PLT
+.endm
+
+.else
+
 .macro MVFUNC_CALL Name, Dest
     call    hebi_\Name
 .endm
@@ -255,6 +267,8 @@ MVFUNC_END_IMPL__
 .macro MVFUNC_JMP Name, Dest
     jmp     hebi_\Name
 .endm
+
+.endif
 
 .macro MVFUNC_CALL_EXPLICIT Name:req, Version:req
     call    hebi_\Name\()_\Version\()__
