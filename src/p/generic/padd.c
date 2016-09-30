@@ -21,6 +21,7 @@ hebi_padd(
 	size_t i;
 
 	ASSERT(an >= bn);
+	ASSERT(bn > 0);
 
 	rl = LIMB_PTR(r);
 	al = LIMB_PTR(a);
@@ -29,11 +30,11 @@ hebi_padd(
 	carry = 0;
 	i = 0;
 
-	for ( ; i < bn * LIMB_PER_PACKET; i++) {
+	do {
 		sum = al[i] + bl[i] + carry;
 		carry = (sum < al[i]) || (sum == al[i] && carry);
 		rl[i] = sum;
-	}
+	} while (++i < bn * LIMB_PER_PACKET);
 
 	for ( ; i < an * LIMB_PER_PACKET; i++) {
 		sum = al[i] + carry;

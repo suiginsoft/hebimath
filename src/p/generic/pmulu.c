@@ -17,15 +17,18 @@ hebi_pmulu(hebi_packet *r, const hebi_packet *a, uint64_t b, size_t n)
 	uint64_t o;
 	size_t i;
 
+	ASSERT(n > 0);
+
 	rl = r->hp_limbs64;
 	al = a->hp_limbs64;
 	o = 0;
+	i = 0;
 
-	for (i = 0; i < n * HEBI_PACKET_LIMBS64; ++i) {
+	do {
 		p = (hebi_uint128)al[i] * b + o;
 		rl[i] = (uint64_t)(p & UINT64_MAX);
 		o = (uint64_t)(p >> 64);
-	}
+	} while (++i < n * HEBI_PACKET_LIMBS64);
 
 	return o;
 
@@ -36,8 +39,11 @@ hebi_pmulu(hebi_packet *r, const hebi_packet *a, uint64_t b, size_t n)
 	uint64_t o64;
 	size_t i;
 
+	ASSERT(n > 0);
+
 	rl32 = r->hp_limbs32;
 	al32 = a->hp_limbs32;
+	i = 0;
 
 	if (b <= UINT32_MAX) {
 		const uint32_t b32 = (uint32_t)b;
@@ -45,11 +51,13 @@ hebi_pmulu(hebi_packet *r, const hebi_packet *a, uint64_t b, size_t n)
 		uint32_t o32;
 
 		o32 = 0;
-		for (i = 0; i < n * HEBI_PACKET_LIMBS32; ++i) {
+
+		do {
 			p64 = (uint64_t)al32[i] * b32 + o32;
 			rl32[i] = (uint32_t)(p64 & UINT32_MAX);
 			o32 = (uint32_t)(p64 >> 32);
-		}
+		} while (++i < n * HEBI_PACKET_LIMBS32);
+
 		o64 = o32;
 	} else {
 		const uint32_t b32_lo = (uint32_t)(b & UINT32_MAX);
@@ -57,12 +65,13 @@ hebi_pmulu(hebi_packet *r, const hebi_packet *a, uint64_t b, size_t n)
 		uint64_t p64_lo, p64_hi;
 
 		o64 = 0;
-		for (i = 0; i < n * HEBI_PACKET_LIMBS32; ++i) {
+
+		do {
 			p64_lo = (uint64_t)al32[i] * b32_lo + (o64 & UINT32_MAX);
 			p64_hi = (uint64_t)al32[i] * b32_hi + (o64 >> 32);
 			rl32[i] = (uint32_t)(p64_lo & UINT32_MAX);
 			o64 = (p64_lo >> 32) + p64_hi;
-		}
+		} while (++i < n * HEBI_PACKET_LIMBS32);
 	}
 
 	return o64;
