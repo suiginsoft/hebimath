@@ -162,7 +162,7 @@ EXTENSION typedef unsigned __int128 hebi_uint128;
 #endif /* USE_INT128 */
 
 /* configure preferred limb type for low-level kernel functions */
-#ifdef USE_KERN_GENERIC
+#ifdef USE_DRIVER_GENERIC
 
 /* detect preferred limb type for most arithmetic/logical operations */
 #if !defined USE_LIMB64_ARITHMETIC && !defined USE_LIMB32_ARITHMETIC
@@ -191,14 +191,14 @@ EXTENSION typedef unsigned __int128 hebi_uint128;
 #undef USE_LIMB32_MULDIV
 #endif
 
-#else /* USE_KERN_GENERIC */
+#else /* USE_DRIVER_GENERIC */
 
 #undef USE_LIMB64_ARITHMETIC
 #undef USE_LIMB32_ARITHMETIC
 #undef USE_LIMB64_MULDIV
 #undef USE_LIMB32_MULDIV
 
-#if defined USE_KERN_X86_64 || defined USE_KERN_AARCH64
+#if defined USE_DRIVER_X86_64 || defined USE_DRIVER_AARCH64
 #define USE_LIMB64_ARITHMETIC
 #define USE_LIMB64_MULDIV
 #else
@@ -206,7 +206,7 @@ EXTENSION typedef unsigned __int128 hebi_uint128;
 #define USE_LIMB32_MULDIV
 #endif
 
-#endif /* USE_KERN_GENERIC */
+#endif /* USE_DRIVER_GENERIC */
 
 /* internal-use attributes */
 #if __has_attribute(always_inline)

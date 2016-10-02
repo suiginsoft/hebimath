@@ -4,22 +4,23 @@
 CONFIG := config.mk
 include $(CONFIG)
 
-KERN_generic := generic
-KERN_x86_64 := x86_64
+DRIVER_generic := generic
+DRIVER_x86_64 := x86_64
 
-KERN_auto != sh -c 'uname -m 2>/dev/null || \
-	echo generic | sed -e ''s/i.86$$/i386/'''
+DRIVER_auto != sh -c 'uname -m 2>/dev/null || echo generic | \
+	sed -e ''s/i.86$$/i386/'''
 
-KERN_detected != sh -c 'test -d src/p/$(KERN_$(KERN)) && \
-	echo $(KERN_$(KERN)) || echo generic'
+DRIVER_selected != sh -c 'test -n "$(DRIVER_$(DRIVER))" -a \
+	-d src/p/$(DRIVER_$(DRIVER)) && \
+	echo $(DRIVER_$(DRIVER)) || echo generic'
 
-KERNMV_generic := fixed
-KERNMV_x86_64 := $(KERNMV)
-KERNMV_kern := $(KERNMV_$(KERN_detected))
+DISPATCH_generic := static
+DISPATCH_x86_64 := $(DISPATCH)
+DISPATCH_driver := $(DISPATCH_$(DRIVER_selected))
 
-CPPFLAGS_generic := -DUSE_KERN_GENERIC
-CPPFLAGS_x86_64 := -DUSE_KERN_X86_64
-CPPFLAGS_kern := $(CPPFLAGS_$(KERN_detected))
+CPPFLAGS_generic := -DUSE_DRIVER_GENERIC
+CPPFLAGS_x86_64 := -DUSE_DRIVER_X86_64
+CPPFLAGS_driver := $(CPPFLAGS_$(DRIVER_selected))
 
 PKERNELS := \
 	padd \
@@ -45,95 +46,95 @@ PKERNELS := \
 	recipu2x1 \
 	recipu3x2
 
-PKERNELS_dynamic := $(PKERNELS:%=p/dynamic/%)
+PKERNELS_dynamic := $(PKERNELS:%=dynamic/%)
 
 PFUNCTIONS := \
-	p/palloc \
-	p/palloc_cb \
-	p/pfree \
-	p/pfree_cb \
-	p/pmul_karatsuba \
-	p/pmul_karatsuba_space \
-	p/pdivrem \
-	p/prand_kiss \
-	p/psetu \
-	p/psetu2 \
-	p/psetzero \
-	p/psqr_karatsuba \
-	p/psqr_karatsuba_space \
-	$(PKERNELS_$(KERNMV_kern)) \
-	$(PKERNELS:%=p/$(KERN_detected)/%) \
-	p/$(KERN_detected)/recipulut
+	palloc \
+	palloc_cb \
+	pfree \
+	pfree_cb \
+	pmul_karatsuba \
+	pmul_karatsuba_space \
+	pdivrem \
+	prand_kiss \
+	psetu \
+	psetu2 \
+	psetzero \
+	psqr_karatsuba \
+	psqr_karatsuba_space \
+	$(PKERNELS_$(DISPATCH_driver)) \
+	$(PKERNELS:%=$(DRIVER_selected)/%) \
+	$(DRIVER_selected)/recipulut
 
 ZFUNCTIONS := \
-	z/zinit \
-	z/zinits \
-	z/zinitn \
-	z/zinit_allocator \
-	z/zinit_buffer \
-	z/zinit_reserve \
-	z/zinit_copy \
-	z/zinit_copy_buffer \
-	z/zinit_copy_reserve \
-	z/zinit_move \
-	z/zdestroy \
-	z/zdestroys \
-	z/zdestroyn \
-	z/zrealloc \
-	z/zrealloczero \
-	z/zreserve \
-	z/zshrink \
-	z/zswap \
-	z/zallocator \
-	z/zcapacity \
-	z/zused \
-	z/zsign \
-	z/zzero \
-	z/zeven \
-	z/zodd \
-	z/zbits \
-	z/zcmpmag \
-	z/zcmp \
-	z/zset \
-	z/zset_copy \
-	z/zset_move \
-	z/zseti \
-	z/zsetu \
-	z/zsetzero \
-	z/zsetstr \
-	z/zgeti \
-	z/zgetu \
-	z/zgetsi \
-	z/zgetsu \
-	z/zgetstr \
-	z/zabs \
-	z/zneg \
-	z/zadd \
-	z/zsub \
-	z/zmul \
-	z/zsqr \
-	z/zdiv \
-	z/zrem \
-	z/zdivrem \
-	z/zaddi \
-	z/zaddu \
-	z/zsubi \
-	z/zsubu \
-	z/zmuli \
-	z/zmulu \
-	z/zdivi \
-	z/zdivu \
-	z/zremi \
-	z/zremu \
-	z/zdivremi \
-	z/zdivremu \
-	z/zshl \
-	z/zshr \
-	z/zrand_kiss
+	zinit \
+	zinits \
+	zinitn \
+	zinit_allocator \
+	zinit_buffer \
+	zinit_reserve \
+	zinit_copy \
+	zinit_copy_buffer \
+	zinit_copy_reserve \
+	zinit_move \
+	zdestroy \
+	zdestroys \
+	zdestroyn \
+	zrealloc \
+	zrealloczero \
+	zreserve \
+	zshrink \
+	zswap \
+	zallocator \
+	zcapacity \
+	zused \
+	zsign \
+	zzero \
+	zeven \
+	zodd \
+	zbits \
+	zcmpmag \
+	zcmp \
+	zset \
+	zset_copy \
+	zset_move \
+	zseti \
+	zsetu \
+	zsetzero \
+	zsetstr \
+	zgeti \
+	zgetu \
+	zgetsi \
+	zgetsu \
+	zgetstr \
+	zabs \
+	zneg \
+	zadd \
+	zsub \
+	zmul \
+	zsqr \
+	zdiv \
+	zrem \
+	zdivrem \
+	zaddi \
+	zaddu \
+	zsubi \
+	zsubu \
+	zmuli \
+	zmulu \
+	zdivi \
+	zdivu \
+	zremi \
+	zremu \
+	zdivremi \
+	zdivremu \
+	zshl \
+	zshr \
+	zrand_kiss
 
 FUNCTIONS := \
-	$(PFUNCTIONS) \
-	$(ZFUNCTIONS) \
+	$(PFUNCTIONS:%=p/%) \
+	$(ZFUNCTIONS:%=z/%) \
 	error_assert \
 	error_handler \
 	error_jmp \
@@ -153,7 +154,7 @@ MODULES := \
 	alloc_set \
 	alloc_table \
 	context \
-	$(MODULES_$(KERNMV_kern))
+	$(MODULES_$(DISPATCH_driver))
 
 SRC := $(FUNCTIONS) $(MODULES)
 
@@ -162,7 +163,7 @@ CFG_TARGETS_x86_64 := config.h config.inc
 
 DEPS_generic := src/p/generic/generic.h
 DEPS_x86_64 := config.inc src/p/x86_64/x86_64.inc
-DEPS := $(CONFIG) hebimath.h config.h internal.h src/p/pcommon.h $(DEPS_$(KERN_detected))
+DEPS := $(CONFIG) hebimath.h config.h internal.h src/p/pcommon.h $(DEPS_$(DRIVER_selected))
 
 OBJ_shared := $(SRC:%=src/%.po)
 OBJ_static := $(SRC:%=src/%.o)
@@ -256,19 +257,19 @@ Q := $(Q_$(V))
 
 all: $(LIBS)
 
-config: $(CFG_TARGETS_$(KERN_detected))
+config: $(CFG_TARGETS_$(DRIVER_selected))
 
 config.h:
 	@echo copying $@ from config.def.h
 	$(Q)cp config.def.h $@
 
 config.inc:
-	@echo copying $@ from config.def.$(KERN_detected).inc
-	$(Q)cp config.def.$(KERN_detected).inc $@
+	@echo copying $@ from config.def.$(DRIVER_selected).inc
+	$(Q)cp config.def.$(DRIVER_selected).inc $@
 
 hebimath.h: hebimath.h.in
 	@echo generating $@ from hebimath.h.in
-	$(Q)awk -v p='$(KERNMV_kern)|$(SIMD)' \
+	$(Q)awk -v p='dispatch_$(DISPATCH_driver)|simd_$(SIMD)' \
 	    '$$1==">>>"{x=$$2!~p;next;} \
 	     $$1=="<<<"{x=0;next;} \
 	     !x{print $$0}' \
@@ -292,7 +293,7 @@ bench/p: $(BENCH_BIN)
 $(BENCH_BIN): $(BENCH_DEPS) $(LIBS) bench/libbench.a
 	@echo CC $@.c
 	$(Q)$(CC) -o $@ $(CFLAGS_static) $(CFLAGS) \
-		$(CPPFLAGS_static) $(CPPFLAGS) $(CPPFLAGS_kern) $@.c \
+		$(CPPFLAGS_static) $(CPPFLAGS) $(CPPFLAGS_driver) $@.c \
 		$(LDFLAGS) -L. bench/libbench.a $(TEST_LDLIBS) $(LDLIBS)
 
 bench/libbench.a: $(BENCH_DEPS) $(BENCH_OBJ)
@@ -312,7 +313,7 @@ check/z: $(CHECK_Z_BIN)
 $(CHECK_BIN): $(CHECK_DEPS) $(LIBS) check/libcheck.a
 	@echo CC $@.c
 	$(Q)$(CC) -o $@ $(CFLAGS_static) $(CFLAGS) \
-		$(CPPFLAGS_static) $(CPPFLAGS) $(CPPFLAGS_kern) $@.c \
+		$(CPPFLAGS_static) $(CPPFLAGS) $(CPPFLAGS_driver) $@.c \
 		$(LDFLAGS) -L. check/libcheck.a $(TEST_LDLIBS) $(LDLIBS)
 
 check/libcheck.a: $(CHECK_DEPS) $(CHECK_OBJ)
@@ -323,22 +324,22 @@ check/libcheck.a: $(CHECK_DEPS) $(CHECK_OBJ)
 .c.po: $(DEPS)
 	@echo CC $<
 	$(Q)$(CC) -o $@ -c $(CFLAGS_shared) $(CFLAGS) \
-		$(CPPFLAGS_shared) $(CPPFLAGS) $(CPPFLAGS_kern) $<
+		$(CPPFLAGS_shared) $(CPPFLAGS) $(CPPFLAGS_driver) $<
 
 .c.o: $(DEPS)
 	@echo CC $<
 	$(Q)$(CC) -o $@ -c $(CFLAGS_static) $(CFLAGS) \
-		$(CPPFLAGS_static) $(CPPFLAGS) $(CPPFLAGS_kern) $<
+		$(CPPFLAGS_static) $(CPPFLAGS) $(CPPFLAGS_driver) $<
 
 .s.po: $(DEPS)
 	@echo AS $<
-	$(Q)$(AS) -o $@ $(ASFLAGS_$(KERNMV_kern)) \
+	$(Q)$(AS) -o $@ $(ASFLAGS_dispatch_$(DISPATCH_driver)) \
 		$(ASFLAGS_shared) $(ASFLAGS) $<
 	$(Q)$(STRIP) -o $@ -x $@
 
 .s.o: $(DEPS)
 	@echo AS $<
-	$(Q)$(AS) -o $@ $(ASFLAGS_$(KERNMV_kern)) \
+	$(Q)$(AS) -o $@ $(ASFLAGS_dispatch_$(DISPATCH_driver)) \
 		$(ASFLAGS_static) $(ASFLAGS) $<
 	$(Q)$(STRIP) -o $@ -x $@
 
@@ -393,8 +394,8 @@ uninstall:
 options:
 	@echo libhebimath build options:
 	@echo "LINKAGE           = $(LINKAGE)"
-	@echo "KERN              = $(KERN_detected)"
-	@echo "KERNMV            = $(KERNMV_kern)"
+	@echo "DRIVER            = $(DRIVER_selected)"
+	@echo "DISPATCH          = $(DISPATCH_driver)"
 	@echo "SIMD              = $(SIMD)"
 	@echo "CPPFLAGS          = $(CPPFLAGS)"
 	@echo "CFLAGS            = $(CFLAGS)"

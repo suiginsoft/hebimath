@@ -73,7 +73,7 @@ extern "C" {
 #define HEBI_UNLIKELY(E) (E)
 #endif
 
->>> dynamic
+>>> dispatch_dynamic
 #define HEBI_MULTI_VERSIONING
 
 #define HEBI_MVFUNC(R,N,P,A) \
@@ -83,9 +83,9 @@ HEBI_INLINE R N P { return (*N##_ptr__) A; }
 #define HEBI_MVFUNC_VOID(N,P,A) \
 extern HEBI_API void (* N##_ptr__) P; \
 HEBI_INLINE void N P { (*N##_ptr__) A; }
-<<< dynamic
+<<< dispatch_dynamic
 
->>> simd
+>>> simd_on
 #if !defined __PCC__ && (defined __GNUC__ && __GNUC__ >= 4)
 #define HEBI_SIMD
 __extension__ typedef long long int hebi_v2di __attribute__((__vector_size__(16)));
@@ -97,7 +97,7 @@ __extension__ typedef unsigned int hebi_v4su __attribute__((__vector_size__(16))
 __extension__ typedef unsigned short hebi_v8hu __attribute__((__vector_size__(16)));
 __extension__ typedef unsigned char hebi_v16qu __attribute__((__vector_size__(16)));
 #endif
-<<< simd
+<<< simd_on
 
 enum hebi_errdom {
 	HEBI_ERRDOM_HEBI = 0,
@@ -216,28 +216,28 @@ struct hebi_kiss {
 #define HEBI_PACKET_BIT 256
 #define HEBI_PACKET_LIMBS32 8
 #define HEBI_PACKET_LIMBS64 4
->>> simd
+>>> simd_on
 #ifdef HEBI_SIMD
 #define HEBI_PACKET_VECTORS 2
 #endif
-<<< simd
+<<< simd_on
 #else
 #define HEBI_PACKET_ALIGNMENT 16
 #define HEBI_PACKET_BIT 128
 #define HEBI_PACKET_LIMBS32 4
 #define HEBI_PACKET_LIMBS64 2
->>> simd
+>>> simd_on
 #ifdef HEBI_SIMD
 #define HEBI_PACKET_VECTORS 1
 #endif
-<<< simd
+<<< simd_on
 #endif
 
 typedef union hebi_packet {
 	HEBI_ALIGNAS(HEBI_PACKET_ALIGNMENT)
 	uint32_t hp_limbs32[HEBI_PACKET_LIMBS32];
 	uint64_t hp_limbs64[HEBI_PACKET_LIMBS64];
->>> simd
+>>> simd_on
 #ifdef HEBI_SIMD
 	hebi_v2di hp_v2di[HEBI_PACKET_VECTORS];
 	hebi_v2du hp_v2du[HEBI_PACKET_VECTORS];
@@ -248,10 +248,10 @@ typedef union hebi_packet {
 	hebi_v16qi hp_v16qi[HEBI_PACKET_VECTORS];
 	hebi_v16qu hp_v16qu[HEBI_PACKET_VECTORS];
 #endif
-<<< simd
+<<< simd_on
 } hebi_packet;
 
->>> dynamic
+>>> dispatch_dynamic
 HEBI_MVFUNC(hebi_packet *, hebi_pcopy, (hebi_packet *HEBI_RESTRICT r__, const hebi_packet *HEBI_RESTRICT a__, size_t n__), (r__, a__, n__))
 HEBI_MVFUNC(hebi_packet *, hebi_pmove, (hebi_packet *r__, const hebi_packet *a__, size_t n__), (r__, a__, n__))
 HEBI_MVFUNC(hebi_packet *, hebi_pzero, (hebi_packet *r__, size_t n__), (r__, n__))
@@ -269,8 +269,8 @@ HEBI_MVFUNC(uint64_t, hebi_padd, (hebi_packet *r__, const hebi_packet *a__, cons
 HEBI_MVFUNC(uint64_t, hebi_psub, (hebi_packet *r__, const hebi_packet *a__, const hebi_packet *b__, size_t m__, size_t n__), (r__, a__, b__, m__, n__))
 HEBI_MVFUNC_VOID(hebi_pmul, (hebi_packet *HEBI_RESTRICT r__, const hebi_packet *a__, const hebi_packet *b__, size_t m__, size_t n__), (r__, a__, b__, m__, n__))
 HEBI_MVFUNC_VOID(hebi_psqr, (hebi_packet *HEBI_RESTRICT r__, const hebi_packet *HEBI_RESTRICT a__, size_t n__), (r__, a__, n__))
-<<< dynamic
->>> fixed
+<<< dispatch_dynamic
+>>> dispatch_static
 HEBI_API hebi_packet *hebi_pcopy(hebi_packet *HEBI_RESTRICT, const hebi_packet *HEBI_RESTRICT, size_t);
 HEBI_API hebi_packet *hebi_pmove(hebi_packet *, const hebi_packet *, size_t);
 HEBI_API hebi_packet *hebi_pzero(hebi_packet *, size_t);
@@ -288,7 +288,7 @@ HEBI_API uint64_t hebi_padd(hebi_packet *, const hebi_packet *, const hebi_packe
 HEBI_API uint64_t hebi_psub(hebi_packet *, const hebi_packet *, const hebi_packet *, size_t, size_t);
 HEBI_API void hebi_pmul(hebi_packet *HEBI_RESTRICT, const hebi_packet *, const hebi_packet *, size_t, size_t);
 HEBI_API void hebi_psqr(hebi_packet *HEBI_RESTRICT, const hebi_packet *HEBI_RESTRICT, size_t);
-<<< fixed
+<<< dispatch_static
 HEBI_API size_t hebi_pdivrem(hebi_packet *HEBI_RESTRICT, hebi_packet *HEBI_RESTRICT, hebi_packet *HEBI_RESTRICT, size_t *HEBI_RESTRICT, const hebi_packet *, const hebi_packet *, size_t, size_t);
 HEBI_API void hebi_pmul_karatsuba(hebi_packet *HEBI_RESTRICT, hebi_packet *HEBI_RESTRICT, const hebi_packet *, const hebi_packet *, size_t, size_t);
 HEBI_API HEBI_CONST size_t hebi_pmul_karatsuba_space(size_t, size_t);
@@ -300,35 +300,35 @@ HEBI_INLINE
 void
 hebi_psetu(hebi_packet *r__, uint64_t a__)
 {
->>> simd
+>>> simd_on
 #ifdef HEBI_SIMD
 	r__->hp_v2du[0] = __extension__ (hebi_v2du){ a__, 0 };
 #if HEBI_PACKET_VECTORS == 2
 	r__->hp_v2du[1] = __extension__ (hebi_v2du){ 0, 0 };
 #endif
 #else
-<<< simd
+<<< simd_on
 	int i__;
 	r__->hp_limbs64[0] = a__;
 	for (i__ = 1; i__ < HEBI_PACKET_LIMBS64; i__++)
 		r__->hp_limbs64[i__] = 0;
->>> simd
+>>> simd_on
 #endif
-<<< simd
+<<< simd_on
 }
 
 HEBI_INLINE
 void
 hebi_psetu2(hebi_packet *r__, uint64_t a__, uint64_t b__)
 {
->>> simd
+>>> simd_on
 #ifdef HEBI_SIMD
 	r__->hp_v2du[0] = __extension__ (hebi_v2du){ a__, b__ };
 #if HEBI_PACKET_VECTORS == 2
 	r__->hp_v2du[1] = __extension__ (hebi_v2du){ 0, 0 };
 #endif
 #else
-<<< simd
+<<< simd_on
 	int i__;
 	r__->hp_limbs64[0] = a__;
 	r__->hp_limbs64[1] = b__;
@@ -336,29 +336,29 @@ hebi_psetu2(hebi_packet *r__, uint64_t a__, uint64_t b__)
 	for (i__ = 2; i__ < HEBI_PACKET_LIMBS64; i__++)
 		r__->hp_limbs64[i__] = 0;
 #endif
->>> simd
+>>> simd_on
 #endif
-<<< simd
+<<< simd_on
 }
 
 HEBI_INLINE
 void
 hebi_psetzero(hebi_packet *r__)
 {
->>> simd
+>>> simd_on
 #ifdef HEBI_SIMD
 	r__->hp_v2du[0] = __extension__ (hebi_v2du){ 0, 0 };
 #if HEBI_PACKET_VECTORS == 2
 	r__->hp_v2du[1] = __extension__ (hebi_v2du){ 0, 0 };
 #endif
 #else
-<<< simd
+<<< simd_on
 	int i__;
 	for (i__ = 0; i__ < HEBI_PACKET_LIMBS64; i__++)
 		r__->hp_limbs64[i__] = 0;
->>> simd
+>>> simd_on
 #endif
-<<< simd
+<<< simd_on
 }
 
 HEBI_INLINE HEBI_ALLOC HEBI_WARNUNUSED

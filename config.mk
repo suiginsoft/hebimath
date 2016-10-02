@@ -9,23 +9,24 @@ VERSION = 0.6
 #   static  - only build the static library
 LINKAGE = both
 
-# KERN controls the maths kernels backend to use and can be set
-# to one of the following options:
-#   auto, generic, x86_64
-KERN = auto
+# DRIVER controls which low-level functions backend to compile
+# and use and can be set to one of the following options:
+#   auto    - auto-detect best backend for host system
+#   generic - generic portable backend
+#   x86_64  - optimized for x86-64 processors
+DRIVER = auto
 
-# KERNMV controls function multi-versioning for the maths kernels
-# backend and can be set to either dynamic or static. Can be
-# set to one of the following options:
+# DISPATCH controls function multi-versioning for the backend
+# and can be set to either dynamic or static:
 #   dynamic - will enable dynamic runtime dispatching based
 #             on CPUID, devtmpfs/syfs/procfs file systems,
 #             and/or the environment. flags in 'config.inc'
 #             are used to enable/disable which kernel
 #             versions are included in the library
-#   fixed   - will determine which kernel version to use at
+#   static  - will determine which kernel version to use at
 #             build time, using the best version matching
 #             flags in 'config.inc'
-KERNMV = dynamic
+DISPATCH = dynamic
 
 # SIMD controls whether to generate support for using GNU C style
 # vector extensions (supported by both GCC and Clang). When this
@@ -37,9 +38,9 @@ KERNMV = dynamic
 # no effect on assembly language kernels, only on C language code
 # that takes advantage of this feature. Can be set to one of the
 # following options:
-#   simd    - enables compiler vector extensions
-#   nosimd  - disables compiler vector extensions
-SIMD = simd
+#   on      - enables compiler vector extensions
+#   off     - disables compiler vector extensions
+SIMD = on
 
 # file paths
 PREFIX = /usr/local
@@ -69,6 +70,6 @@ CPPFLAGS_shared = -DHEBI_EXPORT_SYMBOLS
 CFLAGS_shared = -fpic -fvisibility=hidden
 LDFLAGS_shared = -shared
 
-# asflags for different KERNMV modes
-ASFLAGS_dynamic = --defsym HAS_MULTI_VERSIONING=1
-ASFLAGS_fixed =
+# asflags for different FNMV modes
+ASFLAGS_dispatch_dynamic = --defsym HAS_MULTI_VERSIONING=1
+ASFLAGS_dispatch_static =
