@@ -10,21 +10,21 @@ size_t
 hebi_pclz(const hebi_packet *a, size_t n)
 {
 	const LIMB *al;
-	size_t r;
+	size_t i, r;
 
 	ASSERT(n > 0);
 
 	al = LIMB_PTR(a);
-	n *= LIMB_PER_PACKET;
+	i = n * LIMB_PER_PACKET - 1;
 	r = 0;
 
 	do {
-		if (al[n-1]) {
-			r += LIMB_CLZ(al[n-1]);
+		if (al[i]) {
+			r += LIMB_CLZ(al[i]);
 			break;
 		}
 		r += LIMB_BIT;
-	} while (--n);
+	} while (i--);
 
 	return r;
 }

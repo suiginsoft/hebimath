@@ -18,7 +18,7 @@ hebi_psub(
 	const LIMB *al;
 	const LIMB *bl;
 	LIMB diff, borrow;
-	size_t i;
+	size_t i, m, n;
 
 	ASSERT(an >= bn);
 	ASSERT(bn > 0);
@@ -26,6 +26,8 @@ hebi_psub(
 	rl = LIMB_PTR(r);
 	al = LIMB_PTR(a);
 	bl = LIMB_PTR(b);
+	m = an * LIMB_PER_PACKET;
+	n = bn * LIMB_PER_PACKET;
 
 	borrow = 0;
 	i = 0;
@@ -34,9 +36,9 @@ hebi_psub(
 		diff = al[i] - bl[i] - borrow;
 		borrow = (diff > al[i]) || (diff == al[i] && borrow);
 		rl[i] = diff;
-	} while (++i < bn * LIMB_PER_PACKET);
+	} while (++i < n);
 
-	for ( ; i < an * LIMB_PER_PACKET; i++) {
+	for ( ; i < m; i++) {
 		diff = al[i] - borrow;
 		borrow = diff > al[i];
 		rl[i] = diff;

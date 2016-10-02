@@ -13,15 +13,18 @@ hebi_pcmp(const hebi_packet *a, const hebi_packet *b, size_t n)
 	const LIMB *bl;
 	size_t i;
 
+	ASSERT(n > 0);
+
 	al = LIMB_PTR(a);
 	bl = LIMB_PTR(b);
+	i = n * LIMB_PER_PACKET - 1;
 
-	for (i = n * LIMB_PER_PACKET; i--; ) {
+	do {
 		if (al[i] < bl[i])
 			return -1;
 		else if (al[i] > bl[i])
 			return 1;
-	}
+	} while (i--);
 
 	return 0;
 }

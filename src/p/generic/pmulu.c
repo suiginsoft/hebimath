@@ -7,7 +7,7 @@
 
 HEBI_API
 uint64_t
-hebi_pmulu(hebi_packet *r, const hebi_packet *a, uint64_t b, size_t n)
+hebi_pmulu(hebi_packet *r, const hebi_packet *a, uint64_t b, size_t an)
 {
 #ifdef USE_LIMB64_MULDIV
 
@@ -15,12 +15,13 @@ hebi_pmulu(hebi_packet *r, const hebi_packet *a, uint64_t b, size_t n)
 	const uint64_t *al;
 	hebi_uint128 p;
 	uint64_t o;
-	size_t i;
+	size_t i, n;
 
-	ASSERT(n > 0);
+	ASSERT(an > 0);
 
 	rl = r->hp_limbs64;
 	al = a->hp_limbs64;
+	n = an * HEBI_PACKET_LIMBS64;
 	o = 0;
 	i = 0;
 
@@ -28,7 +29,7 @@ hebi_pmulu(hebi_packet *r, const hebi_packet *a, uint64_t b, size_t n)
 		p = (hebi_uint128)al[i] * b + o;
 		rl[i] = (uint64_t)(p & UINT64_MAX);
 		o = (uint64_t)(p >> 64);
-	} while (++i < n * HEBI_PACKET_LIMBS64);
+	} while (++i < n);
 
 	return o;
 
@@ -37,12 +38,13 @@ hebi_pmulu(hebi_packet *r, const hebi_packet *a, uint64_t b, size_t n)
 	uint32_t *rl32;
 	const uint32_t *al32;
 	uint64_t o64;
-	size_t i;
+	size_t i, n;
 
-	ASSERT(n > 0);
+	ASSERT(an > 0);
 
 	rl32 = r->hp_limbs32;
 	al32 = a->hp_limbs32;
+	n = an * HEBI_PACKET_LIMBS32;
 	i = 0;
 
 	if (b <= UINT32_MAX) {
@@ -56,7 +58,7 @@ hebi_pmulu(hebi_packet *r, const hebi_packet *a, uint64_t b, size_t n)
 			p64 = (uint64_t)al32[i] * b32 + o32;
 			rl32[i] = (uint32_t)(p64 & UINT32_MAX);
 			o32 = (uint32_t)(p64 >> 32);
-		} while (++i < n * HEBI_PACKET_LIMBS32);
+		} while (++i < n);
 
 		o64 = o32;
 	} else {
@@ -71,7 +73,7 @@ hebi_pmulu(hebi_packet *r, const hebi_packet *a, uint64_t b, size_t n)
 			p64_hi = (uint64_t)al32[i] * b32_hi + (o64 >> 32);
 			rl32[i] = (uint32_t)(p64_lo & UINT32_MAX);
 			o64 = (p64_lo >> 32) + p64_hi;
-		} while (++i < n * HEBI_PACKET_LIMBS32);
+		} while (++i < n);
 	}
 
 	return o64;
