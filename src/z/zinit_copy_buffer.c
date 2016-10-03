@@ -13,7 +13,7 @@ hebi_zinit_copy_buffer(
 		void *restrict buffer,
 		size_t n )
 {
-	size_t s;
+	size_t u;
 
 #ifdef USE_VALIDATION
 	if (UNLIKELY((!buffer && n) ||
@@ -21,16 +21,18 @@ hebi_zinit_copy_buffer(
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
 #endif
 
-	s = a->hz_used;
+	u = hebi_zused(a);
 #ifdef USE_VALIDATION
-	if (UNLIKELY(n < s))
+	if (UNLIKELY(n < u))
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
 #endif
 
-	hebi_pcopy(buffer, a->hz_packs, s);
+	if (LIKELY(u))
+		hebi_pcopy(buffer, a->hz_packs, u);
+
 	r->hz_packs = buffer;
 	r->hz_resv = n;
-	r->hz_used = s;
+	r->hz_used = u;
 	r->hz_sign = a->hz_sign;
 	r->hz_allocid = (int)(intptr_t)HEBI_ALLOC_INVALID;
 }

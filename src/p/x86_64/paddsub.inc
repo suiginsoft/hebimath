@@ -1,15 +1,16 @@
 # hebimath - arbitrary precision arithmetic library
 # See LICENSE file for copyright and license details
 
+    # Setup for main loop
+
     mov         %rcx, %rax
     mov         %r8, %rcx
     sub         %r8, %rax
-    bt          $0, %edi
-    jrcxz       2f
+    bt          $0, %edi            # address is aligned, lowest bit is zero
 
     # Operation main loop: process 256-bit chunks at a time
 
-.align 16
+    .p2align 4,,15
 1:  mov         (%rsi), %r8
     mov         8(%rsi), %r9
     mov         16(%rsi), %r10
@@ -28,14 +29,23 @@
     dec         %rcx
     jne         1b
 
-2:  xchg        %rax, %rcx
-    jrcxz       4f
+    mov         %rax, %rcx
+    mov         $0, %eax
+    jrcxz       3f
+    jc          5f
+
+    # Carry not set, copy remaining data to destination
+
+2:  mov         %rcx, %rdx
+    MVFUNC_JMP  pcopy, %r10
+3:  setc        %al
+    ret
 
     # Propagation main loop: propagate carry/borrow in 256-bit chunks at a time
 
-.align 16
-3:  jnc         5f
-    mov         (%rsi), %r8
+    .p2align 4,,15
+4:  jnc         2b
+5:  mov         (%rsi), %r8
     mov         8(%rsi), %r9
     mov         16(%rsi), %r10
     mov         24(%rsi), %r11
@@ -50,17 +60,6 @@
     lea         32(%rsi), %rsi
     lea         32(%rdi), %rdi
     dec         %rcx
-    jne         3b
-
-4:  setc        %al
-    retq
-
-    # Carry no longer set, simply copy remaining data to destination
-
-.align 16
-5:  cmp         %rsi, %rdi
-    je          6f
-    mov         %rcx, %rdx
-    MVFUNC_CALL pcopy, %r10
-6:  xor         %rax, %rax
-    retq
+    jne         4b
+    setc        %al
+    ret

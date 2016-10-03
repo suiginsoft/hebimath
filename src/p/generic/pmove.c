@@ -7,9 +7,9 @@
 #include <string.h>
 
 HEBI_API
-hebi_packet *
+void
 hebi_pmove(hebi_packet *r, const hebi_packet *a, size_t n)
 {
+	ASSERT(n > 0);
 	(void)memmove(r, a, n * sizeof(hebi_packet));
-	return r + n;
 }

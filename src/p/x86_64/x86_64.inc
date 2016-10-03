@@ -74,10 +74,10 @@ hebi_\Name\()_ptr__:
 .macro MVFUNC_DISPATCH_FINALIZE_IMPL__ Name:req
 .p2align 4,,7
 .L\Name\()_dispatch_finalize__:
-    mov     hebi_\Name\()_ptr__@GOTPCREL(%rip), %rax
+    mov     hebi_\Name\()_ptr__@GOTPCREL(%rip), %r11
     test    %r10, %r10
     jz      .L\Name\()_dispatch_fatal__
-    mov     %r10, (%rax)
+    mov     %r10, (%r11)
     jmp     *%r10
 .L\Name\()_dispatch_fatal__:
     jmp     hebi_hwcaps_fatal__

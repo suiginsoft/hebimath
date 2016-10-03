@@ -7,63 +7,6 @@
 
 #-------------------------------------------------------------------------------
 
-.if HAS_HWCAP_AVX2
-MVFUNC_BEGIN pmove, avx2
-
-    xor         %r8, %r8
-    mov         %rdx, %r9
-    mov         $128, %rax
-    mov         %r9, %rcx
-    cmp         %rdi, %rsi
-    jae         1f
-    mov         %r9, %r8
-    shl         $5, %r8
-    neg         %rax
-    lea         -128(%rsi,%r8), %rsi
-    lea         -128(%rdi,%r8), %rdi
-    sub         %rax, %r8
-1:  shr         $2, %rcx
-    jz          3f
-
-.align 16
-2:  vmovdqa     (%rsi), %ymm0
-    vmovdqa     32(%rsi), %ymm1
-    vmovdqa     64(%rsi), %ymm2
-    vmovdqa     96(%rsi), %ymm3
-    vmovdqu     %ymm0, (%rdi)
-    vmovdqu     %ymm1, 32(%rdi)
-    vmovdqu     %ymm2, 64(%rdi)
-    vmovdqu     %ymm3, 96(%rdi)
-    add         %rax, %rsi
-    add         %rax, %rdi
-    dec         %rcx
-    jnz         2b
-
-3:  and         $3, %r9d
-    jz          5f
-    mov         %rax, %rcx
-    cqo
-    sar         $2, %rax
-    neg         %rcx
-    and         %rdx, %rcx
-    add         %rax, %rcx
-
-4:  vmovdqa     (%rsi,%rcx), %ymm0
-    vmovdqu     %ymm0, (%rdi,%rcx)
-    add         %rax, %rsi
-    add         %rax, %rdi
-    dec         %r9d
-    jnz         4b
-
-5:  lea         (%rdi,%r8), %rax
-    VZEROUPPER
-    ret
-
-MVFUNC_END
-.endif
-
-#-------------------------------------------------------------------------------
-
 .if HAS_HWCAP_AVX
 MVFUNC_BEGIN pmove, avx
 
@@ -106,9 +49,7 @@ MVFUNC_BEGIN pmove, avx
     vmovdqa     16(%rsi,%rcx), %xmm1
     vmovdqu     %xmm0, (%rdi,%rcx)
     vmovdqu     %xmm1, 16(%rdi,%rcx)
-    add         %rax, %rdi
-4:  lea         (%rdi,%r8), %rax
-    ret
+4:  ret
 
 MVFUNC_END
 .endif
@@ -157,9 +98,7 @@ MVFUNC_BEGIN pmove, sse2
     movdqa      16(%rsi,%rcx), %xmm1
     movdqu      %xmm0, (%rdi,%rcx)
     movdqu      %xmm1, 16(%rdi,%rcx)
-    add         %rax, %rdi
-4:  lea         (%rdi,%r8), %rax
-    ret
+4:  ret
 
 MVFUNC_END
 .endif
@@ -178,22 +117,14 @@ MVFUNC_DISPATCH_BEGIN pmove
     xor         %r10, %r10
     pop         %rdx
 
-.if HAS_HWCAP_AVX2
-    test        $hebi_hwcap_avx2, %eax
-    jz          1f
-    lea         hebi_pmove_avx2__(%rip), %r10
-    BREAK
-.endif
-
-1:
 .if HAS_HWCAP_AVX
     test        $hebi_hwcap_avx, %eax
-    jz          2f
+    jz          1f
     lea         hebi_pmove_avx__(%rip), %r10
     BREAK
 .endif
 
-2:
+1:
 .if HAS_HWCAP_SSE2
     test        $hebi_hwcap_sse2, %eax
     BREAKZ

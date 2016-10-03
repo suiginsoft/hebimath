@@ -6,4 +6,5 @@
 #include "../../../internal.h"
 
 extern HEBI_API
-hebi_packet *hebi_pcopy(hebi_packet *restrict, const hebi_packet *restrict, size_t);
+void
+hebi_pcopy(hebi_packet *restrict, const hebi_packet *restrict, size_t);

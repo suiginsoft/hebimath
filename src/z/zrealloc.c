@@ -14,21 +14,21 @@ hebi_zrealloc(hebi_zptr r, size_t n)
 	hebi_packet *p, *old_p;
 	size_t u, nbytes;
 
+	cb = hebi_alloc_query(&id, hebi_zallocator(r));
+
 	nbytes = n * sizeof(hebi_packet);
 #ifdef USE_VALIDATION
 	if (UNLIKELY(nbytes / sizeof(hebi_packet) != n))
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
 #endif
 
-	cb = hebi_alloc_query(&id, hebi_zallocator(r));
-
 	p = NULL;
-	old_p = r->hz_packs;
-	u = MIN(n, hebi_zused(r));
-	if (LIKELY(nbytes)) {
+	if (LIKELY(nbytes))
 		p = hebi_alloc_cb(cb, HEBI_PACKET_ALIGNMENT, nbytes);
+
+	old_p = r->hz_packs;
+	if ((u = MIN(n, hebi_zused(r)))
 		hebi_pcopy(p, old_p, u);
-	}
 
 	hebi_free_cb(cb, old_p, r->hz_resv * sizeof(hebi_packet));
 

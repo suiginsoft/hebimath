@@ -6,4 +6,5 @@
 #include "../../../internal.h"
 
 extern HEBI_API
-hebi_packet *hebi_pzero(hebi_packet *, size_t);
+void
+hebi_pzero(hebi_packet *, size_t);

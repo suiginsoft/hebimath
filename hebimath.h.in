@@ -252,9 +252,9 @@ typedef union hebi_packet {
 } hebi_packet;
 
 >>> dispatch_dynamic
-HEBI_MVFUNC(hebi_packet *, hebi_pcopy, (hebi_packet *HEBI_RESTRICT r__, const hebi_packet *HEBI_RESTRICT a__, size_t n__), (r__, a__, n__))
-HEBI_MVFUNC(hebi_packet *, hebi_pmove, (hebi_packet *r__, const hebi_packet *a__, size_t n__), (r__, a__, n__))
-HEBI_MVFUNC(hebi_packet *, hebi_pzero, (hebi_packet *r__, size_t n__), (r__, n__))
+HEBI_MVFUNC_VOID(hebi_pcopy, (hebi_packet *HEBI_RESTRICT r__, const hebi_packet *HEBI_RESTRICT a__, size_t n__), (r__, a__, n__))
+HEBI_MVFUNC_VOID(hebi_pmove, (hebi_packet *r__, const hebi_packet *a__, size_t n__), (r__, a__, n__))
+HEBI_MVFUNC_VOID(hebi_pzero, (hebi_packet *r__, size_t n__), (r__, n__))
 HEBI_MVFUNC(int, hebi_pcmp, (const hebi_packet *a__, const hebi_packet *b__, size_t n__), (a__, b__, n__))
 HEBI_MVFUNC(size_t, hebi_pnorm, (const hebi_packet *a__, size_t n__), (a__, n__))
 HEBI_MVFUNC(size_t, hebi_pclz, (const hebi_packet *a__, size_t n__), (a__, n__))
@@ -271,9 +271,9 @@ HEBI_MVFUNC_VOID(hebi_pmul, (hebi_packet *HEBI_RESTRICT r__, const hebi_packet *
 HEBI_MVFUNC_VOID(hebi_psqr, (hebi_packet *HEBI_RESTRICT r__, const hebi_packet *HEBI_RESTRICT a__, size_t n__), (r__, a__, n__))
 <<< dispatch_dynamic
 >>> dispatch_static
-HEBI_API hebi_packet *hebi_pcopy(hebi_packet *HEBI_RESTRICT, const hebi_packet *HEBI_RESTRICT, size_t);
-HEBI_API hebi_packet *hebi_pmove(hebi_packet *, const hebi_packet *, size_t);
-HEBI_API hebi_packet *hebi_pzero(hebi_packet *, size_t);
+HEBI_API void hebi_pcopy(hebi_packet *HEBI_RESTRICT, const hebi_packet *HEBI_RESTRICT, size_t);
+HEBI_API void hebi_pmove(hebi_packet *, const hebi_packet *, size_t);
+HEBI_API void hebi_pzero(hebi_packet *, size_t);
 HEBI_API int hebi_pcmp(const hebi_packet *, const hebi_packet *, size_t);
 HEBI_API size_t hebi_pnorm(const hebi_packet *, size_t);
 HEBI_API size_t hebi_pclz(const hebi_packet *, size_t);
@@ -559,22 +559,28 @@ size_t
 hebi_zbits(hebi_zsrcptr a__)
 {
 	size_t b__;
-	if (!a__->hebi_sign__)
+	if (a__->hebi_sign__) {
+		b__ = HEBI_PACKET_BIT * a__->hebi_used__;
+		return b__ - hebi_pclz(a__->hebi_packs__, a__->hebi_used__);
+	} else {
 		return 0;
-	b__ = HEBI_PACKET_BIT * a__->hebi_used__;
-	return b__ - hebi_pclz(a__->hebi_packs__, a__->hebi_used__);
+	}
 }
 
 HEBI_INLINE
 void
 hebi_zset_copy(hebi_zptr HEBI_RESTRICT r__, hebi_zsrcptr HEBI_RESTRICT a__)
 {
-	size_t n__ = a__->hebi_used__;
-	if (n__ > r__->hebi_capacity__)
-		hebi_zrealloczero(r__, n__);
-	(void)hebi_pcopy(r__->hebi_packs__, a__->hebi_packs__, n__);
-	r__->hebi_used__ = n__;
-	r__->hebi_sign__ = a__->hebi_sign__;
+	size_t n__;
+	if (a__->hebi_sign__) {
+		if ((n__ = a__->hebi_used__) > r__->hebi_capacity__)
+			hebi_zrealloczero(r__, n__);
+		hebi_pcopy(r__->hebi_packs__, a__->hebi_packs__, n__);
+		r__->hebi_used__ = n__;
+		r__->hebi_sign__ = a__->hebi_sign__;
+	} else {
+		r__->hebi_sign__ = 0;
+	}
 }
 
 HEBI_INLINE

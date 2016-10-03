@@ -5,7 +5,7 @@
 
 #include "../bench.h"
 
-static volatile hebi_packet *result_sink;
+static volatile uint32_t result_sink;
 
 int
 main(int argc, char *argv[])
@@ -23,8 +23,10 @@ main(int argc, char *argv[])
 
 	bench_start();
 
-	for (i = 0; i < p.iter; ++i)
-		result_sink = hebi_pcopy(a, b, MIN(p.an, p.bn));
+	for (i = 0; i < p.iter; ++i) {
+		hebi_pcopy(a, b, MIN(p.an, p.bn));
+		result_sink = a->hp_limbs32[0];
+	}
 
 	bench_stop();
 

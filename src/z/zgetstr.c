@@ -42,7 +42,7 @@ hebi_zgetstr(char *restrict str, size_t n, hebi_zsrcptr restrict a, int base)
 	nbytes = sz * sizeof(hebi_packet);
 	cb = hebi_alloc_query(NULL, HEBI_ALLOC_SCRATCH);
 	work = hebi_alloc_cb(cb, HEBI_PACKET_ALIGNMENT, nbytes);
-	(void)hebi_pcopy(work, a->hz_packs, sz);
+	hebi_pcopy(work, a->hz_packs, sz);
 
 	/* setup pointers and write negative sign */
 	ptr = str;

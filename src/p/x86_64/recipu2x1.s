@@ -5,16 +5,16 @@
 
 .include "src/p/x86_64/x86_64.inc"
 
+# NOTE: It's important that hebi_recipu64_2x1__ doesn't use registers r8
+# through r11, as callees will use these registers to save state instead
+# of using the stack.
+
 #-------------------------------------------------------------------------------
 
 .extern hebi_recipu64_v0lut__
 .hidden hebi_recipu64_v0lut__
 
 #-------------------------------------------------------------------------------
-
-# NOTE: It's important that hebi_recipu64_2x1__ doesn't use registers r8
-# through r11, as callees will use these registers to save state instead
-# of using the stack.
 
 .if HAS_HWCAP_SSE
 MVFUNC_BEGIN recipu64_2x1, x86_64, @private, @explicit

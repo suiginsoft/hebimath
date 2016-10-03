@@ -7,9 +7,9 @@
 #include <string.h>
 
 HEBI_API
-hebi_packet *
+void
 hebi_pcopy(hebi_packet *restrict r, const hebi_packet *restrict a, size_t n)
 {
+	ASSERT(n > 0);
 	(void)memcpy(r, a, n * sizeof(hebi_packet));
-	return r + n;
 }

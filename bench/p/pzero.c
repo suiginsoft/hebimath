@@ -5,7 +5,7 @@
 
 #include "../bench.h"
 
-static hebi_packet *result_sink;
+static volatile uint32_t result_sink;
 
 int
 main(int argc, char *argv[])
@@ -21,8 +21,10 @@ main(int argc, char *argv[])
 
 	bench_start();
 
-	for (i = 0; i < p.iter; ++i)
-		result_sink = hebi_pzero(a, p.an);
+	for (i = 0; i < p.iter; ++i) {
+		hebi_pzero(a, p.an);
+		result_sink = a->hp_limbs32[0];
+	}
 
 	bench_stop();
 

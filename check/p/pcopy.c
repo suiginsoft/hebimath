@@ -7,7 +7,7 @@
 
 int main(int argc, char *argv[])
 {
-	hebi_packet *x, *y, *z;
+	hebi_packet *x, *y;
 	size_t i, j;
 
 	x = hebi_palloc(HEBI_ALLOC_DEFAULT, NUM_PACKETS);
@@ -22,8 +22,7 @@ int main(int argc, char *argv[])
 	}
 
 	assert(memcmp(x, y, NUM_BYTES) != 0);
-	z = hebi_pcopy(y, x, NUM_PACKETS);
-	assert(z == y + NUM_PACKETS);
+	hebi_pcopy(y, x, NUM_PACKETS);
 	assert(memcmp(x, y, NUM_BYTES) == 0);
 
 	hebi_pfree(HEBI_ALLOC_DEFAULT, x, NUM_PACKETS);

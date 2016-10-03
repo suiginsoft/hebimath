@@ -7,9 +7,9 @@
 #include <string.h>
 
 HEBI_API
-hebi_packet *
+void
 hebi_pzero(hebi_packet *r, size_t n)
 {
+	ASSERT(n > 0);
 	(void)memset(r, 0, n * sizeof(hebi_packet));
-	return r + n;
 }

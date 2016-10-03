@@ -8,7 +8,7 @@
 
 int main(int argc, char *argv[])
 {
-	hebi_packet *x, *y;
+	hebi_packet *x;
 	size_t i, j;
 
 	x = hebi_palloc(HEBI_ALLOC_DEFAULT, NUM_PACKETS);
@@ -16,8 +16,7 @@ int main(int argc, char *argv[])
 
 	memset(x, UCHAR_MAX, NUM_BYTES);
 
-	y = hebi_pzero(x, NUM_PACKETS);
-	assert(y == x + NUM_PACKETS);
+	hebi_pzero(x, NUM_PACKETS);
 
 	for (i = 0; i < NUM_PACKETS; ++i)
 		for (j = 0; j < HEBI_PACKET_LIMBS64; ++j)

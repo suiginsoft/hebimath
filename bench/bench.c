@@ -88,7 +88,8 @@ bench_start(void)
 	 * force initialization of internal hwcaps flags from environment
 	 * before we start benchmark, so it doesn't affect the result
 	 */
-	hebi_pzero(NULL, 0);
+	hebi_packet p;
+	hebi_pzero(&p, 1);
 #endif
 
 	clock_gettime(CLOCK_MONOTONIC, &start_time);

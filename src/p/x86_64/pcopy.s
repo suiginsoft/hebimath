@@ -1,49 +1,14 @@
 # hebimath - arbitrary precision arithmetic library
 # See LICENSE file for copyright and license details
 
-# hebi_packet *hebi_pcopy(hebi_packet *restrict r, const hebi_packet *restrict a, size_t n);
+# void
+# hebi_pcopy(hebi_packet *restrict r, const hebi_packet *restrict a, size_t n);
+
+# NOTE: hebi_pcopy must not modify the rax register, as other x86-64 driver
+# functions rely on being able to tail call pcopy while passing a return value
+# through without modification.
 
 .include "src/p/x86_64/x86_64.inc"
-
-#-------------------------------------------------------------------------------
-
-.if HAS_HWCAP_AVX2
-MVFUNC_BEGIN pcopy, avx2
-
-    mov         %rdx, %rcx
-    shr         $2, %rcx
-    jz          2f
-
-    .p2align 4,,15
-1:  vmovdqa     (%rsi), %ymm0
-    vmovdqa     32(%rsi), %ymm1
-    vmovdqa     64(%rsi), %ymm2
-    vmovdqa     96(%rsi), %ymm3
-    vmovdqa     %ymm0, (%rdi)
-    vmovdqa     %ymm1, 32(%rdi)
-    vmovdqa     %ymm2, 64(%rdi)
-    vmovdqa     %ymm3, 96(%rdi)
-    add         $128, %rsi
-    add         $128, %rdi
-    dec         %rcx
-    jnz         1b
-
-2:  and         $3, %edx
-    jz          4f
-
-3:  vmovdqa     (%rsi), %ymm0
-    vmovdqa     %ymm0, (%rdi)
-    add         $32, %rsi
-    add         $32, %rdi
-    dec         %edx
-    jnz         3b
-
-4:  mov         %rdi, %rax
-    VZEROPUPPER
-    ret
-
-MVFUNC_END
-.endif
 
 #-------------------------------------------------------------------------------
 
@@ -51,11 +16,16 @@ MVFUNC_END
 MVFUNC_BEGIN pcopy, avx
 
     mov         %rdx, %rcx
-    shr         %rcx
-    jz          2f
+    shr         %rdx
+    jnz         2f
+1:  vmovdqa     (%rsi), %xmm0
+    vmovdqa     16(%rsi), %xmm1
+    vmovdqa     %xmm0, (%rdi)
+    vmovdqa     %xmm1, 16(%rdi)
+    ret
 
     .p2align 4,,15
-1:  vmovdqa     (%rsi), %xmm0
+2:  vmovdqa     (%rsi), %xmm0
     vmovdqa     16(%rsi), %xmm1
     vmovdqa     32(%rsi), %xmm2
     vmovdqa     48(%rsi), %xmm3
@@ -65,18 +35,10 @@ MVFUNC_BEGIN pcopy, avx
     vmovdqa     %xmm3, 48(%rdi)
     add         $64, %rsi
     add         $64, %rdi
-    dec         %rcx
+    dec         %rdx
+    jnz         2b
+    test        $1, %cl
     jnz         1b
-
-2:  test        $1, %edx
-    jz          3f
-    vmovdqa     (%rsi), %xmm0
-    vmovdqa     16(%rsi), %xmm1
-    vmovdqa     %xmm0, (%rdi)
-    vmovdqa     %xmm1, 16(%rdi)
-    add         $32, %rdi
-
-3:  mov         %rdi, %rax
     ret
 
 MVFUNC_END
@@ -88,11 +50,16 @@ MVFUNC_END
 MVFUNC_BEGIN pcopy, sse2
 
     mov         %rdx, %rcx
-    shr         %rcx
-    jz          2f
+    shr         %rdx
+    jnz         2f
+1:  movdqa      (%rsi), %xmm0
+    movdqa      16(%rsi), %xmm1
+    movdqa      %xmm0, (%rdi)
+    movdqa      %xmm1, 16(%rdi)
+    ret
 
     .p2align 4,,15
-1:  movdqa      (%rsi), %xmm0
+2:  movdqa      (%rsi), %xmm0
     movdqa      16(%rsi), %xmm1
     movdqa      32(%rsi), %xmm2
     movdqa      48(%rsi), %xmm3
@@ -102,18 +69,10 @@ MVFUNC_BEGIN pcopy, sse2
     movdqa      %xmm3, 48(%rdi)
     add         $64, %rsi
     add         $64, %rdi
-    dec         %rcx
+    dec         %rdx
+    jnz         2b
+    test        $1, %cl
     jnz         1b
-
-2:  test        $1, %edx
-    jz          3f
-    movdqa      (%rsi), %xmm0
-    movdqa      16(%rsi), %xmm1
-    movdqa      %xmm0, (%rdi)
-    movdqa      %xmm1, 16(%rdi)
-    add         $32, %rdi
-
-3:  mov         %rdi, %rax
     ret
 
 MVFUNC_END
@@ -124,33 +83,30 @@ MVFUNC_END
 .ifdef HAS_MULTI_VERSIONING
 MVFUNC_DISPATCH_BEGIN pcopy
 
+    push        %rax
     push        %rdx
     push        %rsi
     push        %rdi
+    sub         $8, %rsp
     call        hebi_hwcaps__
+    add         $8, %rsp
+    mov         %eax, %ecx
     pop         %rdi
     pop         %rsi
     xor         %r10, %r10
     pop         %rdx
+    pop         %rax
 
-.if HAS_HWCAP_AVX2
-    test        $hebi_hwcap_avx2, %eax
-    jz          1f
-    lea         hebi_pcopy_avx2__(%rip), %r10
-    BREAK
-.endif
-
-1:
 .if HAS_HWCAP_AVX
-    test        $hebi_hwcap_avx, %eax
-    jz          2f
+    test        $hebi_hwcap_avx, %ecx
+    jz          1f
     lea         hebi_pcopy_avx__(%rip), %r10
     BREAK
 .endif
 
-2:
+1:
 .if HAS_HWCAP_SSE2
-    test        $hebi_hwcap_sse2, %eax
+    test        $hebi_hwcap_sse2, %ecx
     BREAKZ
     lea         hebi_pcopy_sse2__(%rip), %r10
 .endif

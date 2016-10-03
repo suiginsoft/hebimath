@@ -15,14 +15,14 @@ hebi_zinit_copy_reserve(
 {
 	const struct hebi_alloc_callbacks *cb;
 	hebi_packet *p;
-	size_t s, nbytes;
+	size_t nbytes, u;
 
 	cb = hebi_alloc_query(&id, id);
 	p = NULL;
 
-	s = a->hz_used;
-	if (n < s)
-		n = s;
+	u = hebi_zused(a);
+	if (n < u)
+		n = u;
 
 	if (LIKELY(n)) {
 		nbytes = n * sizeof(hebi_packet);
@@ -31,12 +31,13 @@ hebi_zinit_copy_reserve(
 			hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
 #endif
 		p = hebi_alloc_cb(cb, HEBI_PACKET_ALIGNMENT, nbytes);
-		hebi_pcopy(p, a->hz_packs, s);
+		if (LIKELY(u))
+			hebi_pcopy(p, a->hz_packs, u);
 	}
 
 	r->hz_packs = p;
 	r->hz_resv = n;
-	r->hz_used = s;
+	r->hz_used = u;
 	r->hz_sign = a->hz_sign;
 	r->hz_allocid = (int)(intptr_t)id;
 }

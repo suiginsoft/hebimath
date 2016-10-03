@@ -6,4 +6,5 @@
 #include "../../../internal.h"
 
 extern HEBI_API
-hebi_packet *hebi_pmove(hebi_packet *, const hebi_packet *, size_t);
+void
+hebi_pmove(hebi_packet *, const hebi_packet *, size_t);
