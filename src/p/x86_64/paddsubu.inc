@@ -54,9 +54,21 @@
     # Carry no longer set, simply copy remaining data to destination
 
 .align 16
-4:  cmp         %rsi, %rdi
+4:  xor         %rax, %rax
+    cmp         %rsi, %rdi
     je          5f
+.if USE_MULTI_VERSIONING && USE_PIC
+    mov         hebi_pcopy_ptr__@GOTPCREL(%rip), %r11
+    mov         (%r11), %r10
+.endif
     mov         %rcx, %rdx
-    MVFUNC_CALL pcopy, %r10
-5:  xor         %rax, %rax
-    retq
+.if USE_MULTI_VERSIONING && USE_PIC
+    jmp         *%r10
+.elseif USE_MULTI_VERSIONING
+    jmp         *hebi_pcopy_ptr__(%rip)
+.elseif USE_PIC
+    jmp         hebi_pcopy@PLT
+.else
+    jmp         hebi_pcopy
+.endif
+5:  retq

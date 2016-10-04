@@ -34,10 +34,23 @@
     jrcxz       3f
     jc          5f
 
-    # Carry not set, copy remaining data to destination
+    # Carry not set, copy remaining data to destination using hebi_pcopy
 
-2:  mov         %rcx, %rdx
-    MVFUNC_JMP  pcopy, %r10
+2:
+.if USE_MULTI_VERSIONING && USE_PIC
+    mov         hebi_pcopy_ptr__@GOTPCREL(%rip), %r11
+    mov         (%r11), %r10
+.endif
+    mov         %rcx, %rdx
+.if USE_MULTI_VERSIONING && USE_PIC
+    jmp         *%r10
+.elseif USE_MULTI_VERSIONING
+    jmp         *hebi_pcopy_ptr__(%rip)
+.elseif USE_PIC
+    jmp         hebi_pcopy@PLT
+.else
+    jmp         hebi_pcopy
+.endif
 3:  setc        %al
     ret
 
