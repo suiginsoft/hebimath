@@ -7,7 +7,7 @@
 
 #------------------------------------------------------------------------------
 
-.if HAS_HWCAP_AVX && HAS_HWCAP_LZCNT
+.if HWCAP_AVX && HWCAP_LZCNT
 MVFUNC_BEGIN pclz, avx_lzcnt
 
     shl         $5, %rsi
@@ -45,7 +45,7 @@ MVFUNC_END
 
 #------------------------------------------------------------------------------
 
-.if HAS_HWCAP_SSE41
+.if HWCAP_SSE41
 MVFUNC_BEGIN pclz, sse41
 
     shl         $5, %rsi
@@ -84,7 +84,7 @@ MVFUNC_END
 
 #------------------------------------------------------------------------------
 
-.if HAS_HWCAP_SSE2
+.if HWCAP_SSE2
 MVFUNC_BEGIN pclz, sse2
 
     mov         %rsi, %rcx
@@ -132,7 +132,7 @@ MVFUNC_END
 
 #------------------------------------------------------------------------------
 
-.ifdef HAS_MULTI_VERSIONING
+.if USE_MULTI_VERSIONING
 MVFUNC_DISPATCH_BEGIN pclz
 
     push        %rsi
@@ -144,7 +144,7 @@ MVFUNC_DISPATCH_BEGIN pclz
     pop         %rdi
     pop         %rsi
 
-.if HAS_HWCAP_AVX && HAS_HWCAP_LZCNT
+.if HWCAP_AVX && HWCAP_LZCNT
     mov         %eax, %r11d
     and         $(hebi_hwcap_avx+hebi_hwcap_lzcnt), %r11d
     cmp         $(hebi_hwcap_avx+hebi_hwcap_lzcnt), %r11d
@@ -154,7 +154,7 @@ MVFUNC_DISPATCH_BEGIN pclz
 .endif
 
 1:
-.if HAS_HWCAP_SSE41
+.if HWCAP_SSE41
     test        $hebi_hwcap_sse41, %eax
     jz          2f
     lea         hebi_pclz_sse41__(%rip), %r10
@@ -162,7 +162,7 @@ MVFUNC_DISPATCH_BEGIN pclz
 .endif
 
 2:
-.if HAS_HWCAP_SSE2
+.if HWCAP_SSE2
     test        $hebi_hwcap_sse2, %eax
     BREAKZ
     lea         hebi_pclz_sse2__(%rip), %r10

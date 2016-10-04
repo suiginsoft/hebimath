@@ -7,7 +7,7 @@
 
 #-------------------------------------------------------------------------------
 
-.if HAS_HWCAP_AVX
+.if HWCAP_AVX
 MVFUNC_BEGIN pshr, avx
 
     # Compute number of limbs to shift
@@ -94,7 +94,7 @@ MVFUNC_END
 
 #-------------------------------------------------------------------------------
 
-.if HAS_HWCAP_SSE2
+.if HWCAP_SSE2
 MVFUNC_BEGIN pshr, sse2
 
     # Compute number of quadwords to shift
@@ -189,7 +189,7 @@ MVFUNC_END
 
 #-------------------------------------------------------------------------------
 
-.ifdef HAS_MULTI_VERSIONING
+.if USE_MULTI_VERSIONING
 MVFUNC_DISPATCH_BEGIN pshr
 
     push        %rdi
@@ -205,7 +205,7 @@ MVFUNC_DISPATCH_BEGIN pshr
     pop         %rsi
     pop         %rdi
 
-.if HAS_HWCAP_AVX
+.if HWCAP_AVX
     test        $hebi_hwcap_avx, %eax
     jz          1f
     lea         hebi_pshr_avx__(%rip), %r10
@@ -213,7 +213,7 @@ MVFUNC_DISPATCH_BEGIN pshr
 .endif
 
 1:
-.if HAS_HWCAP_SSE2
+.if HWCAP_SSE2
     test        $hebi_hwcap_sse2, %eax
     BREAKZ
     lea         hebi_pshr_sse2__(%rip), %r10

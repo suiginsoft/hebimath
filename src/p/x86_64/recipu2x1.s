@@ -16,18 +16,18 @@
 
 #-------------------------------------------------------------------------------
 
-.if HAS_HWCAP_SSE
+.if HWCAP_SSE
 MVFUNC_BEGIN recipu64_2x1, x86_64, @private, @explicit
 
     mov         %rdi, %rax
     mov         %rdi, %rsi
     shr         $55, %rax
-.ifdef HAS_PIC
+.if USE_PIC
     mov         hebi_recipu64_v0lut__@GOTPCREL(%rip), %rdx
 .endif
     movzbl      %al, %eax
     shr         $24, %rsi
-.ifdef HAS_PIC
+.if USE_PIC
     movzwl      (%rdx,%rax,2), %eax
 .else
     movzwl      hebi_recipu64_v0lut__(%rax,%rax), %eax
@@ -72,6 +72,6 @@ MVFUNC_END
 
 #-------------------------------------------------------------------------------
 
-.ifdef HAS_MULTI_VERSIONING
+.if USE_MULTI_VERSIONING
 MVFUNC_DISPATCH_PTR recipu64_2x1, x86_64
 .endif

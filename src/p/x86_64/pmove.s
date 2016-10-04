@@ -7,7 +7,7 @@
 
 #-------------------------------------------------------------------------------
 
-.if HAS_HWCAP_AVX
+.if HWCAP_AVX
 MVFUNC_BEGIN pmove, avx
 
     xor         %r8, %r8
@@ -56,7 +56,7 @@ MVFUNC_END
 
 #-------------------------------------------------------------------------------
 
-.if HAS_HWCAP_SSE2
+.if HWCAP_SSE2
 MVFUNC_BEGIN pmove, sse2
 
     xor         %r8, %r8
@@ -105,7 +105,7 @@ MVFUNC_END
 
 #-------------------------------------------------------------------------------
 
-.ifdef HAS_MULTI_VERSIONING
+.if USE_MULTI_VERSIONING
 MVFUNC_DISPATCH_BEGIN pmove
 
     push        %rdx
@@ -117,7 +117,7 @@ MVFUNC_DISPATCH_BEGIN pmove
     xor         %r10, %r10
     pop         %rdx
 
-.if HAS_HWCAP_AVX
+.if HWCAP_AVX
     test        $hebi_hwcap_avx, %eax
     jz          1f
     lea         hebi_pmove_avx__(%rip), %r10
@@ -125,7 +125,7 @@ MVFUNC_DISPATCH_BEGIN pmove
 .endif
 
 1:
-.if HAS_HWCAP_SSE2
+.if HWCAP_SSE2
     test        $hebi_hwcap_sse2, %eax
     BREAKZ
     lea         hebi_pmove_sse2__(%rip), %r10

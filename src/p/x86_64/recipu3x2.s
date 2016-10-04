@@ -15,7 +15,7 @@
 
 #-------------------------------------------------------------------------------
 
-.if HAS_HWCAP_BMI2
+.if HWCAP_BMI2
 MVFUNC_BEGIN recipu64_3x2, bmi2, @private
 
     mov         %rdi, %r10
@@ -60,7 +60,7 @@ MVFUNC_END
 
 #-------------------------------------------------------------------------------
 
-.if HAS_HWCAP_X86_64
+.if HWCAP_X86_64
 MVFUNC_BEGIN recipu64_3x2, x86_64, @private
 
     mov         %rdi, %r8
@@ -105,7 +105,7 @@ MVFUNC_END
 
 #-------------------------------------------------------------------------------
 
-.ifdef HAS_MULTI_VERSIONING
+.if USE_MULTI_VERSIONING
 MVFUNC_DISPATCH_BEGIN recipu64_3x2
 
     push        %rdi
@@ -117,7 +117,7 @@ MVFUNC_DISPATCH_BEGIN recipu64_3x2
     pop         %rsi
     pop         %rdi
 
-.if HAS_HWCAP_BMI2
+.if HWCAP_BMI2
     test        $hebi_hwcap_bmi2, %eax
     jz          1f
     lea         hebi_recipu64_3x2_bmi2__(%rip), %r10
@@ -125,7 +125,7 @@ MVFUNC_DISPATCH_BEGIN recipu64_3x2
 .endif
 
 1:
-.if HAS_HWCAP_X86_64
+.if HWCAP_X86_64
     lea         hebi_recipu64_3x2_x86_64__(%rip), %r10
 .endif
 

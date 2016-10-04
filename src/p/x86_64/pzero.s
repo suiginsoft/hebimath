@@ -11,7 +11,7 @@
 
 #-------------------------------------------------------------------------------
 
-.if HAS_HWCAP_AVX
+.if HWCAP_AVX
 MVFUNC_BEGIN pzero, avx
 
     mov         %rsi, %rcx
@@ -40,7 +40,7 @@ MVFUNC_END
 
 #-------------------------------------------------------------------------------
 
-.if HAS_HWCAP_SSE2
+.if HWCAP_SSE2
 MVFUNC_BEGIN pzero, sse2
 
     mov         %rsi, %rcx
@@ -68,7 +68,7 @@ MVFUNC_END
 
 #-------------------------------------------------------------------------------
 
-.ifdef HAS_MULTI_VERSIONING
+.if USE_MULTI_VERSIONING
 MVFUNC_DISPATCH_BEGIN pzero
 
     push        %rax
@@ -81,7 +81,7 @@ MVFUNC_DISPATCH_BEGIN pzero
     xor         %r10, %r10
     pop         %rax
 
-.if HAS_HWCAP_AVX
+.if HWCAP_AVX
     test        $hebi_hwcap_avx, %ecx
     jz          1f
     lea         hebi_pzero_avx__(%rip), %r10
@@ -89,7 +89,7 @@ MVFUNC_DISPATCH_BEGIN pzero
 .endif
 
 1:
-.if HAS_HWCAP_SSE2
+.if HWCAP_SSE2
     test        $hebi_hwcap_sse2, %ecx
     BREAKZ
     lea         hebi_pzero_sse2__(%rip), %r10

@@ -7,7 +7,7 @@
 
 #-------------------------------------------------------------------------------
 
-.if HAS_HWCAP_AVX2
+.if HWCAP_AVX2
 MVFUNC_BEGIN pcmp, avx2
 
     mov         %rdx, %rcx
@@ -48,7 +48,7 @@ MVFUNC_END
 
 #-------------------------------------------------------------------------------
 
-.if HAS_HWCAP_AVX
+.if HWCAP_AVX
 MVFUNC_BEGIN pcmp, avx
 
     mov         %rdx, %rcx
@@ -92,7 +92,7 @@ MVFUNC_END
 
 #-------------------------------------------------------------------------------
 
-.if HAS_HWCAP_SSE41
+.if HWCAP_SSE41
 MVFUNC_BEGIN pcmp, sse41
 
     mov         %rdx, %rcx
@@ -137,7 +137,7 @@ MVFUNC_END
 
 #-------------------------------------------------------------------------------
 
-.if HAS_HWCAP_SSE2
+.if HWCAP_SSE2
 MVFUNC_BEGIN pcmp, sse2
 
     mov         %rdx, %rcx
@@ -184,7 +184,7 @@ MVFUNC_END
 
 #-------------------------------------------------------------------------------
 
-.ifdef HAS_MULTI_VERSIONING
+.if USE_MULTI_VERSIONING
 MVFUNC_DISPATCH_BEGIN pcmp
 
     push        %rdx
@@ -196,7 +196,7 @@ MVFUNC_DISPATCH_BEGIN pcmp
     xor         %r10, %r10
     pop         %rdx
 
-.if HAS_HWCAP_AVX2
+.if HWCAP_AVX2
     test        $hebi_hwcap_avx2, %eax
     jz          1f
     lea         hebi_pcmp_avx2__(%rip), %r10
@@ -204,7 +204,7 @@ MVFUNC_DISPATCH_BEGIN pcmp
 .endif
 
 1:
-.if HAS_HWCAP_AVX
+.if HWCAP_AVX
     test        $hebi_hwcap_avx, %eax
     jz          2f
     lea         hebi_pcmp_avx__(%rip), %r10
@@ -212,7 +212,7 @@ MVFUNC_DISPATCH_BEGIN pcmp
 .endif
 
 2:
-.if HAS_HWCAP_SSE41
+.if HWCAP_SSE41
     test        $hebi_hwcap_sse41, %eax
     jz          3f
     lea         hebi_pcmp_sse41__(%rip), %r10
@@ -220,7 +220,7 @@ MVFUNC_DISPATCH_BEGIN pcmp
 .endif
 
 3:
-.if HAS_HWCAP_SSE2
+.if HWCAP_SSE2
     test        $hebi_hwcap_sse2, %eax
     BREAKZ
     lea         hebi_pcmp_sse2__(%rip), %r10

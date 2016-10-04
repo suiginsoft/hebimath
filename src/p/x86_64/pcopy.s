@@ -12,7 +12,7 @@
 
 #-------------------------------------------------------------------------------
 
-.if HAS_HWCAP_AVX
+.if HWCAP_AVX
 MVFUNC_BEGIN pcopy, avx
 
     mov         %rdx, %rcx
@@ -46,7 +46,7 @@ MVFUNC_END
 
 #-------------------------------------------------------------------------------
 
-.if HAS_HWCAP_SSE2
+.if HWCAP_SSE2
 MVFUNC_BEGIN pcopy, sse2
 
     mov         %rdx, %rcx
@@ -80,7 +80,7 @@ MVFUNC_END
 
 #-------------------------------------------------------------------------------
 
-.ifdef HAS_MULTI_VERSIONING
+.if USE_MULTI_VERSIONING
 MVFUNC_DISPATCH_BEGIN pcopy
 
     push        %rax
@@ -97,7 +97,7 @@ MVFUNC_DISPATCH_BEGIN pcopy
     pop         %rdx
     pop         %rax
 
-.if HAS_HWCAP_AVX
+.if HWCAP_AVX
     test        $hebi_hwcap_avx, %ecx
     jz          1f
     lea         hebi_pcopy_avx__(%rip), %r10
@@ -105,7 +105,7 @@ MVFUNC_DISPATCH_BEGIN pcopy
 .endif
 
 1:
-.if HAS_HWCAP_SSE2
+.if HWCAP_SSE2
     test        $hebi_hwcap_sse2, %ecx
     BREAKZ
     lea         hebi_pcopy_sse2__(%rip), %r10

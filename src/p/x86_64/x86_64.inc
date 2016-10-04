@@ -3,7 +3,15 @@
 
 .include "config.inc"
 
-.ifdef HAS_MULTI_VERSIONING
+.ifndef USE_MULTI_VERSIONING
+.equ USE_MULTI_VERSIONING, 0
+.endif
+
+.ifndef USE_PIC
+.equ USE_PIC, 0
+.endif
+
+.if USE_MULTI_VERSIONING
 
 .extern hebi_hwcaps__
 .hidden hebi_hwcaps__
@@ -58,7 +66,7 @@ MVFUNC_END_IMPL__
 .purgem MVFUNC_END_IMPL__
 .endm
 
-.ifdef HAS_PIC
+.if USE_PIC
 
 .macro MVFUNC_DISPATCH_PTR Name:req, DefaultVersion:req
 .text
@@ -95,7 +103,7 @@ hebi_\Name\()_ptr__:
     jmp     *\Dst
 .endm
 
-.else # HAS_PIC
+.else # USE_PIC
 
 .macro MVFUNC_DISPATCH_PTR Name:req, DefaultVersion:req
 .data
@@ -126,7 +134,7 @@ hebi_\Name\()_ptr__:
     jmp     *hebi_\Name\()_ptr__(%rip)
 .endm
 
-.endif # HAS_PIC
+.endif # USE_PIC
 
 .macro MVFUNC_DISPATCH_BEGIN Name:req
 .macro BREAK
@@ -161,7 +169,7 @@ MVFUNC_DISPATCH_END_IMPL__
     jmp     hebi_\Name\()_\Version\()__
 .endm
 
-.else # HAS_MULTI_VERSIONING
+.else # USE_MULTI_VERSIONING
 
 .macro MVFUNC_BEGIN_OPAQUE__ Name:req, Scope:req
 .macro MVFUNC_END_IMPL__
@@ -218,37 +226,37 @@ MVFUNC_BEGIN_EXPLICIT__ hebi_\Name\()__, hebi_\Name\()_\Version\()__, @private
 .macro MVFUNC_END
 MVFUNC_END_IMPL__
 .purgem MVFUNC_END_IMPL__
-.equ HAS_HWCAP_X86_64,      0
-.equ HAS_HWCAP_SSE,         0
-.equ HAS_HWCAP_SSE2,        0
-.equ HAS_HWCAP_SSE3,        0
-.equ HAS_HWCAP_SSE41,       0
-.equ HAS_HWCAP_SSE42,       0
-.equ HAS_HWCAP_AESNI,       0
-.equ HAS_HWCAP_CLMUL,       0
-.equ HAS_HWCAP_POPCNT,      0
-.equ HAS_HWCAP_LZCNT,       0
-.equ HAS_HWCAP_F16C,        0
-.equ HAS_HWCAP_FMA,         0
-.equ HAS_HWCAP_AVX,         0
-.equ HAS_HWCAP_AVX2,        0
-.equ HAS_HWCAP_BMI,         0
-.equ HAS_HWCAP_BMI2,        0
-.equ HAS_HWCAP_ERMSB,       0
-.equ HAS_HWCAP_ADX,         0
-.equ HAS_HWCAP_SHA,         0
-.equ HAS_HWCAP_AVX512F,     0
-.equ HAS_HWCAP_AVX512BW,    0
-.equ HAS_HWCAP_AVX512CD,    0
-.equ HAS_HWCAP_AVX512DQ,    0
-.equ HAS_HWCAP_AVX512ER,    0
-.equ HAS_HWCAP_AVX512PF,    0
-.equ HAS_HWCAP_AVX512VL,    0
-.equ HAS_HWCAP_AVX512IFMA,  0
-.equ HAS_HWCAP_AVX512VBMI,  0
+.equ HWCAP_X86_64,      0
+.equ HWCAP_SSE,         0
+.equ HWCAP_SSE2,        0
+.equ HWCAP_SSE3,        0
+.equ HWCAP_SSE41,       0
+.equ HWCAP_SSE42,       0
+.equ HWCAP_AESNI,       0
+.equ HWCAP_CLMUL,       0
+.equ HWCAP_POPCNT,      0
+.equ HWCAP_LZCNT,       0
+.equ HWCAP_F16C,        0
+.equ HWCAP_FMA,         0
+.equ HWCAP_AVX,         0
+.equ HWCAP_AVX2,        0
+.equ HWCAP_BMI,         0
+.equ HWCAP_BMI2,        0
+.equ HWCAP_ERMSB,       0
+.equ HWCAP_ADX,         0
+.equ HWCAP_SHA,         0
+.equ HWCAP_AVX512F,     0
+.equ HWCAP_AVX512BW,    0
+.equ HWCAP_AVX512CD,    0
+.equ HWCAP_AVX512DQ,    0
+.equ HWCAP_AVX512ER,    0
+.equ HWCAP_AVX512PF,    0
+.equ HWCAP_AVX512VL,    0
+.equ HWCAP_AVX512IFMA,  0
+.equ HWCAP_AVX512VBMI,  0
 .endm
 
-.ifdef HAS_PIC
+.if USE_PIC
 
 .macro MVFUNC_CALL Name, Dest
     call    hebi_\Name\()@PLT
@@ -258,7 +266,7 @@ MVFUNC_END_IMPL__
     jmp     hebi_\Name\()@PLT
 .endm
 
-.else
+.else # USE_PIC
 
 .macro MVFUNC_CALL Name, Dest
     call    hebi_\Name
@@ -268,7 +276,7 @@ MVFUNC_END_IMPL__
     jmp     hebi_\Name
 .endm
 
-.endif
+.endif # USE_PIC
 
 .macro MVFUNC_CALL_EXPLICIT Name:req, Version:req
     call    hebi_\Name\()_\Version\()__
@@ -278,4 +286,4 @@ MVFUNC_END_IMPL__
     jmp     hebi_\Name\()_\Version\()__
 .endm
 
-.endif # HAS_MULTI_VERSIONING
+.endif # USE_MULTI_VERSIONING

@@ -15,7 +15,7 @@
 
 #-------------------------------------------------------------------------------
 
-.if HAS_HWCAP_X86_64
+.if HWCAP_X86_64
 MVFUNC_BEGIN pdivremru64_2x1, x86_64, @private, @explicit
 
     push        %rbx
@@ -159,6 +159,6 @@ MVFUNC_END
 
 #-------------------------------------------------------------------------------
 
-.ifdef HAS_MULTI_VERSIONING
+.if USE_MULTI_VERSIONING
 MVFUNC_DISPATCH_PTR pdivremru64_2x1, x86_64
 .endif

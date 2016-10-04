@@ -15,34 +15,34 @@
 # matching the enabled features is linked in. All other functions are
 # stripped out of the library.
 
-.equ HAS_HWCAP_X86_64,      1
-.equ HAS_HWCAP_SSE,         1
-.equ HAS_HWCAP_SSE2,        1
-.equ HAS_HWCAP_SSE3,        1
-.equ HAS_HWCAP_SSE41,       1
-.equ HAS_HWCAP_SSE42,       1
-.equ HAS_HWCAP_AESNI,       1
-.equ HAS_HWCAP_CLMUL,       1
-.equ HAS_HWCAP_POPCNT,      1
-.equ HAS_HWCAP_LZCNT,       1
-.equ HAS_HWCAP_F16C,        1
-.equ HAS_HWCAP_FMA,         1
-.equ HAS_HWCAP_AVX,         1
-.equ HAS_HWCAP_AVX2,        1
-.equ HAS_HWCAP_BMI,         1
-.equ HAS_HWCAP_BMI2,        1
-.equ HAS_HWCAP_ERMSB,       1
-.equ HAS_HWCAP_ADX,         1
-.equ HAS_HWCAP_SHA,         1
-.equ HAS_HWCAP_AVX512F,     1
-.equ HAS_HWCAP_AVX512BW,    1
-.equ HAS_HWCAP_AVX512CD,    1
-.equ HAS_HWCAP_AVX512DQ,    1
-.equ HAS_HWCAP_AVX512ER,    1
-.equ HAS_HWCAP_AVX512PF,    1
-.equ HAS_HWCAP_AVX512VL,    1
-.equ HAS_HWCAP_AVX512IFMA,  1
-.equ HAS_HWCAP_AVX512VBMI,  1
+.equ HWCAP_X86_64,      1
+.equ HWCAP_SSE,         1
+.equ HWCAP_SSE2,        1
+.equ HWCAP_SSE3,        1
+.equ HWCAP_SSE41,       1
+.equ HWCAP_SSE42,       1
+.equ HWCAP_AESNI,       1
+.equ HWCAP_CLMUL,       1
+.equ HWCAP_POPCNT,      1
+.equ HWCAP_LZCNT,       1
+.equ HWCAP_F16C,        1
+.equ HWCAP_FMA,         1
+.equ HWCAP_AVX,         1
+.equ HWCAP_AVX2,        1
+.equ HWCAP_BMI,         1
+.equ HWCAP_BMI2,        1
+.equ HWCAP_ERMSB,       1
+.equ HWCAP_ADX,         1
+.equ HWCAP_SHA,         1
+.equ HWCAP_AVX512F,     1
+.equ HWCAP_AVX512BW,    1
+.equ HWCAP_AVX512CD,    1
+.equ HWCAP_AVX512DQ,    1
+.equ HWCAP_AVX512ER,    1
+.equ HWCAP_AVX512PF,    1
+.equ HWCAP_AVX512VL,    1
+.equ HWCAP_AVX512IFMA,  1
+.equ HWCAP_AVX512VBMI,  1
 
 # VZEROUPPER is invoked at the end of each function that uses the
 # 256-bit AVX ymm* registers to ensure a clean transition back

@@ -15,7 +15,7 @@
 
 #-------------------------------------------------------------------------------
 
-.if HAS_HWCAP_LZCNT
+.if HWCAP_LZCNT
 .extern hebi_pdivremru64_2x1_x86_64__
 .hidden hebi_pdivremru64_2x1_x86_64__
 MVFUNC_BEGIN pdivremu, lzcnt
@@ -41,7 +41,7 @@ MVFUNC_END
 
 #-------------------------------------------------------------------------------
 
-.if HAS_HWCAP_X86_64
+.if HWCAP_X86_64
 .extern hebi_pdivremru64_2x1_x86_64__
 .hidden hebi_pdivremru64_2x1_x86_64__
 MVFUNC_BEGIN pdivremu, x86_64
@@ -68,7 +68,7 @@ MVFUNC_END
 
 #-------------------------------------------------------------------------------
 
-.ifdef HAS_MULTI_VERSIONING
+.if USE_MULTI_VERSIONING
 MVFUNC_DISPATCH_BEGIN pdivremu
 
     push        %rdi
@@ -84,7 +84,7 @@ MVFUNC_DISPATCH_BEGIN pdivremu
     pop         %rsi
     pop         %rdi
 
-.if HAS_HWCAP_LZCNT
+.if HWCAP_LZCNT
     test        $hebi_hwcap_lzcnt, %eax
     jz          1f
     lea         hebi_pdivremu_lzcnt__(%rip), %r10
@@ -92,7 +92,7 @@ MVFUNC_DISPATCH_BEGIN pdivremu
 .endif
 
 1:
-.if HAS_HWCAP_X86_64
+.if HWCAP_X86_64
     lea         hebi_pdivremu_x86_64__(%rip), %r10
 .endif
 

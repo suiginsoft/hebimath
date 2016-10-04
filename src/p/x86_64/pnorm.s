@@ -7,7 +7,7 @@
 
 #------------------------------------------------------------------------------
 
-.if HAS_HWCAP_AVX
+.if HWCAP_AVX
 MVFUNC_BEGIN pnorm, avx
 
     mov         %rsi, %rax
@@ -61,7 +61,7 @@ MVFUNC_END
 
 #------------------------------------------------------------------------------
 
-.if HAS_HWCAP_SSE41
+.if HWCAP_SSE41
 MVFUNC_BEGIN pnorm, sse41
 
     mov         %rsi, %rax
@@ -115,7 +115,7 @@ MVFUNC_END
 
 #------------------------------------------------------------------------------
 
-.if HAS_HWCAP_SSE2
+.if HWCAP_SSE2
 MVFUNC_BEGIN pnorm, sse2
 
     mov         %rsi, %rcx
@@ -164,7 +164,7 @@ MVFUNC_END
 
 #------------------------------------------------------------------------------
 
-.ifdef HAS_MULTI_VERSIONING
+.if USE_MULTI_VERSIONING
 MVFUNC_DISPATCH_BEGIN pnorm
 
     push        %rsi
@@ -176,7 +176,7 @@ MVFUNC_DISPATCH_BEGIN pnorm
     pop         %rdi
     pop         %rsi
 
-.if HAS_HWCAP_AVX
+.if HWCAP_AVX
     test        $hebi_hwcap_avx, %eax
     jz          1f
     lea         hebi_pnorm_avx__(%rip), %r10
@@ -184,7 +184,7 @@ MVFUNC_DISPATCH_BEGIN pnorm
 .endif
 
 1:
-.if HAS_HWCAP_SSE41
+.if HWCAP_SSE41
     test        $hebi_hwcap_sse41, %eax
     jz          2f
     lea         hebi_pnorm_sse41__(%rip), %r10
@@ -192,7 +192,7 @@ MVFUNC_DISPATCH_BEGIN pnorm
 .endif
 
 2:
-.if HAS_HWCAP_SSE2
+.if HWCAP_SSE2
     test        $hebi_hwcap_sse2, %eax
     BREAKZ
     lea         hebi_pnorm_sse2__(%rip), %r10

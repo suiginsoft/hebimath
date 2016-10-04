@@ -7,7 +7,7 @@
 
 #-------------------------------------------------------------------------------
 
-.if HAS_HWCAP_AVX
+.if HWCAP_AVX
 MVFUNC_BEGIN pshl, avx
 
     # Check if we have any packets to shift
@@ -110,7 +110,7 @@ MVFUNC_END
 
 #-------------------------------------------------------------------------------
 
-.if HAS_HWCAP_SSE2
+.if HWCAP_SSE2
 MVFUNC_BEGIN pshl, sse2
 
     # Check if we have any packets to shift
@@ -219,7 +219,7 @@ MVFUNC_END
 
 #-------------------------------------------------------------------------------
 
-.ifdef HAS_MULTI_VERSIONING
+.if USE_MULTI_VERSIONING
 MVFUNC_DISPATCH_BEGIN pshl
 
     push        %rdi
@@ -235,7 +235,7 @@ MVFUNC_DISPATCH_BEGIN pshl
     pop         %rsi
     pop         %rdi
 
-.if HAS_HWCAP_AVX
+.if HWCAP_AVX
     test        $hebi_hwcap_avx, %eax
     jz          1f
     lea         hebi_pshl_avx__(%rip), %r10
@@ -243,7 +243,7 @@ MVFUNC_DISPATCH_BEGIN pshl
 .endif
 
 1:
-.if HAS_HWCAP_SSE2
+.if HWCAP_SSE2
     test        $hebi_hwcap_sse2, %eax
     BREAKZ
     lea         hebi_pshl_sse2__(%rip), %r10
