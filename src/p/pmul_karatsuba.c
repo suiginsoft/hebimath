@@ -19,7 +19,7 @@ hebi_pmul_karatsuba(
 {
 	size_t j, k, l, m;
 	uint64_t c;
-	
+
 	/* ensure |a| >= |b| > ⌈|a|/2⌉ */
 	if (UNLIKELY(an < bn)) {
 		SWAP(const hebi_packet *, a, b);
@@ -28,7 +28,8 @@ hebi_pmul_karatsuba(
 
 	/* base case: use long multiplication */
 	if (LIKELY(bn <= KARATSUBA_MUL_CUTOFF)) {
-		hebi_pmul(r, a, b, an, bn);
+		if (LIKELY(bn > 0))
+			hebi_pmul(r, a, b, an, bn);
 		return;
 	}
 

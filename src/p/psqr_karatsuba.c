@@ -20,7 +20,8 @@ hebi_psqr_karatsuba(
 
 	/* base case: use long multiplication if less or equal to cutoff */
 	if (LIKELY(n <= KARATSUBA_SQR_CUTOFF)) {
-		hebi_psqr(r, a, n);
+		if (LIKELY(n > 0))
+			hebi_psqr(r, a, n);
 		return;
 	}
 

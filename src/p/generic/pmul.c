@@ -21,35 +21,40 @@ hebi_pmul(
 	DLIMB p;
 	size_t i, j;
 
-	/* early out if length of b is zero (note: an >= bn >= 0) */
-	if (UNLIKELY(!bn)) {
-		hebi_pzero(r, an);
-		return;
-	}
+	ASSERT(an >= bn);
+	ASSERT(bn > 0);
 
 	rp = MLIMB_PTR(r);
 	ap = MLIMB_PTR(a);
 	bp = MLIMB_PTR(b);
+	an *= MLIMB_PER_PACKET;
+	bn *= MLIMB_PER_PACKET;
 
 	/* compute first diagonal and copy into output */
 	m = ap[0];
 	o = 0;
-	for (j = 0; j < bn * MLIMB_PER_PACKET; j++) {
+	j = 0;
+
+	do {
 		p = (DLIMB)bp[j] * m + o;
 		rp[j] = (MLIMB)(p & MLIMB_MAX);
 		o = (MLIMB)(p >> MLIMB_BIT);
-	}
+	} while (++j < bn);
+
 	rp[j] = o;
 
 	/* compute remaining diagonals and accumulate into output */
-	for (i = 1; i < an * MLIMB_PER_PACKET; i++) {
+	for (i = 1; i < an; i++) {
 		m = ap[i];
 		o = 0;
-		for (j = 0; j < bn * MLIMB_PER_PACKET; j++) {
+		j = 0;
+
+		do {
 			p = (DLIMB)bp[j] * m + rp[i+j] + o;
 			rp[i+j] = (MLIMB)(p & MLIMB_MAX);
 			o = (MLIMB)(p >> MLIMB_BIT);
-		}
+		} while (++j < bn);
+
 		rp[i+j] = o;
 	}
 }

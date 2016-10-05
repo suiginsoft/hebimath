@@ -12,9 +12,8 @@ MVFUNC_BEGIN pmulu, x86_64
     xor         %r8, %r8
     mov         %rdx, %r10
     shl         %rcx
-    jz          2f
 
-.align 16
+    .p2align 4,,15
 1:  mov         (%rsi), %rax
     mul         %r10
     xor         %r9, %r9
@@ -32,8 +31,8 @@ MVFUNC_BEGIN pmulu, x86_64
     dec         %rcx
     jnz         1b
 
-2:  mov         %r8, %rax
-    retq
+    mov         %r8, %rax
+    ret
 
 MVFUNC_END
 

@@ -9,10 +9,6 @@
 
 MVFUNC_BEGIN psqr, x86_64
 
-    test        %rdx, %rdx
-    jz          5f
-
-.align 8
     push        %rbx
     push        %rbp
 
@@ -22,7 +18,7 @@ MVFUNC_BEGIN psqr, x86_64
     lea         (,%rdx,4), %rbp
     xor         %r10, %r10
 
-.align 16
+    .p2align 4,,15
 1:  mov         (%rsi,%rbx,8), %rax
     add         $2, %rbx
     mul         %r9
@@ -41,13 +37,13 @@ MVFUNC_BEGIN psqr, x86_64
     inc         %rcx
     mov         %r10, (%rdi,%rbx,8)
 
-.align 8
+    .p2align 4,,7
 2:  mov         (%rsi,%rcx,8), %r9
     add         $8, %rdi
     xor         %rbx, %rbx
     xor         %r10, %r10
 
-.align 16
+    .p2align 4,,15
 3:  mov         (%rsi,%rbx,8), %rax
     add         $2, %rbx
     mul         %r9
@@ -74,9 +70,9 @@ MVFUNC_BEGIN psqr, x86_64
     cmp         %rcx, %rbp
     jne         2b
 
-4:  pop         %rbp
+    pop         %rbp
     pop         %rbx
-5:  retq
+    ret
 
 MVFUNC_END
 
