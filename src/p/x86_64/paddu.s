@@ -1,26 +1,19 @@
 # hebimath - arbitrary precision arithmetic library
 # See LICENSE file for copyright and license details
 
-# uint64_t hebi_addp_u(hebi_packet *r, const hebi_packet *a, uint64_t b, size_t n);
+# uint64_t
+# hebi_paddu(hebi_packet *r, const hebi_packet *a, uint64_t b, size_t n);
 
 .include "src/p/x86_64/x86_64.inc"
 
-#-------------------------------------------------------------------------------
-
-.macro MOVSUB src, dst
-mov \src, \dst
+.macro ADDSUB src, dst
+add \src, \dst
 .endm
 
 .macro ADCSBB src, dst
 adc \src, \dst
 .endm
 
-MVFUNC_BEGIN paddu, x86_64
+FUNC_BEGIN paddu
 .include "src/p/x86_64/paddsubu.inc"
-MVFUNC_END
-
-#-------------------------------------------------------------------------------
-
-.if USE_MULTI_VERSIONING
-MVFUNC_DISPATCH_PTR paddu, x86_64
-.endif
+FUNC_END

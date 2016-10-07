@@ -11,6 +11,25 @@
 .equ USE_PIC, 0
 .endif
 
+.macro FUNC_BEGIN Name:req, Scope=@public
+.macro FUNC_END_IMPL__
+.size hebi_\Name, .-hebi_\Name
+.endm
+.text
+.p2align 4,,15
+.global hebi_\Name
+.ifc \Scope,@private
+.hidden hebi_\Name
+.endif
+.type hebi_\Name, @function
+hebi_\Name\():
+.endm
+
+.macro FUNC_END
+FUNC_END_IMPL__
+.purgem FUNC_END_IMPL__
+.endm
+
 .if USE_MULTI_VERSIONING
 
 .extern hebi_hwcaps__

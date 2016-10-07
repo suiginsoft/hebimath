@@ -1,20 +1,14 @@
 # hebimath - arbitrary precision arithmetic library
 # See LICENSE file for copyright and license details
 
-    xor         %rax, %rax
-    test        %rcx, %rcx
-    jnz         1f
-    MOVSUB      %rdx, %rax
-    retq
-
     # Add/subtract word to/from first packet, propagating carry/borrow
 
-1:  bt          $0, %eax
+    xor         %rax, %rax
     mov         (%rsi), %r8
     mov         8(%rsi), %r9
     mov         16(%rsi), %r10
     mov         24(%rsi), %r11
-    ADCSBB      %rdx, %r8
+    ADDSUB      %rdx, %r8
     ADCSBB      %rax, %r9
     ADCSBB      %rax, %r10
     ADCSBB      %rax, %r11
@@ -25,12 +19,14 @@
     lea         32(%rsi), %rsi
     lea         32(%rdi), %rdi
     dec         %rcx
-    jz          3f
+    jnz         1f
+    setc        %al
+    ret
 
     # Propagation main loop: propagate carry/borrow into remaining packets
 
-.align 16
-2:  jnc         4f
+    .p2align 4,,15
+1:  jnc         2f
     mov         (%rsi), %r8
     mov         8(%rsi), %r9
     mov         16(%rsi), %r10
@@ -46,17 +42,18 @@
     lea         32(%rsi), %rsi
     lea         32(%rdi), %rdi
     dec         %rcx
-    jnz         2b
-
-3:  setc        %al
-    retq
+    jnz         1b
+    setc        %al
+    ret
 
     # Carry no longer set, simply copy remaining data to destination
 
-.align 16
-4:  xor         %rax, %rax
-    cmp         %rsi, %rdi
-    je          5f
+    .p2align 4,,7
+2:  cmp         %rsi, %rdi
+    jne         3f
+    ret
+
+3:
 .if USE_MULTI_VERSIONING && USE_PIC
     mov         hebi_pcopy_ptr__@GOTPCREL(%rip), %r11
     mov         (%r11), %r10
@@ -71,4 +68,3 @@
 .else
     jmp         hebi_pcopy
 .endif
-5:  retq

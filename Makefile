@@ -22,9 +22,15 @@ CPPFLAGS_generic := -DUSE_DRIVER_GENERIC
 CPPFLAGS_x86_64 := -DUSE_DRIVER_X86_64
 CPPFLAGS_driver := $(CPPFLAGS_$(DRIVER_selected))
 
-PKERNELS := \
+PDRIVERFUNCS := \
 	padd \
 	paddu \
+	pneg \
+	psub \
+	psubu \
+	recipulut
+
+PDRIVERMVFUNCS := \
 	pclz \
 	pcmp \
 	pcopy \
@@ -40,13 +46,11 @@ PKERNELS := \
 	pshl \
 	pshr \
 	psqr \
-	psub \
-	psubu \
 	pzero \
 	recipu2x1 \
 	recipu3x2
 
-PKERNELS_dynamic := $(PKERNELS:%=dynamic/%)
+PDRIVERMVFUNCS_dynamic := $(PDRIVERMVFUNCS:%=dynamic/%)
 
 PFUNCTIONS := \
 	palloc \
@@ -62,9 +66,9 @@ PFUNCTIONS := \
 	psetzero \
 	psqr_karatsuba \
 	psqr_karatsuba_space \
-	$(PKERNELS_$(DISPATCH_driver)) \
-	$(PKERNELS:%=$(DRIVER_selected)/%) \
-	$(DRIVER_selected)/recipulut
+	$(PDRIVERFUNCS:%=$(DRIVER_selected)/%) \
+	$(PDRIVERMVFUNCS:%=$(DRIVER_selected)/%) \
+	$(PDRIVERMVFUNCS_$(DISPATCH_driver))
 
 ZFUNCTIONS := \
 	zinit \
