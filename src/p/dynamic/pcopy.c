@@ -3,7 +3,7 @@
  * See LICENSE file for copyright and license details
  */
 
-#include "../../../internal.h"
+#include "dynamic.h"
 
 extern HEBI_API
 void

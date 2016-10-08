@@ -31,6 +31,7 @@ PDRIVERFUNCS := \
 	recipulut
 
 PDRIVERMVFUNCS := \
+	pand \
 	pclz \
 	pcmp \
 	pcopy \
@@ -43,9 +44,12 @@ PDRIVERMVFUNCS := \
 	pmul \
 	pmulu \
 	pnorm \
+	pnot \
+	por \
 	pshl \
 	pshr \
 	psqr \
+	pxor \
 	pzero \
 	recipu2x1 \
 	recipu3x2

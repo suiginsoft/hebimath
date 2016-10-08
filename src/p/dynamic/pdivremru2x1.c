@@ -7,10 +7,5 @@
 
 extern HEBI_HIDDEN
 MLIMB
-PDIVREMRU_2x1(
-		MLIMB *restrict,
-		const MLIMB *restrict,
-		size_t,
-		int,
-		MLIMB,
-		MLIMB);
+PDIVREMRU_2x1(MLIMB *restrict, const MLIMB *restrict,
+		size_t, int, MLIMB, MLIMB);

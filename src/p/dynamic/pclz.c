@@ -3,7 +3,8 @@
  * See LICENSE file for copyright and license details
  */
 
-#include "../../../internal.h"
+#include "dynamic.h"
 
 extern HEBI_API
-size_t hebi_pclz(const hebi_packet *, size_t);
+size_t
+hebi_pclz(const hebi_packet *, size_t);

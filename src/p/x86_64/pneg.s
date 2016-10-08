@@ -1,7 +1,8 @@
 # hebimath - arbitrary precision arithmetic library
 # See LICENSE file for copyright and license details
 
-# uint64_t hebi_pneg(hebi_packet *r, const hebi_packet *a size_t n);
+# uint64_t
+# hebi_pneg(hebi_packet *r, const hebi_packet *a, size_t n);
 
 .include "src/p/x86_64/x86_64.inc"
 
