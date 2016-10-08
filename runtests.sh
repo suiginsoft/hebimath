@@ -1,6 +1,6 @@
 #!/bin/sh
 
-LD_LIBRARY_PATH=`pwd`
+LD_LIBRARY_PATH=$(pwd)
 
 printf "running %s tests\n" "$1"
 printf "=============================================\n"
