@@ -16,7 +16,7 @@ hebi_zand(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 	size_t n;
 
 	if (UNLIKELY(!(as = a->hz_sign) || !(bs = b->hz_sign))) {
-		r->hz_sign = 0;
+		hebi_zsetzero(r);
 		return;
 	}
 
@@ -41,6 +41,6 @@ hebi_zand(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 		r->hz_used = n;
 		r->hz_sign = (as > 0 || bs > 0) ? 1 : -1;
 	} else {
-		r->hz_sign = 0;
+		hebi_zsetzero(r);
 	}
 }

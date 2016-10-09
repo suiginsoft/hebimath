@@ -436,6 +436,7 @@ HEBI_API void hebi_zshl(hebi_zptr, hebi_zsrcptr, size_t);
 HEBI_API void hebi_zshr(hebi_zptr, hebi_zsrcptr, size_t);
 HEBI_API void hebi_zand(hebi_zptr, hebi_zsrcptr, hebi_zsrcptr);
 HEBI_API void hebi_zor(hebi_zptr, hebi_zsrcptr, hebi_zsrcptr);
+HEBI_API void hebi_zxor(hebi_zptr, hebi_zsrcptr, hebi_zsrcptr);
 HEBI_API void hebi_zaddu(hebi_zptr, hebi_zsrcptr, uint64_t);
 HEBI_API void hebi_zsubu(hebi_zptr, hebi_zsrcptr, uint64_t);
 HEBI_API void hebi_zmulu(hebi_zptr, hebi_zsrcptr, uint64_t);

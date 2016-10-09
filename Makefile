@@ -117,6 +117,7 @@ ZFUNCTIONS := \
 	zgetstr \
 	zand \
 	zor \
+	zxor \
 	zabs \
 	zneg \
 	zadd \
@@ -222,6 +223,11 @@ CHECK_P := \
 
 CHECK_Z := \
 	zgetset \
+	zshl \
+	zshr \
+	zand \
+	zor \
+	zxor \
 	zadd \
 	zaddi \
 	zaddu \
@@ -236,11 +242,7 @@ CHECK_Z := \
 	zdivu \
 	zrem \
 	zremi \
-	zremu \
-	zshl \
-	zshr \
-	zand \
-	zor
+	zremu
 
 CHECK_SRC := \
 	check \

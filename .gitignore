@@ -43,6 +43,7 @@ check/z/zshr
 check/z/zsub
 check/z/zsubi
 check/z/zsubu
+check/z/zxor
 config.h
 config.inc
 hebimath.h

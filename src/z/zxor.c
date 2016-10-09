@@ -7,7 +7,7 @@
 
 HEBI_API
 void
-hebi_zor(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
+hebi_zxor(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 {
 	hebi_packet *rp;
 	const hebi_packet *ap;
@@ -16,7 +16,7 @@ hebi_zor(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 	int as, bs;
 
 	if (UNLIKELY(a == b)) {
-		hebi_zset(r, a);
+		hebi_zsetzero(r);
 		return;
 	} else if (UNLIKELY(!(as = a->hz_sign))) {
 		hebi_zset(r, b);
@@ -41,10 +41,16 @@ hebi_zor(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 	bp = b->hz_packs;
 	ap = a->hz_packs;
 
-	hebi_por(rp, ap, bp, n);
+	hebi_pxor(rp, ap, bp, n);
 	if (n < m)
 		hebi_pcopy(rp+n, ap+n, m-n);
+	else
+		m = hebi_pnorm(rp, m);
 
-	r->hz_used = m;
-	r->hz_sign = (as > 0 && bs > 0) ? 1 : -1;
+	if (LIKELY(m)) {
+		r->hz_used = m;
+		r->hz_sign = ((as ^ bs) >= 0) ? 1 : -1;
+	} else {
+		hebi_zsetzero(r);
+	}
 }
