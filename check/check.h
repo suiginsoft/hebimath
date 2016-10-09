@@ -49,6 +49,6 @@ void zpermutation(long x, long n, int p, ...);
 void zcheckbinop(void (*f)(hebi_zptr, hebi_zsrcptr, hebi_zsrcptr), const char* op, int flags);
 void zcheckbinopi64(void (*f)(hebi_zptr, hebi_zsrcptr, int64_t), const char* op, int flags);
 void zcheckbinopu64(void (*f)(hebi_zptr, hebi_zsrcptr, uint64_t), const char* op, int flags);
-void zcheckrelop(int (*f)(hebi_zsrcptr, hebi_zsrcptr), const char* op, int flags);
+void zcheckbitwisebinop(void (*f)(hebi_zptr, hebi_zsrcptr, hebi_zsrcptr), const char* op);
 
 #endif

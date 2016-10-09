@@ -101,8 +101,8 @@ ZFUNCTIONS := \
 	zeven \
 	zodd \
 	zbits \
-	zcmpmag \
 	zcmp \
+	zcmpmag \
 	zset \
 	zset_copy \
 	zset_move \
@@ -115,6 +115,7 @@ ZFUNCTIONS := \
 	zgetsi \
 	zgetsu \
 	zgetstr \
+	zand \
 	zabs \
 	zneg \
 	zadd \
@@ -236,7 +237,8 @@ CHECK_Z := \
 	zremi \
 	zremu \
 	zshl \
-	zshr
+	zshr \
+	zand
 
 CHECK_SRC := \
 	check \
@@ -244,6 +246,7 @@ CHECK_SRC := \
 	zcheckbinop \
 	zcheckbinopi64 \
 	zcheckbinopu64 \
+	zcheckbitwisebinop \
 	zdirty \
 	zpermutation
 

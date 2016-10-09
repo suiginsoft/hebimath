@@ -670,3 +670,12 @@ hebi_zgrow_copyif__(hebi_zptr r, size_t n, int c)
 		hebi_zrealloc_copyif__(r, n, c);
 	return r->hz_packs;
 }
+
+static inline HEBI_ALWAYSINLINE
+hebi_packet *
+hebi_zgrowzero__(hebi_zptr r, size_t n)
+{
+	if (n > r->hz_resv)
+		hebi_zrealloczero(r, n);
+	return r->hz_packs;
+}

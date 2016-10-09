@@ -444,6 +444,7 @@ HEBI_API void hebi_zsub(hebi_zptr, hebi_zsrcptr, hebi_zsrcptr);
 HEBI_API void hebi_zmul(hebi_zptr, hebi_zsrcptr, hebi_zsrcptr);
 HEBI_API void hebi_zsqr(hebi_zptr, hebi_zsrcptr);
 HEBI_API void hebi_zdivrem(hebi_zptr, hebi_zptr, hebi_zsrcptr, hebi_zsrcptr);
+HEBI_API void hebi_zand(hebi_zptr, hebi_zsrcptr, hebi_zsrcptr);
 HEBI_API void hebi_zrand_kiss(hebi_zptr HEBI_RESTRICT, size_t, struct hebi_kiss *HEBI_RESTRICT);
 
 HEBI_INLINE
