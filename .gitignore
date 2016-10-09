@@ -26,6 +26,7 @@ check/p/pzero
 check/z/zadd
 check/z/zaddi
 check/z/zaddu
+check/z/zand
 check/z/zdiv
 check/z/zdivi
 check/z/zdivu
@@ -33,6 +34,7 @@ check/z/zgetset
 check/z/zmul
 check/z/zmuli
 check/z/zmulu
+check/z/zor
 check/z/zrem
 check/z/zremi
 check/z/zremu

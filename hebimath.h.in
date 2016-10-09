@@ -434,6 +434,8 @@ HEBI_API uint64_t hebi_zgetsu(hebi_zsrcptr);
 HEBI_API size_t hebi_zgetstr(char *HEBI_RESTRICT, size_t, hebi_zsrcptr HEBI_RESTRICT, int);
 HEBI_API void hebi_zshl(hebi_zptr, hebi_zsrcptr, size_t);
 HEBI_API void hebi_zshr(hebi_zptr, hebi_zsrcptr, size_t);
+HEBI_API void hebi_zand(hebi_zptr, hebi_zsrcptr, hebi_zsrcptr);
+HEBI_API void hebi_zor(hebi_zptr, hebi_zsrcptr, hebi_zsrcptr);
 HEBI_API void hebi_zaddu(hebi_zptr, hebi_zsrcptr, uint64_t);
 HEBI_API void hebi_zsubu(hebi_zptr, hebi_zsrcptr, uint64_t);
 HEBI_API void hebi_zmulu(hebi_zptr, hebi_zsrcptr, uint64_t);
@@ -444,7 +446,6 @@ HEBI_API void hebi_zsub(hebi_zptr, hebi_zsrcptr, hebi_zsrcptr);
 HEBI_API void hebi_zmul(hebi_zptr, hebi_zsrcptr, hebi_zsrcptr);
 HEBI_API void hebi_zsqr(hebi_zptr, hebi_zsrcptr);
 HEBI_API void hebi_zdivrem(hebi_zptr, hebi_zptr, hebi_zsrcptr, hebi_zsrcptr);
-HEBI_API void hebi_zand(hebi_zptr, hebi_zsrcptr, hebi_zsrcptr);
 HEBI_API void hebi_zrand_kiss(hebi_zptr HEBI_RESTRICT, size_t, struct hebi_kiss *HEBI_RESTRICT);
 
 HEBI_INLINE

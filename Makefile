@@ -116,6 +116,7 @@ ZFUNCTIONS := \
 	zgetsu \
 	zgetstr \
 	zand \
+	zor \
 	zabs \
 	zneg \
 	zadd \
@@ -238,7 +239,8 @@ CHECK_Z := \
 	zremu \
 	zshl \
 	zshr \
-	zand
+	zand \
+	zor
 
 CHECK_SRC := \
 	check \
