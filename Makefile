@@ -115,6 +115,7 @@ ZFUNCTIONS := \
 	zgetsi \
 	zgetsu \
 	zgetstr \
+	znot \
 	zand \
 	zor \
 	zxor \
