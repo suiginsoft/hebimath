@@ -39,7 +39,7 @@ hebi_zand(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 
 	if (LIKELY(n)) {
 		r->hz_used = n;
-		r->hz_sign = (as > 0 || bs > 0) ? 1 : -1;
+		r->hz_sign = as < 0 && bs < 0 ? -1 : 1;
 	} else {
 		hebi_zsetzero(r);
 	}

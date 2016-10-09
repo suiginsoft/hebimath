@@ -49,7 +49,7 @@ hebi_zxor(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 
 	if (LIKELY(m)) {
 		r->hz_used = m;
-		r->hz_sign = ((as ^ bs) >= 0) ? 1 : -1;
+		r->hz_sign = (as ^ bs) < 0 ? -1 : 1;
 	} else {
 		hebi_zsetzero(r);
 	}

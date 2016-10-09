@@ -46,5 +46,5 @@ hebi_zor(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 		hebi_pcopy(rp+n, ap+n, m-n);
 
 	r->hz_used = m;
-	r->hz_sign = (as > 0 && bs > 0) ? 1 : -1;
+	r->hz_sign = as < 0 || bs < 0 ? -1 : 1;
 }
