@@ -19,16 +19,16 @@ int main(int argc, char *argv[])
 
 	assert(hebi_pcmp(x, x, NUM_PACKETS) == 0);
 	assert(hebi_pcmp(y, y, NUM_PACKETS) == 0);
-	assert(hebi_pcmp(x, y, NUM_PACKETS) > 0);
-	assert(hebi_pcmp(y, x, NUM_PACKETS) < 0);
+	assert(hebi_pcmp(x, y, NUM_PACKETS) == 1);
+	assert(hebi_pcmp(y, x, NUM_PACKETS) == -1);
 
 	memset(y, UCHAR_MAX, NUM_BYTES - sizeof(hebi_packet) / 2);
 
 	for (i = 0; i < sizeof(hebi_packet) / 2; ++i) {
 		assert(hebi_pcmp(x, x, NUM_PACKETS) == 0);
 		assert(hebi_pcmp(y, y, NUM_PACKETS) == 0);
-		assert(hebi_pcmp(x, y, NUM_PACKETS) > 0);
-		assert(hebi_pcmp(y, x, NUM_PACKETS) < 0);
+		assert(hebi_pcmp(x, y, NUM_PACKETS) == 1);
+		assert(hebi_pcmp(y, x, NUM_PACKETS) == -1);
 		memset((char *)x + NUM_BYTES - i - 1, 0, sizeof(char));
 	}
 
@@ -38,8 +38,8 @@ int main(int argc, char *argv[])
 	for (++i; i < sizeof(hebi_packet); ++i) {
 		assert(hebi_pcmp(x, x, NUM_PACKETS) == 0);
 		assert(hebi_pcmp(y, y, NUM_PACKETS) == 0);
-		assert(hebi_pcmp(x, y, NUM_PACKETS) < 0);
-		assert(hebi_pcmp(y, x, NUM_PACKETS) > 0);
+		assert(hebi_pcmp(x, y, NUM_PACKETS) == -1);
+		assert(hebi_pcmp(y, x, NUM_PACKETS) == 1);
 		memset((char *)x + NUM_BYTES - i - 1, 0, sizeof(char));
 	}
 

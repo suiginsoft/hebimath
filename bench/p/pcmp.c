@@ -20,6 +20,8 @@ main(int argc, char *argv[])
 	b = hebi_palloc(HEBI_ALLOC_DEFAULT, p.bn);
 	hebi_pzero(a, p.an);
 	hebi_pzero(b, p.bn);
+	hebi_psetu(a, 88);
+	hebi_psetu(a, 14);
 
 	bench_start();
 

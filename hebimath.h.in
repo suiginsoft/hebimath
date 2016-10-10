@@ -291,8 +291,8 @@ HEBI_API void hebi_psqr(hebi_packet *HEBI_RESTRICT, const hebi_packet *HEBI_REST
 <<< dispatch_static
 HEBI_API uint64_t hebi_pneg(hebi_packet *, const hebi_packet *, size_t);
 HEBI_API uint64_t hebi_padd(hebi_packet *, const hebi_packet *, const hebi_packet *, size_t, size_t);
-HEBI_API uint64_t hebi_paddu(hebi_packet *, const hebi_packet *, uint64_t, size_t);
 HEBI_API uint64_t hebi_psub(hebi_packet *, const hebi_packet *, const hebi_packet *, size_t, size_t);
+HEBI_API uint64_t hebi_paddu(hebi_packet *, const hebi_packet *, uint64_t, size_t);
 HEBI_API uint64_t hebi_psubu(hebi_packet *, const hebi_packet *, uint64_t, size_t);
 HEBI_API size_t hebi_pdivrem(hebi_packet *HEBI_RESTRICT, hebi_packet *HEBI_RESTRICT, hebi_packet *HEBI_RESTRICT, size_t *HEBI_RESTRICT, const hebi_packet *, const hebi_packet *, size_t, size_t);
 HEBI_API void hebi_pmul_karatsuba(hebi_packet *HEBI_RESTRICT, hebi_packet *HEBI_RESTRICT, const hebi_packet *, const hebi_packet *, size_t, size_t);
@@ -444,7 +444,9 @@ HEBI_API void hebi_zmulu(hebi_zptr, hebi_zsrcptr, uint64_t);
 HEBI_API int64_t hebi_zdivremi(hebi_zptr, hebi_zsrcptr, int64_t);
 HEBI_API uint64_t hebi_zdivremu(hebi_zptr, hebi_zsrcptr, uint64_t);
 HEBI_API void hebi_zadd(hebi_zptr, hebi_zsrcptr, hebi_zsrcptr);
+HEBI_API void hebi_zaddmag(hebi_zptr, hebi_zsrcptr, hebi_zsrcptr);
 HEBI_API void hebi_zsub(hebi_zptr, hebi_zsrcptr, hebi_zsrcptr);
+HEBI_API void hebi_zsubmag(hebi_zptr, hebi_zsrcptr, hebi_zsrcptr);
 HEBI_API void hebi_zmul(hebi_zptr, hebi_zsrcptr, hebi_zsrcptr);
 HEBI_API void hebi_zsqr(hebi_zptr, hebi_zsrcptr);
 HEBI_API void hebi_zdivrem(hebi_zptr, hebi_zptr, hebi_zsrcptr, hebi_zsrcptr);

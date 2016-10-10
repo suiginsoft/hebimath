@@ -60,7 +60,7 @@ MVFUNC_BEGIN pzero, sse2
     dec         %rcx
     jnz         2b
     test        $1, %sil
-    jz          1b
+    jnz         1b
     ret
 
 MVFUNC_END
