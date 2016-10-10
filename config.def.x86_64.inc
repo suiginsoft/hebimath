@@ -29,7 +29,7 @@
 .equ HWCAP_FMA,         1
 .equ HWCAP_AVX,         1
 .equ HWCAP_AVX2,        1
-.equ HWCAP_BMI,         1
+.equ HWCAP_BMI1,        1
 .equ HWCAP_BMI2,        1
 .equ HWCAP_ERMSB,       1
 .equ HWCAP_ADX,         1

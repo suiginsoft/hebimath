@@ -2,6 +2,7 @@ bench/libbench.a
 bench/p/padd
 bench/p/paddu
 bench/p/pclz
+bench/p/pctz
 bench/p/pcmp
 bench/p/pcopy
 bench/p/pdivrem

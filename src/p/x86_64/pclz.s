@@ -14,7 +14,7 @@ MVFUNC_BEGIN pclz, avx_lzcnt
     vpcmpeqd    %xmm4, %xmm4, %xmm4
     mov         %rsi, %rcx
 
-    .p2align 4
+    .p2align 4,,15
 1:  vmovdqa     -16(%rdi,%rsi), %xmm0
     vmovdqa     -32(%rdi,%rsi), %xmm1
     vptest      %xmm4, %xmm0
@@ -28,7 +28,7 @@ MVFUNC_BEGIN pclz, avx_lzcnt
     lea         (,%rcx,8), %rax
     ret
 
-    .p2align 4,,7
+    .p2align 4,,15
 2:  vmovdqa     %xmm1, %xmm0
     sub         $16, %rsi
 3:  test        %rax, %rax
@@ -52,7 +52,7 @@ MVFUNC_BEGIN pclz, sse41
     pcmpeqd     %xmm4, %xmm4
     mov         %rsi, %rcx
 
-    .p2align 4
+    .p2align 4,,15
 1:  movdqa      -16(%rdi,%rsi), %xmm0
     movdqa      -32(%rdi,%rsi), %xmm1
     ptest       %xmm4, %xmm0
@@ -66,7 +66,7 @@ MVFUNC_BEGIN pclz, sse41
     lea         (,%rcx,8), %rax
     ret
 
-    .p2align 4,,7
+    .p2align 4,,15
 2:  movdqa      %xmm1, %xmm0
     sub         $16, %rsi
 3:  test        %rax, %rax
@@ -87,14 +87,13 @@ MVFUNC_END
 .if HWCAP_SSE2
 MVFUNC_BEGIN pclz, sse2
 
-    mov         %rsi, %rcx
     shl         $5, %rsi
     pxor        %xmm4, %xmm4
-    lea         -16(%rdi,%rsi), %rdi
+    mov         %rsi, %rcx
 
-    .p2align 4
-1:  movdqa      (%rdi), %xmm0
-    movdqa      -16(%rdi), %xmm1
+    .p2align 4,,15
+1:  movdqa      -16(%rdi,%rsi), %xmm0
+    movdqa      -32(%rdi,%rsi), %xmm1
     movdqa      %xmm0, %xmm2
     movdqa      %xmm1, %xmm3
     pcmpeqd     %xmm4, %xmm2
@@ -105,26 +104,24 @@ MVFUNC_BEGIN pclz, sse2
     jne         3f
     cmp         $0xFFFF, %edx
     jne         2f
-    sub         $32, %rdi
-    dec         %rcx
+    sub         $32, %rsi
     jnz         1b
-    lea         (,%rsi,8), %rax
+    lea         (,%rcx,8), %rax
     ret
 
-    .p2align 4,,7
-2:  add         $16, %rsi
+    .p2align 4,,15
+2:  movdqa      %xmm1, %xmm0
     mov         %edx, %eax
-    movdqa      %xmm1, %xmm0
-3:  shl         $5, %rcx
-    cmp         $0xFF, %ah
+    sub         $16, %rsi
+3:  cmp         $0xFF, %ah
     je          4f
     punpckhqdq  %xmm0, %xmm0
-    sub         $8, %rsi
+    add         $8, %rsi
 4:  movq        %xmm0, %rax
     bsr         %rax, %rax
-    sub         %rcx, %rsi
+    sub         %rsi, %rcx
     xor         $63, %rax
-    lea         64(%rax,%rsi,8), %rax
+    lea         64(%rax,%rcx,8), %rax
     ret
 
 MVFUNC_END

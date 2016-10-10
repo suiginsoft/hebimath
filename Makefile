@@ -194,6 +194,7 @@ BENCH_P := \
 	padd \
 	paddu \
 	pclz \
+	pctz \
 	pcmp \
 	pcopy \
 	pdivrem \

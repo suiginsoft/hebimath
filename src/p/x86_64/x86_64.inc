@@ -51,7 +51,7 @@ FUNC_END_IMPL__
 .equ hebi_hwcap_fma,        0x00000800
 .equ hebi_hwcap_avx,        0x00001000
 .equ hebi_hwcap_avx2,       0x00002000
-.equ hebi_hwcap_bmi,        0x00004000
+.equ hebi_hwcap_bmi1,       0x00004000
 .equ hebi_hwcap_bmi2,       0x00008000
 .equ hebi_hwcap_ermsb,      0x00010000
 .equ hebi_hwcap_adx,        0x00020000
@@ -259,7 +259,7 @@ MVFUNC_END_IMPL__
 .equ HWCAP_FMA,         0
 .equ HWCAP_AVX,         0
 .equ HWCAP_AVX2,        0
-.equ HWCAP_BMI,         0
+.equ HWCAP_BMI1,        0
 .equ HWCAP_BMI2,        0
 .equ HWCAP_ERMSB,       0
 .equ HWCAP_ADX,         0
