@@ -122,7 +122,9 @@ ZFUNCTIONS := \
 	zabs \
 	zneg \
 	zadd \
+	zaddmag \
 	zsub \
+	zsubmag \
 	zmul \
 	zsqr \
 	zdiv \

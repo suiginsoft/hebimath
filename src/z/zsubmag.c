@@ -13,12 +13,11 @@ hebi_zsubmag(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 	size_t au, bu;
 	int d;
 
-	if (UNLIKELY(!(as = a->hz_sign))) {
-		hebi_zset(r, b);
-		hebi_zneg(r, r);
+	if (UNLIKELY(hebi_zzero(a))) {
+		hebi_zabs(r, b);
 		return;
-	} else if (UNLIKELY(!(bs = -b->hz_sign))) {
-		hebi_zset(r, a);
+	} else if (UNLIKELY(hebi_zzero(b))) {
+		hebi_zabs(r, a);
 		return;
 	}
 
