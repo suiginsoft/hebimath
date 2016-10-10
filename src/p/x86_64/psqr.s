@@ -10,13 +10,12 @@
 MVFUNC_BEGIN psqr, x86_64
 
     push        %rbx
+    xor         %ecx, %ecx
     push        %rbp
-
-    xor         %rbx, %rbx
+    xor         %ebx, %ebx
     mov         (%rsi), %r9
-    xor         %rcx, %rcx
-    lea         (,%rdx,4), %rbp
     xor         %r10, %r10
+    lea         (,%rdx,4), %rbp
 
     .p2align 4,,15
 1:  mov         (%rsi,%rbx,8), %rax
@@ -34,17 +33,21 @@ MVFUNC_BEGIN psqr, x86_64
     adc         %rdx, %r10
     cmp         %rbx, %rbp
     jne         1b
-    inc         %rcx
-    mov         %r10, (%rdi,%rbx,8)
 
     .p2align 4,,7
-2:  mov         (%rsi,%rcx,8), %r9
+2:  inc         %rcx
+    mov         %r10, (%rdi,%rbx,8)
+    cmp         %rcx, %rbp
+    je          6f
+3:  mov         (%rsi,%rcx,8), %r9
     add         $8, %rdi
-    xor         %rbx, %rbx
     xor         %r10, %r10
+    test        %r9, %r9
+    jz          2b
+    xor         %ebx, %ebx
 
     .p2align 4,,15
-3:  mov         (%rsi,%rbx,8), %rax
+4:  mov         (%rsi,%rbx,8), %rax
     add         $2, %rbx
     mul         %r9
     mov         -16(%rdi,%rbx,8), %r8
@@ -64,13 +67,14 @@ MVFUNC_BEGIN psqr, x86_64
     mov         %r11, -8(%rdi,%rbx,8)
     adc         $0, %r10
     cmp         %rbx, %rbp
-    jne         3b
+    jne         4b
     inc         %rcx
     mov         %r10, (%rdi,%rbx,8)
     cmp         %rcx, %rbp
-    jne         2b
+    jne         3b
 
-    pop         %rbp
+    .p2align 4,,7
+6:  pop         %rbp
     pop         %rbx
     ret
 
