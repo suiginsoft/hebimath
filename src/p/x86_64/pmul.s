@@ -9,20 +9,18 @@
 
 MVFUNC_BEGIN pmul, x86_64
 
-    push        %rbx
-    push        %rbp
-    push        %r12
-    push        %r13
-    push        %r14
-
-    mov         %rdx, %rbp
-    mov         %rdi, %r12
-    shl         %r8
-    mov         %rdx, %r13
-    mov         %r8, %r14
-    mov         (%rsi), %r9
     shl         $2, %rcx
+    push        %rbx
     xor         %r10, %r10
+    push        %rbp
+    shl         %r8
+    push        %r12
+    mov         %rdx, %rbp
+    push        %r13
+    mov         %r8, %r12
+    mov         (%rsi), %r9
+    shl         $4, %r12
+    mov         %r8, %r13
 
     .p2align 4,,15
 2:  mov         (%rbp), %rax
@@ -42,18 +40,19 @@ MVFUNC_BEGIN pmul, x86_64
     dec         %r8
     jnz         2b
 
-    mov         %r10, (%rdi)
+    .p2align 4,,15
+7:  mov         %r10, (%rdi)
     dec         %rcx
     jz          5f
-
-    .p2align 4,,7
-3:  add         $8, %r12
-    add         $8, %rsi
-    mov         %r12, %rdi
-    mov         %r13, %rbp
-    mov         %r14, %r8
+3:  add         $8, %rsi
+    add         $8, %rdi
     mov         (%rsi), %r9
     xor         %r10, %r10
+    test        %r9, %r9
+    jz          7b
+    sub         %r12, %rbp
+    sub         %r12, %rdi
+    mov         %r13, %r8
 
     .p2align 4,,15
 4:  mov         (%rbp), %rax
@@ -82,8 +81,7 @@ MVFUNC_BEGIN pmul, x86_64
     dec         %rcx
     jnz         3b
 
-5:  pop         %r14
-    pop         %r13
+5:  pop         %r13
     pop         %r12
     pop         %rbp
     pop         %rbx
