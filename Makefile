@@ -100,9 +100,6 @@ ZFUNCTIONS := \
 	zzero \
 	zeven \
 	zodd \
-	zbits \
-	zcmp \
-	zcmpmag \
 	zset \
 	zset_copy \
 	zset_move \
@@ -115,15 +112,20 @@ ZFUNCTIONS := \
 	zgetsi \
 	zgetsu \
 	zgetstr \
+	zbits \
 	znot \
 	zand \
 	zor \
 	zxor \
+	zcmp \
+	zcmpmag \
+	zcmpi \
+	zcmpu \
 	zabs \
 	zneg \
 	zadd \
-	zaddmag \
 	zsub \
+	zaddmag \
 	zsubmag \
 	zmul \
 	zsqr \
