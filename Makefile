@@ -113,6 +113,7 @@ ZFUNCTIONS := \
 	zgetsu \
 	zgetstr \
 	zbits \
+	zlsb \
 	znot \
 	zand \
 	zor \

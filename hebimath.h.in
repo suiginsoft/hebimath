@@ -570,12 +570,19 @@ size_t
 hebi_zbits(hebi_zsrcptr a__)
 {
 	size_t b__;
-	if (a__->hebi_sign__) {
-		b__ = HEBI_PACKET_BIT * a__->hebi_used__;
-		return b__ - hebi_pclz(a__->hebi_packs__, a__->hebi_used__);
-	} else {
+	if (HEBI_UNLIKELY(!a__->hebi_sign__))
 		return 0;
-	}
+	b__ = HEBI_PACKET_BIT * a__->hebi_used__;
+	return b__ - hebi_pclz(a__->hebi_packs__, a__->hebi_used__);
+}
+
+HEBI_INLINE
+size_t
+hebi_zlsb(hebi_zsrcptr a__)
+{
+	if (HEBI_UNLIKELY(!a__->hebi_sign__))
+		return 0;
+	return hebi_pctz(a__->hebi_packs__, a__->hebi_used__);
 }
 
 HEBI_INLINE
@@ -748,7 +755,7 @@ hebi_zcmpi(hebi_zsrcptr a__, int64_t b__)
 			return -1;
 		c__ = (uint64_t)b__;
 	}
-	for (i__ = HEBI_PACKET_LIMBS64; --i__ > 0; )
+	for (i__ = HEBI_PACKET_LIMBS64 - 1; i__ > 0; i__--)
 		if (a__->hebi_packs__->hp_limbs64[i__])
 			return s__;
 	if (a__->hebi_packs__->hp_limbs64[0] < c__)
@@ -767,7 +774,7 @@ hebi_zcmpu(hebi_zsrcptr a__, uint64_t b__)
 		return a__->hebi_sign__;
 	else if (HEBI_UNLIKELY(a__->hebi_sign__ <= 0))
 		return -1;
-	for (i__ = HEBI_PACKET_LIMBS64; --i__ > 0; )
+	for (i__ = HEBI_PACKET_LIMBS64 - 1; i__ > 0; i__--)
 		if (a__->hebi_packs__->hp_limbs64[i__])
 			return 1;
 	if (a__->hebi_packs__->hp_limbs64[0] < b__)

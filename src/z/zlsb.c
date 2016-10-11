@@ -7,4 +7,4 @@
 
 extern HEBI_API
 size_t
-hebi_zbits(hebi_zsrcptr);
+hebi_zlsb(hebi_zsrcptr);
