@@ -55,7 +55,7 @@ STRIP = strip
 # toolchain flags
 ASFLAGS =
 CPPFLAGS = -DVERSION=\"${VERSION}\" -D_POSIX_C_SOURCE=200809L
-CFLAGS = -O3 -flto -ftree-vectorize -pedantic -pthread -Wall
+CFLAGS = -O3 -pedantic -pthread -Wall
 LDFLAGS = -s
 LDLIBS = -lc -lm
 ARFLAGS = -rc
