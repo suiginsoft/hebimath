@@ -604,6 +604,22 @@ hebi_pgetsu__(const hebi_packet *a)
 #endif /* HEBI_SIMD */
 }
 
+static inline HEBI_ALWAYSINLINE
+void
+hebi_pandmsk__(hebi_packet *a, int bits)
+{
+	int b, i;
+
+	ASSERT(0 < bits && bits < HEBI_PACKET_BIT);
+
+	b = HEBI_PACKET_BIT - bits;
+	for (i = HEBI_PACKET_LIMBS64 - 1; b >= 64; b -= 64, i--)
+		a->hp_limbs64[i] = 0;
+
+	if (LIKELY(b))
+		a->hp_limbs64[i] &= (UINT64_C(1) << (64 - b)) - 1;
+}
+
 static inline HEBI_ALWAYSINLINE HEBI_ALLOC HEBI_WARNUNUSED
 void *
 hebi_scratch__(size_t n)

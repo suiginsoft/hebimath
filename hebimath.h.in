@@ -432,6 +432,7 @@ HEBI_API size_t hebi_zsetstr(hebi_zptr HEBI_RESTRICT, const char *HEBI_RESTRICT,
 HEBI_API int64_t hebi_zgetsi(hebi_zsrcptr);
 HEBI_API uint64_t hebi_zgetsu(hebi_zsrcptr);
 HEBI_API size_t hebi_zgetstr(char *HEBI_RESTRICT, size_t, hebi_zsrcptr HEBI_RESTRICT, int);
+HEBI_API void hebi_ztrunc(hebi_zptr, hebi_zsrcptr, size_t);
 HEBI_API void hebi_zshl(hebi_zptr, hebi_zsrcptr, size_t);
 HEBI_API void hebi_zshr(hebi_zptr, hebi_zsrcptr, size_t);
 HEBI_API void hebi_znot(hebi_zptr, hebi_zsrcptr);

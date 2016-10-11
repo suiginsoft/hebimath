@@ -114,6 +114,7 @@ ZFUNCTIONS := \
 	zgetstr \
 	zbits \
 	zlsb \
+	ztrunc \
 	znot \
 	zand \
 	zor \
