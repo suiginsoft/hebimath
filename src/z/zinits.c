@@ -10,7 +10,7 @@ HEBI_API
 void
 hebi_zinits(hebi_zptr r, ...)
 {
-	hebi_alloc_id id;
+	hebi_allocid id;
 	va_list ap;
 
 	if (!r)

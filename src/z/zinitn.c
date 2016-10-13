@@ -9,7 +9,7 @@ HEBI_API
 void
 hebi_zinitn(hebi_zptr r, size_t n)
 {
-	hebi_alloc_id id = hebi_alloc_get_default();
+	hebi_allocid id = hebi_alloc_get_default();
 
 	for ( ; n; n--, r++) {
 		r->hz_packs = NULL;

@@ -6,4 +6,4 @@
 #include "pcommon.h"
 
 extern HEBI_API HEBI_ALLOC HEBI_WARNUNUSED
-hebi_packet *hebi_palloc(hebi_alloc_id, size_t);
+hebi_packet *hebi_palloc(hebi_allocid, size_t);

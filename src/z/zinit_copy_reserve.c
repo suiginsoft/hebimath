@@ -11,13 +11,13 @@ hebi_zinit_copy_reserve(
 		hebi_zptr restrict r,
 		hebi_zsrcptr restrict a,
 		size_t n,
-		hebi_alloc_id id )
+		hebi_allocid id )
 {
-	const struct hebi_alloc_callbacks *cb;
+	const struct hebi_allocfnptrs *fp;
 	hebi_packet *p;
 	size_t nbytes, u;
 
-	cb = hebi_alloc_query(&id, id);
+	fp = hebi_alloc_query(&id, id);
 	p = NULL;
 
 	u = hebi_zused(a);
@@ -30,7 +30,7 @@ hebi_zinit_copy_reserve(
 		if (UNLIKELY(nbytes / sizeof(hebi_packet) != n))
 			hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
 #endif
-		p = hebi_alloc_cb(cb, HEBI_PACKET_ALIGNMENT, nbytes);
+		p = hebi_allocfp(fp, HEBI_PACKET_ALIGNMENT, nbytes);
 		if (LIKELY(u))
 			hebi_pcopy(p, a->hz_packs, u);
 	}

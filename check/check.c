@@ -87,13 +87,13 @@ checkalloc(void *ctx, size_t alignment, size_t size)
 
 	if (size & (alignment - 1)) {
 		errno = EINVAL;
-		return NULL;
+		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
 	}
 
 	e = posix_memalign(&p, alignment, size);
 	if (e) {
 		errno = e;
-		return NULL;
+		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
 	}
 
 	memset(p, 0xDC, size);
@@ -111,21 +111,21 @@ checkfree(void *ctx, void *p, size_t size)
 	}
 }
 
-static const struct hebi_alloc_callbacks checkaf =
+static const struct hebi_allocfnptrs checkfp =
 {
-	.hac_alloc = checkalloc,
-	.hac_free = checkfree,
-	.hac_arg = NULL
+	.ha_alloc = checkalloc,
+	.ha_free = checkfree,
+	.ha_arg = NULL
 };
 	
-static hebi_alloc_id checkaid = HEBI_ALLOC_INVALID;
+static hebi_allocid checkid = HEBI_ALLOC_INVALID;
 
 static void
 checkshut(void)
 {
-	if (checkaid != HEBI_ALLOC_INVALID) {
-		hebi_alloc_remove(checkaid);
-		checkaid = HEBI_ALLOC_INVALID;
+	if (checkid != HEBI_ALLOC_INVALID) {
+		hebi_alloc_remove(checkid);
+		checkid = HEBI_ALLOC_INVALID;
 	}
 }
 
@@ -163,8 +163,8 @@ checkinit(int argc, char *argv[])
 		}
 	}
 
-	checkaid = hebi_alloc_add(&checkaf);
+	checkid = hebi_alloc_add(&checkfp);
 	atexit(checkshut);
 
-	hebi_alloc_set_default(checkaid);
+	hebi_alloc_set_default(checkid);
 }

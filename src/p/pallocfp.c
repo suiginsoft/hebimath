@@ -5,5 +5,6 @@
 
 #include "pcommon.h"
 
-extern HEBI_API
-void hebi_pfree_cb(const struct hebi_alloc_callbacks *, hebi_packet *, size_t);
+extern HEBI_API HEBI_ALLOC HEBI_WARNUNUSED
+hebi_packet *
+hebi_pallocfp(const struct hebi_allocfnptrs *, size_t);

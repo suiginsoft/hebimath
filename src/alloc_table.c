@@ -66,7 +66,7 @@ stdliballoc(void *arg, size_t alignment, size_t size)
 	p = aligned_alloc(alignment, size);
 	if (UNLIKELY(!p)) {
 		errno = ENOMEM;
-		return NULL;
+		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
 	}
 
 #elif defined USE_POSIX_MEMALIGN
@@ -78,35 +78,36 @@ stdliballoc(void *arg, size_t alignment, size_t size)
 
 	if (UNLIKELY(size & (alignment - 1))) {
 		errno = EINVAL;
-		return NULL;
+		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
 	}
 
 	e = posix_memalign(&p, alignment, size);
 	if (UNLIKELY(e)) {
 		errno = e;
-		return NULL;
+		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
 	}
 
 #else
 
+	size_t amsk;
 	char *q;
 
 	if (UNLIKELY(alignment < sizeof(void*)))
 		alignment = sizeof(void*);
 
-	if (UNLIKELY((alignment & (alignment - 1)) ||
-			(size & (alignment - 1)))) {
+	amsk = alignment - 1;
+	if (UNLIKELY((alignment & amsk) || (size & amsk))) {
 		errno = EINVAL;
-		return NULL;
+		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
 	}
 
-	q = malloc(size + (alignment - 1) + sizeof(void *));
+	q = malloc(size + amsk + sizeof(void *));
 	if (UNLIKELY(!q)) {
 		errno = ENOMEM;
-		return NULL;
+		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
 	}
 
-	p = (void *)(((uintptr_t)q + (alignment - 1)) & (alignment - 1));
+	p = (void *)(((uintptr_t)q + amsk) & amsk);
 	((void **)p)[-1] = q;
 
 #endif
@@ -127,11 +128,11 @@ stdlibfree(void *arg, void *p, size_t size)
 #endif
 }
 
-static const struct hebi_alloc_callbacks stdlibcb =
+static const struct hebi_allocfnptrs stdlibfp =
 {
-	.hac_alloc = stdliballoc,
-	.hac_free = stdlibfree,
-	.hac_arg = NULL
+	.ha_alloc = stdliballoc,
+	.ha_free = stdlibfree,
+	.ha_arg = NULL
 };
 
 #if defined USE_C11_THREADS
@@ -197,21 +198,21 @@ static unsigned int tused;
 
 #ifdef ALLOC_TABLE_DYNAMIC
 
-#define TABLE_INDEX(GP, CB, S, P, O) \
+#define TABLE_INDEX(GP, FP, S, P, O) \
 	P = S / ALLOC_TABLE_PAGE_SIZE; \
 	O = S % ALLOC_TABLE_PAGE_SIZE; \
 	GP = &generationpages[P][O]; \
-	CB = &callbackpages[P][O];
+	FP = &fnptrpages[P][O];
 
 static unsigned int tresv;
 static unsigned short *generationpages[ALLOC_TABLE_MAX_PAGES];
-static struct hebi_alloc_callbacks *callbackpages[ALLOC_TABLE_MAX_PAGES];
+static struct hebi_allocfnptrs *fnptrpages[ALLOC_TABLE_MAX_PAGES];
 
 static int
 expandtable(void)
 {
 	unsigned short* gp;
-	struct hebi_alloc_callbacks *cb;
+	struct hebi_allocfnptrs *fp;
 	unsigned int page;
 	
 	page = tresv / ALLOC_TABLE_PAGE_SIZE;
@@ -222,26 +223,26 @@ expandtable(void)
 	if (UNLIKELY(!gp))
 		return HEBI_ENOMEM;
 
-	cb = calloc(ALLOC_TABLE_PAGE_SIZE, sizeof(*cb));
-	if (UNLIKELY(!cb)) {
+	fp = calloc(ALLOC_TABLE_PAGE_SIZE, sizeof(*fp));
+	if (UNLIKELY(!fp)) {
 		free(gp);
 		return HEBI_ENOMEM;
 	}
 
 	tresv += ALLOC_TABLE_PAGE_SIZE;
 	generationpages[page] = gp;
-	callbackpages[page] = cb;
+	fnptrpages[page] = fp;
 	return 0;
 }
 
 #else /* ALLOC_TABLE_DYNAMIC */
 
-#define TABLE_INDEX(GP, CB, S, P, O) \
+#define TABLE_INDEX(GP, FP, S, P, O) \
 	GP = &generations[S]; \
-	CB = &callbacks[S];
+	FP = &fnptrs[S];
 
 static unsigned short generations[TABLE_CAPACITY];
-static struct hebi_alloc_callbacks callbacks[TABLE_CAPACITY];
+static struct hebi_allocfnptrs fnptrs[TABLE_CAPACITY];
 
 #endif /* ALLOC_TABLE_DYNAMIC */
 
@@ -256,7 +257,7 @@ shuttable(void)
 
 	for (i = 0; i < tresv; ++i) {
 		free(generationpages[i]);
-		free(callbackpages[i]);
+		free(fnptrpages[i]);
 	}
 #endif
 
@@ -270,11 +271,11 @@ shuttable(void)
 #endif /* USE_GLOBAL_DESTRUCTORS */
 
 HEBI_API
-hebi_alloc_id
-hebi_alloc_add(const struct hebi_alloc_callbacks *newcb)
+hebi_allocid
+hebi_alloc_add(const struct hebi_allocfnptrs *newfp)
 {
 	unsigned short *gp;
-	struct hebi_alloc_callbacks *cb;
+	struct hebi_allocfnptrs *fp;
 	unsigned int slot, genr;
 #ifdef ALLOC_TABLE_DYNAMIC
 	unsigned int page, offs;
@@ -285,8 +286,8 @@ hebi_alloc_add(const struct hebi_alloc_callbacks *newcb)
 
 	if (tfreelist < tsize) {
 		slot = tfreelist;
-		TABLE_INDEX(gp, cb, slot, page, offs);
-		tfreelist = (uintptr_t)cb->hac_arg;
+		TABLE_INDEX(gp, fp, slot, page, offs);
+		tfreelist = (uintptr_t)fp->ha_arg;
 	} else {
 #ifdef ALLOC_TABLE_DYNAMIC
 		if (UNLIKELY(tsize >= tresv && (es = expandtable())))
@@ -298,10 +299,10 @@ hebi_alloc_add(const struct hebi_alloc_callbacks *newcb)
 		}
 #endif
 		slot = tsize++;
-		TABLE_INDEX(gp, cb, slot, page, offs);
+		TABLE_INDEX(gp, fp, slot, page, offs);
 	}
 
-	memcpy(cb, newcb, sizeof(*newcb));
+	memcpy(fp, newfp, sizeof(*newfp));
 	genr = *gp;
 	++tused;
 
@@ -311,15 +312,15 @@ unlock:
 	if (es)
 		hebi_error_raise(HEBI_ERRDOM_HEBI, es);
 	key = (genr << KEY_GENR_SHFT) | (slot + 1);
-	return (hebi_alloc_id)(intptr_t)key;
+	return (hebi_allocid)(intptr_t)key;
 }
 
 HEBI_API
 void
-hebi_alloc_remove(hebi_alloc_id id)
+hebi_alloc_remove(hebi_allocid id)
 {
 	unsigned short *gp;
-	struct hebi_alloc_callbacks *cb;
+	struct hebi_allocfnptrs *fp;
 	unsigned int genr, slot;
 #ifdef ALLOC_TABLE_DYNAMIC
 	unsigned int page, offs;
@@ -342,12 +343,12 @@ hebi_alloc_remove(hebi_alloc_id id)
 	/* lookup the allocator, if it is valid remove it */
 	gp = NULL;
 	if (slot < tsize) {
-		TABLE_INDEX(gp, cb, slot, page, offs);
+		TABLE_INDEX(gp, fp, slot, page, offs);
 		if (*gp == genr) {
 			*gp = (genr + 1) & KEY_GENR_MASK;
-			cb->hac_alloc = invalidalloc;
-			cb->hac_free = invalidfree;
-			cb->hac_arg = (void *)tfreelist;
+			fp->ha_alloc = invalidalloc;
+			fp->ha_free = invalidfree;
+			fp->ha_arg = (void *)tfreelist;
 			tfreelist = slot;
 			--tused;
 		}
@@ -361,11 +362,11 @@ hebi_alloc_remove(hebi_alloc_id id)
 }
 
 HEBI_API
-const struct hebi_alloc_callbacks *
-hebi_alloc_query(hebi_alloc_id *rid, hebi_alloc_id id)
+const struct hebi_allocfnptrs *
+hebi_alloc_query(hebi_allocid *rid, hebi_allocid id)
 {
 	struct hebi_context *ctx = NULL;
-	const struct hebi_alloc_callbacks *cb;
+	const struct hebi_allocfnptrs *fp;
 	unsigned int slot, genr;
 #ifdef ALLOC_TABLE_DYNAMIC
 	unsigned int page, offs;
@@ -386,7 +387,7 @@ hebi_alloc_query(hebi_alloc_id *rid, hebi_alloc_id id)
 		if (!key) {
 			if (rid)
 				*rid = HEBI_ALLOC_STDLIB;
-			return &stdlibcb;
+			return &stdlibfp;
 		}
 		else if (UNLIKELY(key < 0))
 			raisebadalloc();
@@ -427,47 +428,47 @@ hebi_alloc_query(hebi_alloc_id *rid, hebi_alloc_id id)
 
 	TABLE_LOCK(rd, e);
 
-	/* fetch callbacks pointer from the global allocator table */
-	cb = NULL;
+	/* fetch fnptrs pointer from the global allocator table */
+	fp = NULL;
 	if (slot < tsize) {
 #ifdef ALLOC_TABLE_DYNAMIC
 		page = slot / ALLOC_TABLE_PAGE_SIZE;
 		offs = slot % ALLOC_TABLE_PAGE_SIZE;
 		if (LIKELY(genr == generationpages[page][offs]))
-			cb = &callbackpages[page][offs];
+			fp = &fnptrpages[page][offs];
 #else
 		if (LIKELY(genr == generations[slot]))
-			cb = &callbacks[slot];
+			fp = &fnptrs[slot];
 #endif
 	}
 
 	TABLE_UNLOCK(e);
 
 	/* no matching allocator entry, invalid allocator id */
-	if (!UNLIKELY(cb))
+	if (!UNLIKELY(fp))
 		raisebadalloc();
 
 #ifdef USE_ALLOC_CACHE
 
 	/*
-	 * store pointer to callbacks in thread-local cache for
+	 * store pointer to fnptrs in thread-local cache for
 	 * quick retrieval on the next query. note that 'i' indexes
 	 * the correct location in cache to insert the new entry
 	 */
 	ctx->allocused = ++used;
 	ctx->allockeys[i] = key;
-	ctx->allocvalues[i] = cb;
+	ctx->allocvalues[i] = fp;
 
 #endif
 
 	if (rid)
 		*rid = id;
-	return cb;
+	return fp;
 }
 
 HEBI_API
 int
-hebi_alloc_valid(hebi_alloc_id id)
+hebi_alloc_valid(hebi_allocid id)
 {
 	int e, key, ret;
 	unsigned int slot, genr;

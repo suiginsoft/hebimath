@@ -9,7 +9,7 @@ HEBI_API
 void
 hebi_zdestroyn(hebi_zptr r, size_t n)
 {
-	hebi_alloc_id id;
+	hebi_allocid id;
 
 	for ( ; n; n--, r++) {
 		if (LIKELY((id = hebi_zallocator(r)) != HEBI_ALLOC_INVALID))

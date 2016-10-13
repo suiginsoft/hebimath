@@ -5,5 +5,6 @@
 
 #include "../internal.h"
 
-extern HEBI_API HEBI_ALLOC HEBI_WARNUNUSED
-void *hebi_alloc_cb(const struct hebi_alloc_callbacks *, size_t, size_t);
+extern HEBI_API
+void
+hebi_freefp(const struct hebi_allocfnptrs *, void *, size_t);

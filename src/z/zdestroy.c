@@ -9,7 +9,7 @@ HEBI_API
 void
 hebi_zdestroy(hebi_zptr r)
 {
-	hebi_alloc_id id;
+	hebi_allocid id;
 
 	if (LIKELY((id = hebi_zallocator(r)) != HEBI_ALLOC_INVALID))
 		hebi_free(id, r->hz_packs, r->hz_resv * sizeof(hebi_packet));

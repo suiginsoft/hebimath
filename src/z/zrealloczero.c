@@ -9,8 +9,8 @@ HEBI_API
 void
 hebi_zrealloczero(hebi_zptr r, size_t n)
 {
-	hebi_alloc_id id;
-	const struct hebi_alloc_callbacks *cb;
+	hebi_allocid id;
+	const struct hebi_allocfnptrs *fp;
 	hebi_packet *p;
 	size_t nbytes;
 
@@ -20,13 +20,13 @@ hebi_zrealloczero(hebi_zptr r, size_t n)
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
 #endif
 
-	cb = hebi_alloc_query(&id, hebi_zallocator(r));
+	fp = hebi_alloc_query(&id, hebi_zallocator(r));
 
 	p = NULL;
 	if (LIKELY(nbytes))
-		p = hebi_alloc_cb(cb, HEBI_PACKET_ALIGNMENT, nbytes);
+		p = hebi_allocfp(fp, HEBI_PACKET_ALIGNMENT, nbytes);
 
-	hebi_free_cb(cb, r->hz_packs, r->hz_resv * sizeof(hebi_packet));
+	hebi_freefp(fp, r->hz_packs, r->hz_resv * sizeof(hebi_packet));
 
 	r->hz_packs = p;
 	r->hz_resv = n;

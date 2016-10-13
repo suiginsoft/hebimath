@@ -6,4 +6,4 @@
 #include "../internal.h"
 
 extern HEBI_API
-void hebi_free(hebi_alloc_id, void *, size_t);
+void hebi_free(hebi_allocid, void *, size_t);

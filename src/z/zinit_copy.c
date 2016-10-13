@@ -9,18 +9,18 @@ HEBI_API
 void
 hebi_zinit_copy(hebi_zptr restrict r, hebi_zsrcptr restrict a)
 {
-	const struct hebi_alloc_callbacks* cb;
-	hebi_alloc_id id;
+	const struct hebi_allocfnptrs* fp;
+	hebi_allocid id;
 	hebi_packet *p;
 	size_t n, nbytes;
 
-	cb = hebi_alloc_query(&id, HEBI_ALLOC_DEFAULT);
+	fp = hebi_alloc_query(&id, HEBI_ALLOC_DEFAULT);
 	n = a->hz_used;
 	p = NULL;
 
 	if (LIKELY(n)) {
 		nbytes = n * sizeof(hebi_packet);
-		p = hebi_alloc_cb(cb, HEBI_PACKET_ALIGNMENT, nbytes);
+		p = hebi_allocfp(fp, HEBI_PACKET_ALIGNMENT, nbytes);
 		hebi_pcopy(p, a->hz_packs, n);
 	}
 

@@ -6,4 +6,4 @@
 #include "../../internal.h"
 
 extern HEBI_API
-hebi_alloc_id hebi_zallocator(hebi_zsrcptr);
+hebi_allocid hebi_zallocator(hebi_zsrcptr);

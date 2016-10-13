@@ -5,10 +5,10 @@
 
 #include "../internal.h"
 
-static hebi_alloc_id
-setallocidx(struct hebi_context *ctx, hebi_alloc_id id, int index)
+static hebi_allocid
+setallocidx(struct hebi_context *ctx, hebi_allocid id, int index)
 {
-	hebi_alloc_id rid;
+	hebi_allocid rid;
 	int key;
 	
 	key = (int)(intptr_t)id;
@@ -29,18 +29,18 @@ setallocidx(struct hebi_context *ctx, hebi_alloc_id id, int index)
 }
 
 HEBI_API
-hebi_alloc_id
-hebi_alloc_set_default(hebi_alloc_id id)
+hebi_allocid
+hebi_alloc_set_default(hebi_allocid id)
 {
 	return setallocidx(hebi_context_get(), id, 0);
 }
 
 HEBI_API
-hebi_alloc_id
-hebi_alloc_set_scratch(hebi_alloc_id id)
+hebi_allocid
+hebi_alloc_set_scratch(hebi_allocid id)
 {
 	struct hebi_context *ctx;
-	hebi_alloc_id rid;
+	hebi_allocid rid;
 
 	ctx = hebi_context_get();
 	rid = setallocidx(ctx, id, 1);

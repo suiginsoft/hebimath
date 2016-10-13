@@ -9,12 +9,12 @@ HEBI_API
 void
 hebi_zrealloc(hebi_zptr r, size_t n)
 {
-	hebi_alloc_id id;
-	const struct hebi_alloc_callbacks *cb;
+	hebi_allocid id;
+	const struct hebi_allocfnptrs *fp;
 	hebi_packet *p, *old_p;
 	size_t u, nbytes;
 
-	cb = hebi_alloc_query(&id, hebi_zallocator(r));
+	fp = hebi_alloc_query(&id, hebi_zallocator(r));
 
 	nbytes = n * sizeof(hebi_packet);
 #ifdef USE_VALIDATION
@@ -24,13 +24,13 @@ hebi_zrealloc(hebi_zptr r, size_t n)
 
 	p = NULL;
 	if (LIKELY(nbytes))
-		p = hebi_alloc_cb(cb, HEBI_PACKET_ALIGNMENT, nbytes);
+		p = hebi_allocfp(fp, HEBI_PACKET_ALIGNMENT, nbytes);
 
 	old_p = r->hz_packs;
 	if ((u = MIN(n, hebi_zused(r))))
 		hebi_pcopy(p, old_p, u);
 
-	hebi_free_cb(cb, old_p, r->hz_resv * sizeof(hebi_packet));
+	hebi_freefp(fp, old_p, r->hz_resv * sizeof(hebi_packet));
 
 	r->hz_packs = p;
 	r->hz_resv = n;

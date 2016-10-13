@@ -1,15 +1,25 @@
+Low-level Functions:
+
+* add/sub variants for inplace operations and same-sized inputs
+* port remainder of division implementation to x86-64 assembly
+
 Integer Functions:
 
 * zpopcount
 * zhamdist
 * zscan0
 * zscan1
-* ztrunc
+* zgetstrlen/zsizeinbase
+* zgcd
+* zpowu
+
+Optimize:
 * zand
 * zor
 * zxor
 * znot
-* zgetstrlen/zsizeinbase
+* ztrunc
+* pandmsk__
 
 Other:
 
@@ -22,4 +32,3 @@ Other:
 * optimize kernel functions for input constraints (non-zero sizes)
 * optimize use of ptest/vptest instruction by speculatively executing
   instructions in between test and branch
-* shorten hebi_alloc_*** struct/typedef names, get rid of underscore

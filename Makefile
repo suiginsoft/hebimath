@@ -58,9 +58,9 @@ PDRIVERMVFUNCS_dynamic := $(PDRIVERMVFUNCS:%=dynamic/%)
 
 PFUNCTIONS := \
 	palloc \
-	palloc_cb \
+	pallocfp \
 	pfree \
-	pfree_cb \
+	pfreefp \
 	pmul_karatsuba \
 	pmul_karatsuba_space \
 	pdivrem \
@@ -161,9 +161,9 @@ FUNCTIONS := \
 	error_last \
 	error_raise \
 	alloc \
-	alloc_cb \
+	allocfp \
 	free \
-	free_cb
+	freefp
 
 MODULES_dynamic := hwcaps
 

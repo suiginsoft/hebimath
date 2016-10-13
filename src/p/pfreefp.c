@@ -3,7 +3,8 @@
  * See LICENSE file for copyright and license details
  */
 
-#include "../internal.h"
+#include "pcommon.h"
 
 extern HEBI_API
-void hebi_free_cb(const struct hebi_alloc_callbacks *, void *, size_t);
+void
+hebi_pfreefp(const struct hebi_allocfnptrs *, hebi_packet *, size_t);

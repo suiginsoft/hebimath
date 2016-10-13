@@ -322,7 +322,7 @@ struct hebi_context {
 	struct hebi_error errlast;
 
 	/* current default & scratch allocator handles for thread */
-	hebi_alloc_id allocids[2];
+	hebi_allocid allocids[2];
 
 	/* pointer to active scratch/temporary memory */
 	size_t scratchsize;
@@ -343,7 +343,7 @@ struct hebi_context {
 	 */
 	unsigned int allocused;
 	int allockeys[ALLOC_CACHE_MAX_SIZE];
-	const struct hebi_alloc_callbacks *allocvalues[ALLOC_CACHE_MAX_SIZE];
+	const struct hebi_allocfnptrs *allocvalues[ALLOC_CACHE_MAX_SIZE];
 
 #endif /* USE_THREADS */
 };
@@ -625,11 +625,11 @@ void *
 hebi_scratch__(size_t n)
 {
 	struct hebi_context *ctx = hebi_context_get();
-	const struct hebi_alloc_callbacks *cb;
+	const struct hebi_allocfnptrs *fp;
 	if (ctx->scratchsize < n) {
-		cb = hebi_alloc_query(NULL, ctx->allocids[1]);
-		hebi_free_cb(cb, ctx->scratch, ctx->scratchsize);
-		ctx->scratch = hebi_alloc_cb(cb, HEBI_PACKET_ALIGNMENT, n);
+		fp = hebi_alloc_query(NULL, ctx->allocids[1]);
+		hebi_freefp(fp, ctx->scratch, ctx->scratchsize);
+		ctx->scratch = hebi_allocfp(fp, HEBI_PACKET_ALIGNMENT, n);
 		ctx->scratchsize = n;
 	}
 	return ctx->scratch;
@@ -647,7 +647,7 @@ hebi_pscratch__(size_t n)
 
 static inline HEBI_ALWAYSINLINE
 void
-hebi_zinit_push__(hebi_zptr r, hebi_alloc_id id)
+hebi_zinit_push__(hebi_zptr r, hebi_allocid id)
 {
 	struct hebi_context *ctx = hebi_context_get();
 	if (UNLIKELY(ctx->zstackused >= ZSTACK_MAX_SIZE))

@@ -5,11 +5,11 @@
 
 #include "../internal.h"
 
-static hebi_alloc_id
+static hebi_allocid
 getallocidx(int index)
 {
 	struct hebi_context *ctx;
-	hebi_alloc_id rid;
+	hebi_allocid rid;
 	
 	ctx = hebi_context_get();
 	rid = ctx->allocids[index];
@@ -19,14 +19,14 @@ getallocidx(int index)
 }
 
 HEBI_API
-hebi_alloc_id
+hebi_allocid
 hebi_alloc_get_default(void)
 {
 	return getallocidx(0);
 }
 
 HEBI_API
-hebi_alloc_id
+hebi_allocid
 hebi_alloc_get_scratch(void)
 {
 	return getallocidx(1);
