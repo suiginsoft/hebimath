@@ -452,13 +452,13 @@ HEBI_API void hebi_zrand_kiss(hebi_zptr HEBI_RESTRICT, size_t, struct hebi_kiss 
 
 HEBI_INLINE
 void
-hebi_zinit_allocator(hebi_zptr r__, hebi_allocid id__)
+hebi_zinit_allocator(hebi_zptr r__, hebi_allocid i__)
 {
 	r__->hebi_packs__ = NULL;
 	r__->hebi_capacity__ = 0;
 	r__->hebi_used__ = 0;
 	r__->hebi_sign__ = 0;
-	r__->hebi_allocator__ = (int)(intptr_t)id__;
+	r__->hebi_allocator__ = (int)(intptr_t)i__;
 }
 
 HEBI_INLINE
