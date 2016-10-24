@@ -12,15 +12,18 @@ hebi_pnorm(const hebi_packet *a, size_t n)
 	const LIMB *al;
 	size_t i, r;
 
+	ASSERT(n > 0);
+
 	al = LIMB_PTR(a);
+	i = n * LIMB_PER_PACKET - 1;
 	r = 0;
 
-	for (i = n * LIMB_PER_PACKET; i--; ) {
+	do {
 		if (al[i]) {
 			r = (i + LIMB_PER_PACKET) / LIMB_PER_PACKET;
 			break;
 		}
-	}
+	} while (i--);
 
 	return r;
 }

@@ -110,5 +110,8 @@ hebi_pdivrem(
 	if (rn)
 		*rn = n;
 
+	if (UNLIKELY(!m))
+		return 0;
+
 	return hebi_pnorm(q, m);
 }

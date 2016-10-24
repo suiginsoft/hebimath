@@ -22,6 +22,7 @@ bench/p/pzero
 check/libcheck.a
 check/p/pcmp
 check/p/pcopy
+check/p/pmove
 check/p/pnorm
 check/p/pzero
 check/z/zadd
