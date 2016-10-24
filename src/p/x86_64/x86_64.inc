@@ -15,13 +15,13 @@
 .macro FUNC_END_IMPL__
 .size hebi_\Name, .-hebi_\Name
 .endm
-.text
-.p2align 4,,15
-.global hebi_\Name
+    .text
+    .p2align 4,,15
+    .global hebi_\Name
 .ifc \Scope,@private
-.hidden hebi_\Name
+    .hidden hebi_\Name
 .endif
-.type hebi_\Name, @function
+    .type hebi_\Name, @function
 hebi_\Name\():
 .endm
 
@@ -68,15 +68,15 @@ FUNC_END_IMPL__
 
 .macro MVFUNC_BEGIN Name:req, Version:req, Scope=@public, Access=@opaque
 .macro MVFUNC_END_IMPL__
-.size hebi_\Name\()_\Version\()__, .-hebi_\Name\()_\Version\()__
+    .size hebi_\Name\()_\Version\()__, .-hebi_\Name\()_\Version\()__
 .endm
-.text
-.p2align 4,,15
+    .text
+    .p2align 4,,15
 .ifc \Access,@explicit
-.global hebi_\Name\()_\Version\()__
-.hidden hebi_\Name\()_\Version\()__
+    .global hebi_\Name\()_\Version\()__
+    .hidden hebi_\Name\()_\Version\()__
 .endif
-.type hebi_\Name\()_\Version\()__, @function
+    .type hebi_\Name\()_\Version\()__, @function
 hebi_\Name\()_\Version\()__:
 .endm
 
@@ -88,18 +88,17 @@ MVFUNC_END_IMPL__
 .if USE_PIC
 
 .macro MVFUNC_DISPATCH_PTR Name:req, DefaultVersion:req
-.text
-.section .data.rel.local,"aw",@progbits
-.p2align 3,,7
-.global hebi_\Name\()_ptr__
-.type hebi_\Name\()_ptr__, @object
-.size hebi_\Name\()_ptr__, 8
+    .section .data.rel.local,"aw",@progbits
+    .p2align 3,,7
+    .global hebi_\Name\()_ptr__
+    .type hebi_\Name\()_ptr__, @object
+    .size hebi_\Name\()_ptr__, 8
 hebi_\Name\()_ptr__:
-.quad hebi_\Name\()_\DefaultVersion\()__
+    .quad hebi_\Name\()_\DefaultVersion\()__
 .endm
 
 .macro MVFUNC_DISPATCH_FINALIZE_IMPL__ Name:req
-.p2align 4,,7
+    .p2align 4,,7
 .L\Name\()_dispatch_finalize__:
     mov     hebi_\Name\()_ptr__@GOTPCREL(%rip), %r11
     test    %r10, %r10
@@ -125,17 +124,17 @@ hebi_\Name\()_ptr__:
 .else # USE_PIC
 
 .macro MVFUNC_DISPATCH_PTR Name:req, DefaultVersion:req
-.data
-.p2align 3,,7
-.global hebi_\Name\()_ptr__
-.type hebi_\Name\()_ptr__, @object
-.size hebi_\Name\()_ptr__, 8
+    .data
+    .p2align 3,,7
+    .global hebi_\Name\()_ptr__
+    .type hebi_\Name\()_ptr__, @object
+    .size hebi_\Name\()_ptr__, 8
 hebi_\Name\()_ptr__:
-.quad hebi_\Name\()_\DefaultVersion\()__
+    .quad hebi_\Name\()_\DefaultVersion\()__
 .endm
 
 .macro MVFUNC_DISPATCH_FINALIZE_IMPL__ Name:req
-.p2align 4,,7
+    .p2align 4,,7
 .L\Name\()_dispatch_finalize__:
     test    %r10, %r10
     jz      .L\Name\()_dispatch_fatal__
@@ -164,12 +163,12 @@ hebi_\Name\()_ptr__:
 .endm
 .macro MVFUNC_DISPATCH_END_IMPL__
 MVFUNC_DISPATCH_FINALIZE_IMPL__ \Name
-.size hebi_\Name\()_dispatch__, .-hebi_\Name\()_dispatch__
+    .size hebi_\Name\()_dispatch__, .-hebi_\Name\()_dispatch__
 MVFUNC_DISPATCH_PTR \Name, dispatch
 .endm
-.text
-.p2align 4,,15
-.type hebi_\Name\()_dispatch__, @function
+    .text
+    .p2align 4,,15
+    .type hebi_\Name\()_dispatch__, @function
 hebi_\Name\()_dispatch__:
 .endm
 
@@ -192,33 +191,33 @@ MVFUNC_DISPATCH_END_IMPL__
 
 .macro MVFUNC_BEGIN_OPAQUE__ Name:req, Scope:req
 .macro MVFUNC_END_IMPL__
-.size \Name, .-\Name
+    .size \Name, .-\Name
 .endm
-.text
-.p2align 4,,15
-.global \Name
+    .text
+    .p2align 4,,15
+    .global \Name
 .ifc \Scope,@private
-.hidden \Name
+    .hidden \Name
 .endif
-.type \Name, @function
+    .type \Name, @function
 \Name\():
 .endm
 
 .macro MVFUNC_BEGIN_EXPLICIT__ Name:req, ExplicitName:req, Scope:req
 .macro MVFUNC_END_IMPL__
-.size \Name, .-\Name
-.size \ExplicitName, .-\ExplicitName
+    .size \Name, .-\Name
+    .size \ExplicitName, .-\ExplicitName
 .endm
-.text
-.p2align 4,,15
-.global \Name
+    .text
+    .p2align 4,,15
+    .global \Name
 .ifc \Scope,@private
-.hidden \Name
+    .hidden \Name
 .endif
-.global \ExplicitName
-.hidden \ExplicitName
-.type \Name, @function
-.type \ExplicitName, @function
+    .global \ExplicitName
+    .hidden \ExplicitName
+    .type \Name, @function
+    .type \ExplicitName, @function
 \Name\():
 \ExplicitName\():
 .endm

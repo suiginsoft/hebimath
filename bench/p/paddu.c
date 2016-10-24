@@ -11,7 +11,7 @@ static const uint64_t b = 42571;
 int
 main(int argc, char *argv[])
 {
-	bench_args p = { .iter = 5000, .an = 32768 };
+	bench_args p = { .iter = 5000, .an = 65536 };
 	hebi_packet *a, *r;
 	int i;
 

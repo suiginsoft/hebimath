@@ -208,27 +208,10 @@ struct hebi_kiss {
 	UINT64_C(123456789987654321), \
 	0, 1, { UINT64_C(4261283300534326642) } }
 
-#if SIZE_MAX >= UINT64_MAX || defined __LP64__ || defined __ILP32__
-#define HEBI_PACKET_ALIGNMENT 32
-#define HEBI_PACKET_BIT 256
-#define HEBI_PACKET_LIMBS32 8
-#define HEBI_PACKET_LIMBS64 4
->>> simd_on
-#ifdef HEBI_SIMD
-#define HEBI_PACKET_VECTORS 2
-#endif
-<<< simd_on
-#else
 #define HEBI_PACKET_ALIGNMENT 16
 #define HEBI_PACKET_BIT 128
 #define HEBI_PACKET_LIMBS32 4
 #define HEBI_PACKET_LIMBS64 2
->>> simd_on
-#ifdef HEBI_SIMD
-#define HEBI_PACKET_VECTORS 1
-#endif
-<<< simd_on
-#endif
 
 typedef union hebi_packet {
 	HEBI_ALIGNAS(HEBI_PACKET_ALIGNMENT)
@@ -236,14 +219,14 @@ typedef union hebi_packet {
 	uint64_t hp_limbs64[HEBI_PACKET_LIMBS64];
 >>> simd_on
 #ifdef HEBI_SIMD
-	hebi_v2di hp_v2di[HEBI_PACKET_VECTORS];
-	hebi_v2du hp_v2du[HEBI_PACKET_VECTORS];
-	hebi_v4si hp_v4si[HEBI_PACKET_VECTORS];
-	hebi_v4su hp_v4su[HEBI_PACKET_VECTORS];
-	hebi_v8hi hp_v8hi[HEBI_PACKET_VECTORS];
-	hebi_v8hu hp_v8hu[HEBI_PACKET_VECTORS];
-	hebi_v16qi hp_v16qi[HEBI_PACKET_VECTORS];
-	hebi_v16qu hp_v16qu[HEBI_PACKET_VECTORS];
+	hebi_v2di hp_v2di;
+	hebi_v2du hp_v2du;
+	hebi_v4si hp_v4si;
+	hebi_v4su hp_v4su;
+	hebi_v8hi hp_v8hi;
+	hebi_v8hu hp_v8hu;
+	hebi_v16qi hp_v16qi;
+	hebi_v16qu hp_v16qu;
 #endif
 <<< simd_on
 } hebi_packet;
@@ -304,16 +287,11 @@ hebi_psetu(hebi_packet *r__, uint64_t a__)
 {
 >>> simd_on
 #ifdef HEBI_SIMD
-	r__->hp_v2du[0] = __extension__ (hebi_v2du){ a__, 0 };
-#if HEBI_PACKET_VECTORS == 2
-	r__->hp_v2du[1] = __extension__ (hebi_v2du){ 0, 0 };
-#endif
+	r__->hp_v2du = __extension__ (hebi_v2du){ a__, 0 };
 #else
 <<< simd_on
-	int i__;
 	r__->hp_limbs64[0] = a__;
-	for (i__ = 1; i__ < HEBI_PACKET_LIMBS64; i__++)
-		r__->hp_limbs64[i__] = 0;
+	r__->hp_limbs64[1] = 0;
 >>> simd_on
 #endif
 <<< simd_on
@@ -325,19 +303,11 @@ hebi_psetu2(hebi_packet *r__, uint64_t a__, uint64_t b__)
 {
 >>> simd_on
 #ifdef HEBI_SIMD
-	r__->hp_v2du[0] = __extension__ (hebi_v2du){ a__, b__ };
-#if HEBI_PACKET_VECTORS == 2
-	r__->hp_v2du[1] = __extension__ (hebi_v2du){ 0, 0 };
-#endif
+	r__->hp_v2du = __extension__ (hebi_v2du){ a__, b__ };
 #else
 <<< simd_on
-	int i__;
 	r__->hp_limbs64[0] = a__;
 	r__->hp_limbs64[1] = b__;
-#if HEBI_PACKET_LIMBS64 > 2
-	for (i__ = 2; i__ < HEBI_PACKET_LIMBS64; i__++)
-		r__->hp_limbs64[i__] = 0;
-#endif
 >>> simd_on
 #endif
 <<< simd_on
@@ -349,15 +319,11 @@ hebi_psetzero(hebi_packet *r__)
 {
 >>> simd_on
 #ifdef HEBI_SIMD
-	r__->hp_v2du[0] = __extension__ (hebi_v2du){ 0, 0 };
-#if HEBI_PACKET_VECTORS == 2
-	r__->hp_v2du[1] = __extension__ (hebi_v2du){ 0, 0 };
-#endif
+	r__->hp_v2du = __extension__ (hebi_v2du){ 0, 0 };
 #else
 <<< simd_on
-	int i__;
-	for (i__ = 0; i__ < HEBI_PACKET_LIMBS64; i__++)
-		r__->hp_limbs64[i__] = 0;
+	r__->hp_limbs64[0] = 0;
+	r__->hp_limbs64[1] = 0;
 >>> simd_on
 #endif
 <<< simd_on

@@ -10,34 +10,113 @@
 .if HWCAP_AVX && HWCAP_LZCNT
 MVFUNC_BEGIN pclz, avx_lzcnt
 
-    shl         $5, %rsi
-    vpcmpeqd    %xmm4, %xmm4, %xmm4
-    mov         %rsi, %rcx
-
-    .p2align 4,,15
-1:  vmovdqa     -16(%rdi,%rsi), %xmm0
-    vmovdqa     -32(%rdi,%rsi), %xmm1
-    vptest      %xmm4, %xmm0
-    vpextrq     $1, %xmm0, %rax
-    jnz         3f
-    vptest      %xmm4, %xmm1
-    vpextrq     $1, %xmm1, %rax
-    jnz         2f
-    sub         $32, %rsi
-    jnz         1b
-    lea         (,%rcx,8), %rax
+    mov         %rsi, %rdx
+    cmp         $1, %rsi
+    ja          3f
+    xor         %eax, %eax
+1:  lzcnt       (%rdi), %rcx
+    lzcnt       8(%rdi), %rdx
+    mov         $0, %esi
+    sbb         $0, %rsi
+    add         %rdx, %rax
+    and         %rsi, %rcx
+    add         %rcx, %rax
     ret
 
+    .p2align 4,,7
+2:  vpextrq     $1, %xmm0, %rdx
+    lzcnt       %rcx, %rcx
+    lzcnt       %rdx, %rdx
+    mov         $0, %esi
+    sbb         $0, %rsi
+    add         %rdx, %rax
+    and         %rsi, %rcx
+    add         %rcx, %rax
+    ret
+
+    .p2align 4,,7
+3:  shl         $4, %rsi
+    lea         -16(%rdi,%rsi), %rdi
+    mov         $-128, %rax
+    vpcmpeqd    %xmm1, %xmm1, %xmm1
+    shr         $5, %rsi
+
     .p2align 4,,15
-2:  vmovdqa     %xmm1, %xmm0
-    sub         $16, %rsi
-3:  test        %rax, %rax
-    jnz         4f
-    vmovq       %xmm0, %rax
-    sub         $8, %rsi
-4:  lzcnt       %rax, %rax
-    sub         %rsi, %rcx
-    lea         (%rax,%rcx,8), %rax
+4:  vmovdqa     (%rdi), %xmm0
+    add         $128, %rax
+    vptest      %xmm1, %xmm0
+    vmovq       %xmm0, %rcx
+    jnz         2b
+    vmovdqa     -16(%rdi), %xmm0
+    add         $128, %rax
+    vptest      %xmm1, %xmm0
+    vmovq       %xmm0, %rcx
+    jnz         2b
+    sub         $32, %rdi
+    dec         %rsi
+    jnz         4b
+    add         $128, %rax
+    test        $1, %dl
+    jnz         1b
+    ret
+
+MVFUNC_END
+.endif
+
+#------------------------------------------------------------------------------
+
+.if HWCAP_AVX
+MVFUNC_BEGIN pclz, avx
+
+    mov         %rsi, %rdx
+    cmp         $1, %rsi
+    ja          5f
+    xor         %eax, %eax
+1:  mov         8(%rdi), %rcx
+    mov         (%rdi), %rdx
+    jmp         4f
+
+    .p2align 4,,7
+2:  bsr         %rcx, %rcx
+    xor         $63, %rcx
+    add         %rcx, %rax
+    ret
+
+    .p2align 4,,7
+3:  vmovq       %xmm0, %rdx
+4:  test        %rcx, %rcx
+    jnz         2b
+    mov         %rdx, %rcx
+    add         $64, %rax
+    test        %rdx, %rdx
+    jnz         2b
+    add         $64, %rax
+    ret
+
+    .p2align 4,,7
+5:  shl         $4, %rsi
+    lea         -16(%rdi,%rsi), %rdi
+    mov         $-128, %rax
+    vpcmpeqd    %xmm1, %xmm1, %xmm1
+    shr         $5, %rsi
+
+    .p2align 4,,15
+6:  vmovdqa     (%rdi), %xmm0
+    add         $128, %rax
+    vptest      %xmm1, %xmm0
+    vpextrq     $1, %xmm0, %rcx
+    jnz         3b
+    vmovdqa     -16(%rdi), %xmm0
+    add         $128, %rax
+    vptest      %xmm1, %xmm0
+    vpextrq     $1, %xmm0, %rcx
+    jnz         3b
+    sub         $32, %rdi
+    dec         %rsi
+    jnz         6b
+    add         $128, %rax
+    test        $1, %dl
+    jnz         1b
     ret
 
 MVFUNC_END
@@ -48,35 +127,55 @@ MVFUNC_END
 .if HWCAP_SSE41
 MVFUNC_BEGIN pclz, sse41
 
-    shl         $5, %rsi
-    pcmpeqd     %xmm4, %xmm4
-    mov         %rsi, %rcx
+    mov         %rsi, %rdx
+    cmp         $1, %rsi
+    ja          5f
+    xor         %eax, %eax
+1:  mov         8(%rdi), %rcx
+    mov         (%rdi), %rdx
+    jmp         4f
 
-    .p2align 4,,15
-1:  movdqa      -16(%rdi,%rsi), %xmm0
-    movdqa      -32(%rdi,%rsi), %xmm1
-    ptest       %xmm4, %xmm0
-    pextrq      $1, %xmm0, %rax
-    jnz         3f
-    ptest       %xmm4, %xmm1
-    pextrq      $1, %xmm1, %rax
-    jnz         2f
-    sub         $32, %rsi
-    jnz         1b
-    lea         (,%rcx,8), %rax
+    .p2align 4,,7
+2:  bsr         %rcx, %rcx
+    xor         $63, %rcx
+    add         %rcx, %rax
     ret
 
+    .p2align 4,,7
+3:  movq        %xmm0, %rdx
+4:  test        %rcx, %rcx
+    jnz         2b
+    mov         %rdx, %rcx
+    add         $64, %rax
+    test        %rdx, %rdx
+    jnz         2b
+    add         $64, %rax
+    ret
+
+    .p2align 4,,7
+5:  shl         $4, %rsi
+    lea         -16(%rdi,%rsi), %rdi
+    mov         $-128, %rax
+    pcmpeqd     %xmm1, %xmm1
+    shr         $5, %rsi
+
     .p2align 4,,15
-2:  movdqa      %xmm1, %xmm0
-    sub         $16, %rsi
-3:  test        %rax, %rax
-    jnz         4f
-    movq        %xmm0, %rax
-    sub         $8, %rsi
-4:  bsr         %rax, %rax
-    sub         %rsi, %rcx
-    xor         $63, %rax
-    lea         (%rax,%rcx,8), %rax
+6:  movdqa      (%rdi), %xmm0
+    add         $128, %rax
+    ptest       %xmm1, %xmm0
+    pextrq      $1, %xmm0, %rcx
+    jnz         3b
+    movdqa      -16(%rdi), %xmm0
+    add         $128, %rax
+    ptest       %xmm1, %xmm0
+    pextrq      $1, %xmm0, %rcx
+    jnz         3b
+    sub         $32, %rdi
+    dec         %rsi
+    jnz         6b
+    add         $128, %rax
+    test        $1, %dl
+    jnz         1b
     ret
 
 MVFUNC_END
@@ -87,41 +186,54 @@ MVFUNC_END
 .if HWCAP_SSE2
 MVFUNC_BEGIN pclz, sse2
 
-    shl         $5, %rsi
-    pxor        %xmm4, %xmm4
-    mov         %rsi, %rcx
+    cmp         $1, %rsi
+    ja          6f
+    xor         %eax, %eax
+1:  mov         8(%rdi), %rcx
+    mov         (%rdi), %rdx
+    jmp         3f
 
-    .p2align 4,,15
-1:  movdqa      -16(%rdi,%rsi), %xmm0
-    movdqa      -32(%rdi,%rsi), %xmm1
-    movdqa      %xmm0, %xmm2
-    movdqa      %xmm1, %xmm3
-    pcmpeqd     %xmm4, %xmm2
-    pcmpeqd     %xmm4, %xmm3
-    pmovmskb    %xmm2, %eax
-    pmovmskb    %xmm3, %edx
-    cmp         $0xFFFF, %eax
-    jne         3f
-    cmp         $0xFFFF, %edx
-    jne         2f
-    sub         $32, %rsi
-    jnz         1b
-    lea         (,%rcx,8), %rax
+    .p2align 4,,7
+2:  bsr         %rcx, %rcx
+    xor         $63, %rcx
+    add         %rcx, %rax
+    ret
+3:  test        %rcx, %rcx
+    jnz         5b
+    mov         %rdx, %rcx
+    add         $64, %rax
+    test        %rdx, %rdx
+    jnz         5b
+    add         $64, %rax
     ret
 
-    .p2align 4,,15
-2:  movdqa      %xmm1, %xmm0
-    mov         %edx, %eax
-    sub         $16, %rsi
-3:  cmp         $0xFF, %ah
-    je          4f
+    .p2align 4,,7
+4:  cmp         $0xFF, %ch
+    je          5f
     punpckhqdq  %xmm0, %xmm0
-    add         $8, %rsi
-4:  movq        %xmm0, %rax
-    bsr         %rax, %rax
-    sub         %rsi, %rcx
-    xor         $63, %rax
-    lea         64(%rax,%rcx,8), %rax
+    add         $64, %rax
+5:  movq        %xmm0, %rcx
+    jmp         2b
+
+    .p2align 4,,7
+6:  shl         $4, %rsi
+    lea         -16(%rdi,%rsi), %rdi
+    mov         $-128, %rax
+    pxor        %xmm1, %xmm1
+    shr         $4, %rsi
+
+    .p2align 4,,15
+7:  movdqa      (%rdi), %xmm0
+    add         $128, %rax
+    pcmpeqd     %xmm0, %xmm1
+    pmovmskb    %xmm1, %ecx
+    pxor        %xmm1, %xmm1
+    cmp         $0xFFFF, %ecx
+    jne         4b
+    sub         $16, %rdi
+    dec         %rsi
+    jnz         7b
+    add         $128, %rax
     ret
 
 MVFUNC_END
@@ -151,14 +263,22 @@ MVFUNC_DISPATCH_BEGIN pclz
 .endif
 
 1:
-.if HWCAP_SSE41
-    test        $hebi_hwcap_sse41, %eax
+.if HWCAP_AVX
+    test        $hebi_hwcap_avx, %eax
     jz          2f
-    lea         hebi_pclz_sse41__(%rip), %r10
+    lea         hebi_pclz_avx__(%rip), %r10
     BREAK
 .endif
 
 2:
+.if HWCAP_SSE41
+    test        $hebi_hwcap_sse41, %eax
+    jz          3f
+    lea         hebi_pclz_sse41__(%rip), %r10
+    BREAK
+.endif
+
+3:
 .if HWCAP_SSE2
     test        $hebi_hwcap_sse2, %eax
     BREAKZ

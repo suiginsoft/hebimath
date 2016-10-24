@@ -497,113 +497,6 @@ hebi_ctz64__(uint64_t x)
 #endif
 }
 
-/* compare single packet 'a' against UINT_64MAX */
-static inline HEBI_ALWAYSINLINE
-int
-hebi_pcmpgtui64max__(const hebi_packet *a)
-{
-#if defined HEBI_SIMD && defined __SSE2__
-
-	hebi_v4si x;
-	int c;
-
-#if !defined __SSE4_1__ || HEBI_PACKET_VECTORS == 1
-	hebi_v4si z = EXTENSION (hebi_v4si) { 0, 0, 0, 0 };
-#endif
-
-#if HEBI_PACKET_VECTORS == 2
-
-	hebi_v4si m = EXTENSION (hebi_v4si) { 0, 0, UINT32_MAX, UINT32_MAX };
-	x = a->hp_v4si[0];
-	x = x & m;
-	x = x | a->hp_v4si[1];
-
-#ifdef __SSE4_1__
-	c = __builtin_ia32_ptestz128((hebi_v2di)x, (hebi_v2di)x);
-	return !c;
-#else
-	x = x == z;
-	c = __builtin_ia32_pmovmskb128((hebi_v16qi)x);
-	return c != 0xFFFF;
-#endif
-
-#else /* HEBI_PACKET_VECTORS == 2 */
-
-	x = a->hp_v4si[0];
-	x = x == z;
-	c = __builtin_ia32_pmovmskb128((hebi_v16qi)x);
-	return (c & 0xFF00) != 0xFF00;
-
-#endif
-
-#else /* HEBI_SIMD */
-
-	int i;
-
-	for (i = 1; i < HEBI_PACKET_LIMBS64; i++)
-		if (a->hp_limbs64[i])
-			return 1;
-
-	return 0;
-
-#endif /* HEBI_SIMD */
-}
-
-/* convert single packet to unsigned 64-bit integer with saturation */
-static inline HEBI_ALWAYSINLINE
-uint64_t
-hebi_pgetsu__(const hebi_packet *a)
-{
-#if defined HEBI_SIMD && defined __SSE2__
-
-#ifdef __SSE4_1__
-
-	hebi_v2di x, y, z, m;
-	x = a->hp_v2di[0];
-	m = EXTENSION (hebi_v2di) { 0, UINT64_MAX };
-	z = EXTENSION (hebi_v2di) { 0, 0 };
-	y = x & m;
-#if HEBI_PACKET_VECTORS == 2
-	y = y | a->hp_v2di[1];
-#endif
-	z = ~(z == y);
-	y = SHUFFLE2(z, z, 1, 1);
-
-#else
-
-	hebi_v4si x, y, z, m;
-	x = a->hp_v4si[0];
-	m = EXTENSION (hebi_v4si) { 0, 0, UINT32_MAX, UINT32_MAX };
-	z = EXTENSION (hebi_v4si) { 0, 0, 0, 0 };
-	y = x & m;
-#if HEBI_PACKET_VECTORS == 2
-	y = y | a->hp_v4si[1];
-#endif
-	z = ~(z == y);
-	y = SHUFFLE4(z, z, 2, 3, 2, 3);
-	y = y | z;
-	z = SHUFFLE4(y, y, 1, 0, 2, 3);
-
-#endif
-
-	y = y | z;
-	x = x | y;
-
-	return ((hebi_v2du)x)[0];
-
-#else /* HEBI_SIMD */
-
-	int i;
-
-	for (i = 1; i < HEBI_PACKET_LIMBS64; i++)
-		if (a->hp_limbs64[i])
-			return UINT64_MAX;
-
-	return a->hp_limbs64[0];
-
-#endif /* HEBI_SIMD */
-}
-
 static inline HEBI_ALWAYSINLINE
 void
 hebi_pandmsk__(hebi_packet *a, int bits)
@@ -612,12 +505,18 @@ hebi_pandmsk__(hebi_packet *a, int bits)
 
 	ASSERT(0 < bits && bits < HEBI_PACKET_BIT);
 
-	b = HEBI_PACKET_BIT - bits;
-	for (i = HEBI_PACKET_LIMBS64 - 1; b >= 64; b -= 64, i--)
-		a->hp_limbs64[i] = 0;
-
-	if (LIKELY(b))
+	if (LIKELY(bits)) {
+		b = HEBI_PACKET_BIT - bits;
+		i = 1;
+		if (b >= 64) {
+			b -= 64;
+			a->hp_limbs64[i--] = 0;
+		}
 		a->hp_limbs64[i] &= (UINT64_C(1) << (64 - b)) - 1;
+	} else {
+		a->hp_limbs64[0] = 0;
+		a->hp_limbs64[1] = 1;
+	}
 }
 
 static inline HEBI_ALWAYSINLINE HEBI_ALLOC HEBI_WARNUNUSED

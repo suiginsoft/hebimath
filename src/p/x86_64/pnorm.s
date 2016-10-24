@@ -1,7 +1,8 @@
 # hebimath - arbitrary precision arithmetic library
 # See LICENSE file for copyright and license details
 
-# size_t hebi_pnorm(const hebi_packet *r, size_t n);
+# size_t
+# hebi_pnorm(const hebi_packet *r, size_t n);
 
 .include "src/p/x86_64/x86_64.inc"
 
@@ -10,50 +11,55 @@
 .if HWCAP_AVX
 MVFUNC_BEGIN pnorm, avx
 
-    mov         %rsi, %rax
     mov         %rsi, %rcx
-    shl         $5, %rsi
-    and         $3, %rax
+    cmp         $1, %rsi
+    ja          2f
+1:  vmovdqa     (%rdi), %xmm0
+    vptest      %xmm0, %xmm0
+    mov         $0, %eax
+    setnz       %al
+    ret
+2:  shl         $4, %rsi
+    mov         %rcx, %rax
     lea         -16(%rdi,%rsi), %rdi
     shr         $2, %rcx
-    jz          3f
-
-    .p2align 4
-2:  vmovdqa     (%rdi), %xmm0
-    vpor        -16(%rdi), %xmm0, %xmm0
-    vmovdqa     -32(%rdi), %xmm1
-    vpor        -48(%rdi), %xmm1, %xmm1
-    vpor        %xmm0, %xmm1, %xmm1
+    jnz         4f
+3:  vmovdqa     (%rdi), %xmm0
+    vpor        -16(%rdi), %xmm0, %xmm1
     vptest      %xmm1, %xmm1
-    jnz         6f
-    vmovdqa     -64(%rdi), %xmm0
-    vpor        -80(%rdi), %xmm0, %xmm0
-    vmovdqa     -96(%rdi), %xmm1
-    vpor        -112(%rdi), %xmm1, %xmm1
-    vpor        %xmm0, %xmm1, %xmm1
-    vptest      %xmm1, %xmm1
-    jnz         7f
-    sub         $128, %rdi
-    dec         %rcx
-    jnz         2b
-
-3:  test        $3, %rax
-    jz          5f
-4:  vmovdqa     (%rdi), %xmm0
-    vpor        -16(%rdi), %xmm0, %xmm0
-    vptest      %xmm0, %xmm0
+    lea         -2(%rax), %rax
     jnz         5f
     sub         $32, %rdi
-    dec         %eax
-    jnz         4b
-5:  ret
+    test        $1, %al
+    jnz         1b
+    ret
 
-7:  sub         $2, %rax
-6:  lea         (%rax,%rcx,4), %rax
-    xor         %rcx, %rcx
-    vptest      %xmm0, %xmm0
-    setz        %cl
-    sub         %rcx, %rax
+    .p2align 4,,15
+4:  vmovdqa     (%rdi), %xmm0
+    vpor        -16(%rdi), %xmm0, %xmm1
+    vptest      %xmm1, %xmm1
+    lea         -2(%rax), %rax
+    jnz         5f
+    vmovdqa     -32(%rdi), %xmm0
+    vpor        -48(%rdi), %xmm0, %xmm1
+    vptest      %xmm1, %xmm1
+    lea         -2(%rax), %rax
+    jnz         5f
+    sub         $64, %rdi
+    dec         %rcx
+    jnz         4b
+    test        $2, %al
+    jnz         3b
+    test        $1, %al
+    jnz         1b
+    ret
+
+    .p2align 4,,7
+5:  vptest      %xmm0, %xmm0
+    mov         $0, %edx
+    lea         2(%rax), %rax
+    setz        %dl
+    sub         %rdx, %rax
     ret
 
 MVFUNC_END
@@ -64,50 +70,58 @@ MVFUNC_END
 .if HWCAP_SSE41
 MVFUNC_BEGIN pnorm, sse41
 
-    mov         %rsi, %rax
     mov         %rsi, %rcx
-    shl         $5, %rsi
-    and         $3, %rax
+    cmp         $1, %rsi
+    ja          2f
+1:  movdqa      (%rdi), %xmm0
+    ptest       %xmm0, %xmm0
+    mov         $0, %eax
+    setnz       %al
+    ret
+2:  shl         $4, %rsi
+    mov         %rcx, %rax
     lea         -16(%rdi,%rsi), %rdi
     shr         $2, %rcx
-    jz          3f
-
-    .p2align 4
-2:  movdqa      (%rdi), %xmm0
-    por         -16(%rdi), %xmm0
-    movdqa      -32(%rdi), %xmm1
-    por         -48(%rdi), %xmm1
+    jnz         4f
+3:  movdqa      (%rdi), %xmm0
+    movdqa      -16(%rdi), %xmm1
     por         %xmm0, %xmm1
     ptest       %xmm1, %xmm1
-    jnz         6f
-    movdqa      -64(%rdi), %xmm0
-    por         -80(%rdi), %xmm0
-    movdqa      -96(%rdi), %xmm1
-    por         -112(%rdi), %xmm1
-    por         %xmm0, %xmm1
-    ptest       %xmm1, %xmm1
-    jnz         7f
-    sub         $128, %rdi
-    dec         %rcx
-    jnz         2b
-
-3:  test        $3, %rax
-    jz          5f
-4:  movdqa      (%rdi), %xmm0
-    por         -16(%rdi), %xmm0
-    ptest       %xmm0, %xmm0
+    lea         -2(%rax), %rax
     jnz         5f
     sub         $32, %rdi
-    dec         %eax
-    jnz         4b
-5:  ret
+    test        $1, %al
+    jnz         1b
+    ret
 
-7:  sub         $2, %rax
-6:  lea         (%rax,%rcx,4), %rax
-    xor         %rcx, %rcx
-    ptest       %xmm0, %xmm0
-    setz        %cl
-    sub         %rcx, %rax
+    .p2align 4,,15
+4:  movdqa      (%rdi), %xmm0
+    movdqa      -16(%rdi), %xmm1
+    por         %xmm0, %xmm1
+    ptest       %xmm1, %xmm1
+    lea         -2(%rax), %rax
+    jnz         5f
+    movdqa      -32(%rdi), %xmm0
+    movdqa      -48(%rdi), %xmm1
+    por         %xmm0, %xmm1
+    ptest       %xmm1, %xmm1
+    lea         -2(%rax), %rax
+    jnz         5f
+    sub         $64, %rdi
+    dec         %rcx
+    jnz         4b
+    test        $2, %al
+    jnz         3b
+    test        $1, %al
+    jnz         1b
+    ret
+
+    .p2align 4,,7
+5:  ptest       %xmm0, %xmm0
+    mov         $0, %edx
+    lea         2(%rax), %rax
+    setz        %dl
+    sub         %rdx, %rax
     ret
 
 MVFUNC_END
@@ -119,44 +133,68 @@ MVFUNC_END
 MVFUNC_BEGIN pnorm, sse2
 
     mov         %rsi, %rcx
-    shl         $5, %rsi
-    lea         -16(%rdi,%rsi), %rdi
     pxor        %xmm2, %xmm2
-    test        $1, %rcx
-    jz          1f
-    movdqa      (%rdi), %xmm0
-    por         -16(%rdi), %xmm0
+    cmp         $1, %rsi
+    ja          2f
+1:  movdqa      (%rdi), %xmm0
     pcmpeqd     %xmm2, %xmm0
-    pmovmskb    %xmm0, %eax
-    cmp         $0xFFFF, %eax
-    jne         3f
-    sub         $32, %rdi
-1:  shr         %rcx
-    jrcxz       3f
-
-    .p2align 4
-2:  movdqa      (%rdi), %xmm0
-    por         -16(%rdi), %xmm0
-    movdqa      -32(%rdi), %xmm1
-    por         -48(%rdi), %xmm1
+    pmovmskb    %xmm0, %edx
+    xor         %eax, %eax
+    cmp         $0xFFFF, %edx
+    setne       %al
+    ret
+2:  shl         $4, %rsi
+    mov         %rcx, %rax
+    lea         -16(%rdi,%rsi), %rdi
+    shr         $2, %rcx
+    jnz         4f
+3:  movdqa      (%rdi), %xmm0
+    movdqa      -16(%rdi), %xmm1
     por         %xmm0, %xmm1
     pcmpeqd     %xmm2, %xmm1
-    pmovmskb    %xmm1, %eax
-    cmp         $0xFFFF, %eax
-    jne         4f
-    sub         $64, %rdi
-    dec         %rcx
-    jnz         2b
-
-3:  mov         %rcx, %rax
+    pmovmskb    %xmm1, %edx
+    sub         $2, %rax
+    cmp         $0xFFFF, %edx
+    jne         5f
+    sub         $32, %rdi
+    test        $1, %al
+    jnz         1b
     ret
 
-4:  shl         %rcx
-    pcmpeqd     %xmm2, %xmm0
-    pmovmskb    %xmm0, %eax
-    cmp         $0xFFFF, %eax
-    jne         3b
-    lea         -1(%rcx), %rax
+    .p2align 4,,15
+4:  movdqa      (%rdi), %xmm0
+    movdqa      -16(%rdi), %xmm1
+    por         %xmm0, %xmm1
+    pcmpeqd     %xmm2, %xmm1
+    pmovmskb    %xmm1, %edx
+    sub         $2, %rax
+    cmp         $0xFFFF, %edx
+    jne         5f
+    movdqa      -32(%rdi), %xmm0
+    movdqa      -48(%rdi), %xmm1
+    por         %xmm0, %xmm1
+    pcmpeqd     %xmm2, %xmm1
+    pmovmskb    %xmm1, %edx
+    sub         $2, %rax
+    cmp         $0xFFFF, %edx
+    jne         5f
+    sub         $64, %rdi
+    dec         %rcx
+    jnz         4b
+    test        $2, %al
+    jnz         3b
+    test        $1, %al
+    jnz         1b
+    ret
+
+    .p2align 4,,7
+5:  pcmpeqd     %xmm2, %xmm0
+    pmovmskb    %xmm0, %edx
+    xor         %ecx, %ecx
+    lea         2(%rax), %rax
+    cmp         $0xFFFF, %edx
+    sete        %cl
+    sub         %rcx, %rax
     ret
 
 MVFUNC_END

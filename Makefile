@@ -226,6 +226,7 @@ BENCH_DEPS := $(DEPS) bench/bench.h
 CHECK_P := \
 	pcmp \
 	pcopy \
+	pmove \
 	pnorm \
 	pzero
 

@@ -1,69 +1,70 @@
 # hebimath - arbitrary precision arithmetic library
 # See LICENSE file for copyright and license details
 
-# void hebi_pzero(hebi_packet *r, size_t n);
+# void
+# hebi_pzero(hebi_packet *r, size_t n);
 
-# NOTE: hebi_pzero must not modify the rax register, as other x86-64 driver
-# functions rely on being able to tail call pzero while passing a return
-# value through without modification.
+# NOTE: hebi_pzero must not modify the rax, rdx, r8, or r9 registers.
+# other x86-64 driver functions rely on being able to tail call pzero while
+# passing a return value through without modification
 
 .include "src/p/x86_64/x86_64.inc"
 
 #-------------------------------------------------------------------------------
 
-.if HWCAP_AVX
-MVFUNC_BEGIN pzero, avx
+.macro PZERO128 Version, MoveOp, XorOp
+MVFUNC_BEGIN pzero, \Version, @public, @explicit
 
+    \XorOp      %xmm0, %xmm0
     mov         %rsi, %rcx
-    vpxor       %xmm0, %xmm0, %xmm0
-    shr         %rcx
-    jnz         2f
-1:  vmovdqa     %xmm0, (%rdi)
-    vmovdqa     %xmm0, 16(%rdi)
+    cmp         $1, %rsi
+    ja          2f
+1:  \MoveOp     %xmm0, (%rdi)
+    ret
+2:  shr         $2, %rcx
+    jnz         4f
+3:  \MoveOp     %xmm0, (%rdi)
+    \MoveOp     %xmm0, 16(%rdi)
+    add         $32, %rdi
+    test        $1, %sil
+    jnz         1b
     ret
 
     .p2align 4,,15
-2:  vmovdqa     %xmm0, (%rdi)
-    vmovdqa     %xmm0, 16(%rdi)
-    vmovdqa     %xmm0, 32(%rdi)
-    vmovdqa     %xmm0, 48(%rdi)
+4:  \MoveOp     %xmm0, (%rdi)
+    \MoveOp     %xmm0, 16(%rdi)
+    \MoveOp     %xmm0, 32(%rdi)
+    \MoveOp     %xmm0, 48(%rdi)
     add         $64, %rdi
     dec         %rcx
-    jnz         2b
+    jnz         4b
+    test        $2, %sil
+    jnz         3b
     test        $1, %sil
     jnz         1b
     ret
 
 MVFUNC_END
-.endif
-
+.endm
 
 #-------------------------------------------------------------------------------
 
+.macro PXOR_AVX Src, Dst
+    vpxor       \Src, \Dst, \Dst
+.endm
+
+.if HWCAP_AVX
+PZERO128 avx, vmovdqa, PXOR_AVX
+.endif
+
+#-------------------------------------------------------------------------------
+
+.macro PXOR_SSE2 Src, Dst
+    pxor        \Src, \Dst
+.endm
+
 .if HWCAP_SSE2
-MVFUNC_BEGIN pzero, sse2
-
-    mov         %rsi, %rcx
-    pxor        %xmm0, %xmm0
-    shr         %rcx
-    jnz         2f
-1:  movdqa      %xmm0, (%rdi)
-    movdqa      %xmm0, 16(%rdi)
-    ret
-
-    .align 4,,15
-2:  movdqa      %xmm0, (%rdi)
-    movdqa      %xmm0, 16(%rdi)
-    movdqa      %xmm0, 32(%rdi)
-    movdqa      %xmm0, 48(%rdi)
-    add         $64, %rdi
-    dec         %rcx
-    jnz         2b
-    test        $1, %sil
-    jnz         1b
-    ret
-
-MVFUNC_END
+PZERO128 sse2, movdqa, PXOR_SSE2
 .endif
 
 #-------------------------------------------------------------------------------
@@ -72,13 +73,21 @@ MVFUNC_END
 MVFUNC_DISPATCH_BEGIN pzero
 
     push        %rax
-    push        %rsi
+    push        %rdx
     push        %rdi
+    push        %rsi
+    push        %r8
+    push        %r9
+    sub         $8, %rsp
     call        hebi_hwcaps__
+    add         $8, %rsp
+    pop         %r9
+    pop         %r8
     mov         %eax, %ecx
-    pop         %rdi
     pop         %rsi
+    pop         %rdi
     xor         %r10, %r10
+    pop         %rdx
     pop         %rax
 
 .if HWCAP_AVX

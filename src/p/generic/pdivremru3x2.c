@@ -32,7 +32,7 @@ PDIVREMRU_3x2_IMPL(
 	MLIMB a1, a0, u2, u1, u0;
 	size_t i;
 
-	ASSERT(n > 2);
+	ASSERT(n >= 2);
 	ASSERT(MLIMB_BIT > bits && bits >= 0);
 	ASSERT((d1 & MLIMB_HIGH_BIT) != 0);
 
@@ -40,20 +40,11 @@ PDIVREMRU_3x2_IMPL(
 	a0 = a[n-2];
 
 	if (bits) {
-		u2 = (a1 << bits) | (a0 >> (MLIMB_BIT - bits));
-		u1 = a0 << bits;
-		u0 = a1 >> (MLIMB_BIT - bits);
-		if ((u2 < d1 || (u2 == d1 && u1 < d0)) && !u0) {
-			q[--n] = 0;
-			a0 = a[n-2];
-			u1 |= a0 >> (MLIMB_BIT - bits);
-		} else {
-			u1 = u2;
-			u2 = u0;
-		}
+		u2 = a1 >> (MLIMB_BIT - bits);
+		u1 = (a1 << bits) | (a0 >> (MLIMB_BIT - bits));
 		a1 = a0;
-		q[--n] = 0;
-		for (i = n-1; i--; ) {
+		q[n-1] = 0;
+		for (i = n-2; i--; ) {
 			a0 = a[i];
 			u0 = (a1 << bits) | (a0 >> (MLIMB_BIT - bits));
 			a1 = a0;
@@ -72,7 +63,7 @@ PDIVREMRU_3x2_IMPL(
 		}
 		q[n-1] = 0;
 		q[n-2] = u0;
-		for (i = n - 2; i--; ) {
+		for (i = n-2; i--; ) {
 			u0 = a[i];
 			DIVREMRU_3x2(q+i, &u2, &u1, u0, d1, d0, v);
 		}

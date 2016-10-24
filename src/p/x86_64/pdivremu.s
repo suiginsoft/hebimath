@@ -16,8 +16,6 @@
 #-------------------------------------------------------------------------------
 
 .if HWCAP_LZCNT
-.extern hebi_pdivremru64_2x1_x86_64__
-.hidden hebi_pdivremru64_2x1_x86_64__
 MVFUNC_BEGIN pdivremu, lzcnt
 
     mov         %rcx, %r9
@@ -31,7 +29,7 @@ MVFUNC_BEGIN pdivremu, lzcnt
     call        hebi_recipu64_2x1_x86_64__
     mov         %r10, %rdi
     mov         %r11, %rsi
-    lea         0(,%r9,4), %rdx
+    lea         0(,%r9,2), %rdx
     pop         %rcx
     mov         %rax, %r9
     jmp         hebi_pdivremru64_2x1_x86_64__
@@ -42,8 +40,6 @@ MVFUNC_END
 #-------------------------------------------------------------------------------
 
 .if HWCAP_X86_64
-.extern hebi_pdivremru64_2x1_x86_64__
-.hidden hebi_pdivremru64_2x1_x86_64__
 MVFUNC_BEGIN pdivremu, x86_64
 
     mov         %rcx, %r9
@@ -58,7 +54,7 @@ MVFUNC_BEGIN pdivremu, x86_64
     call        hebi_recipu64_2x1_x86_64__
     mov         %r10, %rdi
     mov         %r11, %rsi
-    lea         0(,%r9,4), %rdx
+    lea         0(,%r9,2), %rdx
     pop         %rcx
     mov         %rax, %r9
     jmp         hebi_pdivremru64_2x1_x86_64__

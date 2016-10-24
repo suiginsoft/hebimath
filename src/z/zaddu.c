@@ -36,7 +36,7 @@ hebi_zaddu(hebi_zptr r, hebi_zsrcptr a, uint64_t b)
 	if (s >= 0) {
 		if ((c = hebi_paddu(rp, ap, b, u)))
 			hebi_psetu(rp + u++, c);
-	} else if (u > 1 || ap->hp_limbs64[0] > b || hebi_pcmpgtui64max__(ap)) {
+	} else if (u > 1 || ap->hp_limbs64[0] > b || ap->hp_limbs64[1] != 0) {
 		(void)hebi_psubu(rp, ap, b, u);
 		u = hebi_pnorm(rp, u);
 	} else {

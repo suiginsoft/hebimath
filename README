@@ -32,9 +32,9 @@ Hebimath has the following design features:
 - Can use fixed-size buffers instead of an allocator when initializing
   a number primitive, useful for memory allocations on the stack.
 - Can specify separate memory allocators for result and temporary buffers.
-- Smallest unit size for natural numbers and integers is 16 bytes on 32-bit
-  platforms and 32-bytes on 64-bit platforms. This larger unit or packet size
-  aids in shrinking the amount of code bloat for unrolled kernel functions.
+- Smallest unit size for natural numbers and integers is 16 bytes. This
+  larger unit or packet size aids in shrinking the amount of code bloat for
+  unrolled kernel functions.
 - Memory buffers are correctly aligned for use with SIMD instructions.
 
 Hebimath adheres to these principles in its implementation:

@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
 
 	assert(hebi_zsetstr(a, s1, NULL, 10) > 0);
 	assert(hebi_zsign(a) > 0);
-	assert(hebi_zused(a) == 1);
+	assert(hebi_zused(a) == 2);
 	assert(hebi_zeven(a));
 	assert(!hebi_zodd(a));
 	assert(!hebi_zzero(a));
@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
 
 	assert(hebi_zsetstr(a, s2, NULL, 0) > 0);
 	assert(hebi_zsign(a) < 0);
-	assert(hebi_zused(a) == 3);
+	assert(hebi_zused(a) == 6);
 	assert(!hebi_zeven(a));
 	assert(hebi_zodd(a));
 	assert(!hebi_zzero(a));

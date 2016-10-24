@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 
 		assert(memcmp(y+GUARD, x+GUARD, k*sizeof(hebi_packet)) != 0);
 
-		hebi_pcopy(y+GUARD, x+GUARD, k);
+		hebi_pmove(y+GUARD, x+GUARD, k);
 
 		assert(memcmp(y+GUARD, x+GUARD, k*sizeof(hebi_packet)) == 0);
 

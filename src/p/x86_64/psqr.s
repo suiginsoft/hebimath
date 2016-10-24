@@ -15,7 +15,7 @@ MVFUNC_BEGIN psqr, x86_64
     xor         %ebx, %ebx
     mov         (%rsi), %r9
     xor         %r10, %r10
-    lea         (,%rdx,4), %rbp
+    lea         (,%rdx,2), %rbp
 
     .p2align 4,,15
 1:  mov         (%rsi,%rbx,8), %rax

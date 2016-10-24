@@ -6,12 +6,12 @@
 #include "../bench.h"
 
 static volatile size_t result_sink;
-static const size_t b = 433;
+static const size_t b = 443;
 
 int
 main(int argc, char *argv[])
 {
-	bench_args p = { .iter = 5000, .an = 32768 };
+	bench_args p = { .iter = 5000, .an = 65536 };
 	hebi_packet *a, *r;
 	size_t rn;
 	int i;

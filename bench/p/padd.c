@@ -10,7 +10,7 @@ static volatile uint64_t result_sink;
 int
 main(int argc, char *argv[])
 {
-	bench_args p = { .iter = 5000, .an = 32768, .bn = 16384 };
+	bench_args p = { .iter = 5000, .an = 65536, .bn = 32768 };
 	hebi_packet *a, *b, *r;
 	int i;
 

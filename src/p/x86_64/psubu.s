@@ -4,16 +4,7 @@
 # uint64_t
 # hebi_psubu(hebi_packet *r, const hebi_packet *a, uint64_t b, size_t n);
 
-.include "src/p/x86_64/x86_64.inc"
+.include "src/p/x86_64/paddsub.inc"
 
-.macro ADDSUB src, dst
-sub \src, \dst
-.endm
-
-.macro ADCSBB src, dst
-sbb \src, \dst
-.endm
-
-FUNC_BEGIN psubu
-.include "src/p/x86_64/paddsubu.inc"
-FUNC_END
+PADDSUBU psubu, psubc, sub, sbb
+PADDSUBC psubc, sbb

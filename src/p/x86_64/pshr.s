@@ -13,20 +13,20 @@ MVFUNC_BEGIN pshr, avx
     # Compute number of limbs to shift
 
     mov         %rdx, %r8
-    shl         $2, %rcx
+    shl         %rcx
     shr         $6, %r8                 # r8 := b / LIMB_BIT
     sub         %r8, %rcx               # rcx := n * LIMB_PER_PACKET - b / LIMB_BIT
-    jle         5f
+    jle         4f
 
     # Compute number of bits to shift, source start offset, load first quadword
     # from source and setup for bit-shifting loop
 
-    and         $63, %edx               # edx := b % LIMB_BIT
     lea         (%rsi,%r8,8), %rsi      # rsi := al + limbs shifted
+    and         $63, %edx               # edx := b % LIMB_BIT
     mov         $64, %eax
-    vmovq       (%rsi), %xmm0
-    sub         %edx, %eax
     dec         %rcx
+    sub         %edx, %eax
+    vmovq       (%rsi), %xmm0
     vmovd       %edx, %xmm5             # xmm5 := b % LIMB_BIT
     vmovd       %eax, %xmm6             # xmm6 := LIMB_BIT - (b % LIMB_BIT)
     add         $8, %rsi                # rsi := al + n * PACKET_SIZE - 16
@@ -39,7 +39,7 @@ MVFUNC_BEGIN pshr, avx
 
     # Bit-shifting loop, process one octaword at a time
 
-    .p2align 4
+    .p2align 4,,15
 1:  vmovdqu     (%rsi), %xmm2           # xmm2 := al[i+1]
     add         $16, %rdi
     vpsllq      %xmm6, %xmm2, %xmm1     # xmm1 := |L0 l0|
@@ -64,29 +64,21 @@ MVFUNC_BEGIN pshr, avx
     vpor        %xmm3, %xmm0, %xmm0     # xmm0 := |00 lq|
     vpunpcklqdq %xmm2, %xmm4, %xmm2     # xmm4 := |0r 00|
     vpor        %xmm2, %xmm0, %xmm0     # xmm0 := |0r lq|
-3:  vmovdqa     %xmm0, 16(%rdi)
+3:  add         $2, %rdx
+    vmovdqa     %xmm0, 16(%rdi)
 
-    # Zero last octaword of destination, if shifted odd number of octawords
+    # Assuming input length is normalized, determine length of result in
+    # number of packets by examining the last packet
 
-    test        $2, %dl
-    jnz         4f
-    vmovdqa     %xmm4, %xmm1
-    vmovdqa     %xmm4, 32(%rdi)
-
-    # Determine length of result in number of packets, only need to check
-    # last packet of destination
-
-4:  lea         4(,%rdx), %rax
-    vpor        %xmm1, %xmm0, %xmm0
-    shr         $2, %rax
-    vptest      %xmm0, %xmm0
-    setz        %cl
-    sub         %rcx, %rax
+    shr         %rdx
+    vptest      %xmm0, %xmm4
+    mov         %rdx, %rax
+    sbb         $0, %rax
     ret
 
     # Shifted more bits than in input, return zero length result
 
-5:  xor         %rax, %rax
+4:  xor         %rax, %rax
     ret
 
 MVFUNC_END
@@ -100,20 +92,20 @@ MVFUNC_BEGIN pshr, sse2
     # Compute number of quadwords to shift
 
     mov         %rdx, %r8
-    shl         $2, %rcx
+    shl         %rcx
     shr         $6, %r8                 # r8 := b / LIMB_BIT
     sub         %r8, %rcx               # rcx := n * LIMB_PER_PACKET - b / LIMB_BIT
-    jle         5f
+    jle         4f
 
     # Compute number of bits to shift, source start offset, load first quadword
     # from source and setup for bit-shifting loop
 
-    and         $63, %edx               # edx := b % LIMB_BIT
     lea         (%rsi,%r8,8), %rsi      # rsi := al + number of limbs shifted
+    and         $63, %edx               # edx := b % LIMB_BIT
     mov         $64, %eax
-    movq        (%rsi), %xmm0
-    sub         %edx, %eax
     dec         %rcx
+    sub         %edx, %eax
+    movq        (%rsi), %xmm0
     movd        %edx, %xmm5             # xmm5 := b % LIMB_BIT
     movd        %eax, %xmm6             # xmm6 := LIMB_BIT - (b % LIMB_BIT)
     add         $8, %rsi                # rsi := al + n * PACKET_SIZE - 16
@@ -125,7 +117,7 @@ MVFUNC_BEGIN pshr, sse2
 
     # Bit-shifting loop, process one octaword at a time
 
-    .p2align 4
+    .p2align 4,,15
 1:  movdqu      (%rsi), %xmm1           # xmm2 := al[i+1]
     add         $16, %rdi
     pxor        %xmm4, %xmm4
@@ -156,32 +148,25 @@ MVFUNC_BEGIN pshr, sse2
     por         %xmm2, %xmm0            # xmm0 := |00 lq|
     punpcklqdq  %xmm3, %xmm4            # xmm2 := |0r 00|
     por         %xmm4, %xmm0            # xmm0 := |0r lq|
-3:  movdqa      %xmm0, 16(%rdi)
-
-    # Zero last octaword of destination, if shifted odd number of octawords
-
+3:  add         $2, %rdx
     pxor        %xmm4, %xmm4
-    test        $2, %dl
-    jnz         4f
-    movdqa      %xmm4, %xmm1
-    movdqa      %xmm4, 32(%rdi)
+    movdqa      %xmm0, 16(%rdi)
 
     # Determine length of result in number of packets, only need to check
     # last packet of destination
 
-4:  por         %xmm1, %xmm0
-    lea         4(,%rdx), %rax
     pcmpeqd     %xmm4, %xmm0
-    pmovmskb    %xmm0, %edx
-    shr         $2, %rax
-    cmp         $0xFFFF, %edx
+    pmovmskb    %xmm0, %eax
+    shr         $2, %rdx
+    cmp         $0xFFFF, %eax
+    mov         %rdx, %rax
     setz        %cl
     sub         %rcx, %rax
     ret
 
     # Shifted more bits than in input, return zero length result
 
-5:  xor         %rax, %rax
+4:  xor         %rax, %rax
     ret
 
 MVFUNC_END

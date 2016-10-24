@@ -12,70 +12,59 @@
 
 #-------------------------------------------------------------------------------
 
-.if HWCAP_AVX
-MVFUNC_BEGIN pcopy, avx
+.macro PCOPY128 Version, CopyOp
+MVFUNC_BEGIN pcopy, \Version
 
     mov         %rdx, %rcx
-    shr         %rdx
-    jnz         2f
-1:  vmovdqa     (%rsi), %xmm0
-    vmovdqa     16(%rsi), %xmm1
-    vmovdqa     %xmm0, (%rdi)
-    vmovdqa     %xmm1, 16(%rdi)
+    cmp         $1, %rdx
+    ja          2f
+1:  \CopyOp     (%rsi), %xmm0
+    \CopyOp     %xmm0, (%rdi)
+    ret
+2:  shr         $2, %rcx
+    jnz         4f
+3:  \CopyOp     (%rsi), %xmm0
+    \CopyOp     16(%rsi), %xmm1
+    \CopyOp     %xmm0, (%rdi)
+    \CopyOp     %xmm1, 16(%rdi)
+    add         $32, %rsi
+    add         $32, %rdi
+    test        $1, %dl
+    jnz         1b
     ret
 
     .p2align 4,,15
-2:  vmovdqa     (%rsi), %xmm0
-    vmovdqa     16(%rsi), %xmm1
-    vmovdqa     32(%rsi), %xmm2
-    vmovdqa     48(%rsi), %xmm3
-    vmovdqa     %xmm0, (%rdi)
-    vmovdqa     %xmm1, 16(%rdi)
-    vmovdqa     %xmm2, 32(%rdi)
-    vmovdqa     %xmm3, 48(%rdi)
+4:  \CopyOp     (%rsi), %xmm0
+    \CopyOp     16(%rsi), %xmm1
+    \CopyOp     32(%rsi), %xmm2
+    \CopyOp     48(%rsi), %xmm3
+    \CopyOp     %xmm0, (%rdi)
+    \CopyOp     %xmm1, 16(%rdi)
+    \CopyOp     %xmm2, 32(%rdi)
+    \CopyOp     %xmm3, 48(%rdi)
     add         $64, %rsi
     add         $64, %rdi
-    dec         %rdx
-    jnz         2b
-    test        $1, %cl
+    dec         %rcx
+    jnz         4b
+    test        $2, %dl
+    jnz         3b
+    test        $1, %dl
     jnz         1b
     ret
 
 MVFUNC_END
+.endm
+
+#-------------------------------------------------------------------------------
+
+.if HWCAP_AVX
+PCOPY128 avx, vmovdqa
 .endif
 
 #-------------------------------------------------------------------------------
 
 .if HWCAP_SSE2
-MVFUNC_BEGIN pcopy, sse2
-
-    mov         %rdx, %rcx
-    shr         %rdx
-    jnz         2f
-1:  movdqa      (%rsi), %xmm0
-    movdqa      16(%rsi), %xmm1
-    movdqa      %xmm0, (%rdi)
-    movdqa      %xmm1, 16(%rdi)
-    ret
-
-    .p2align 4,,15
-2:  movdqa      (%rsi), %xmm0
-    movdqa      16(%rsi), %xmm1
-    movdqa      32(%rsi), %xmm2
-    movdqa      48(%rsi), %xmm3
-    movdqa      %xmm0, (%rdi)
-    movdqa      %xmm1, 16(%rdi)
-    movdqa      %xmm2, 32(%rdi)
-    movdqa      %xmm3, 48(%rdi)
-    add         $64, %rsi
-    add         $64, %rdi
-    dec         %rdx
-    jnz         2b
-    test        $1, %cl
-    jnz         1b
-    ret
-
-MVFUNC_END
+PCOPY128 sse2, movdqa
 .endif
 
 #-------------------------------------------------------------------------------

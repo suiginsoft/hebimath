@@ -2,27 +2,35 @@
 #include <limits.h>
 #include <string.h>
 
-#define NUM_PACKETS 501
-#define NUM_DIGITS (NUM_PACKETS * HEBI_PACKET_LIMBS64)
-#define NUM_BYTES (NUM_PACKETS * sizeof(hebi_packet))
+#define COUNT 1024
+#define GUARD 8
+#define TOTAL (COUNT+GUARD*2)
 
 int main(int argc, char *argv[])
 {
 	hebi_packet *x;
-	size_t i, j;
+	size_t i, j, k;
 
-	x = hebi_palloc(HEBI_ALLOC_DEFAULT, NUM_PACKETS);
+	x = hebi_palloc(HEBI_ALLOC_DEFAULT, TOTAL);
 	assert(x);
 
-	memset(x, UCHAR_MAX, NUM_BYTES);
+	for (k = 1; k <= COUNT; k++) {
+		memset(x, UCHAR_MAX, (k+GUARD*2)*sizeof(hebi_packet));
 
-	hebi_pzero(x, NUM_PACKETS);
+		hebi_pzero(x+GUARD, k);
 
-	for (i = 0; i < NUM_PACKETS; ++i)
-		for (j = 0; j < HEBI_PACKET_LIMBS64; ++j)
-			assert(x[i].hp_limbs64[j] == 0);
+		for (i = 0; i < k; i++)
+			for (j = 0; j < HEBI_PACKET_LIMBS32; j++)
+				assert(x[i+GUARD].hp_limbs32[j] == 0);
 
-	hebi_pfree(HEBI_ALLOC_DEFAULT, x, NUM_PACKETS);
+		for (i = 0; i < GUARD; i++) {
+			for (j = 0; j < HEBI_PACKET_LIMBS32; j++) {
+				assert(x[i].hp_limbs32[j] == UINT32_MAX);
+				assert(x[i+k+GUARD].hp_limbs32[j] == UINT32_MAX);
+			}
+		}
+	}
 
+	hebi_pfree(HEBI_ALLOC_DEFAULT, x, TOTAL);
 	return 0;
 }
