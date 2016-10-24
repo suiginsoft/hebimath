@@ -7,4 +7,3 @@
 .include "src/p/x86_64/paddsub.inc"
 
 PADDSUBU psubu, psubc, sub, sbb
-PADDSUBC psubc, sbb
