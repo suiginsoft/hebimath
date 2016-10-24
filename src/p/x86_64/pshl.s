@@ -8,10 +8,8 @@
 #-------------------------------------------------------------------------------
 
 .if HWCAP_AVX
-.extern hebi_pmove_avx__
-.hidden hebi_pmove_avx__
-.extern hebi_pzero_avx__
-.hidden hebi_pzero_avx__
+FUNC_EXTERN pmove_avx, @private
+FUNC_EXTERN pzero_avx, @private
 MVFUNC_BEGIN pshl, avx
 
     # Compute number of bits and quadwords to shift
@@ -130,8 +128,8 @@ MVFUNC_END
 #-------------------------------------------------------------------------------
 
 .if HWCAP_SSE2
-.extern hebi_pmove_sse2__
-.hidden hebi_pmove_sse2__
+FUNC_EXTERN pmove_sse2, @private
+FUNC_EXTERN pzero_sse2, @private
 MVFUNC_BEGIN pshl, sse2
 
     # Check if we have any packets to shift

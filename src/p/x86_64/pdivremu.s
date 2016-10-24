@@ -10,8 +10,7 @@
 # NOTE: Our implementation of hebi_recipu64_2x1_x86_64__ doesn't touch registers
 # r8 through r11, so use these registers instead of the stack to save state.
 
-.extern hebi_recipu64_2x1_x86_64__
-.hidden hebi_recipu64_2x1_x86_64__
+FUNC_EXTERN recipu64_2x1_x86_64, @private
 
 #-------------------------------------------------------------------------------
 

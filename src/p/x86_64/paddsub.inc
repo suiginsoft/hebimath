@@ -6,8 +6,7 @@
 #-------------------------------------------------------------------------------
 
 .macro PADDSUB Name, Propagate, AdcSbb
-.extern hebi_\Propagate\()__
-.hidden hebi_\Propagate\()__
+FUNC_EXTERN \Propagate, @private
 FUNC_BEGIN \Name
 
     # Setup for main loop and tail
@@ -74,8 +73,7 @@ FUNC_END
 #-------------------------------------------------------------------------------
 
 .macro PADDSUBU Name, Propagate, AddSub, AdcSbb
-.extern hebi_\Propagate\()__
-.hidden hebi_\Propagate\()__
+FUNC_EXTERN \Propagate, @private
 FUNC_BEGIN \Name
 
     # Add/subtract word to/from first packet, propagating carry/borrow
@@ -102,7 +100,7 @@ FUNC_END
 #-------------------------------------------------------------------------------
 
 .macro PADDSUBC Name, AdcSbb
-FUNC_BEGIN \Name\()__, @private
+FUNC_BEGIN \Name, @private
 
     jrcxz       2f
 

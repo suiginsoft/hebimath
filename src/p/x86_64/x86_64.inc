@@ -11,18 +11,37 @@
 .equ USE_PIC, 0
 .endif
 
-.macro FUNC_BEGIN Name:req, Scope=@public
+.macro FUNC_EXTERN Name:req, Scope=@public
+.ifc \Scope,@public
+.extern hebi_\Name
+.endif
+.ifc \Scope,@private
+.extern hebi_\Name\()__
+.hidden hebi_\Name\()__
+.endif
+.endm
+
+.macro FUNC_BEGIN_IMPL__ Name:req, Scope=@public
 .macro FUNC_END_IMPL__
-.size hebi_\Name, .-hebi_\Name
+.size \Name, .-\Name
 .endm
     .text
     .p2align 4,,15
-    .global hebi_\Name
+    .global \Name
 .ifc \Scope,@private
-    .hidden hebi_\Name
+    .hidden \Name
 .endif
-    .type hebi_\Name, @function
-hebi_\Name\():
+    .type \Name, @function
+\Name\():
+.endm
+
+.macro FUNC_BEGIN Name:req, Scope=@public
+.ifc \Scope,@public
+FUNC_BEGIN_IMPL__ hebi_\Name, @public
+.endif
+.ifc \Scope,@private
+FUNC_BEGIN_IMPL__ hebi_\Name\()__, @private
+.endif
 .endm
 
 .macro FUNC_END
