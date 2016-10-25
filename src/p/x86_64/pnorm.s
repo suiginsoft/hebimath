@@ -191,7 +191,7 @@ MVFUNC_BEGIN pnorm, sse2
 5:  pcmpeqd     %xmm2, %xmm0
     pmovmskb    %xmm0, %edx
     xor         %ecx, %ecx
-    lea         2(%rax), %rax
+    add         $2, %rax
     cmp         $0xFFFF, %edx
     sete        %cl
     sub         %rcx, %rax

@@ -118,7 +118,7 @@ MVFUNC_END
 MVFUNC_BEGIN pcmp, sse2
 
     xor         %eax, %eax
-    cmp         $16, %rdx
+    cmp         $1, %rdx
     ja          3f
 1:  mov         8(%rdi), %rcx
     cmp         8(%rsi), %rcx
@@ -138,16 +138,17 @@ MVFUNC_BEGIN pcmp, sse2
     movdqa      %xmm0, %xmm2
     pcmpeqb     %xmm1, %xmm2
     pmovmskb    %xmm2, %ecx
-    sub         $0xFFFF, %ecx
-    jnz         5f
-    movdqa      -32(%rdi,%rdx), %xmm0
-    movdqa      -32(%rsi,%rdx), %xmm1
+    sub         $16, %rdx
+    cmp         $0xFFFF, %ecx
+    jne         5f
+    movdqa      -16(%rdi,%rdx), %xmm0
+    movdqa      -16(%rsi,%rdx), %xmm1
     movdqa      %xmm0, %xmm2
     pcmpeqb     %xmm1, %xmm2
     pmovmskb    %xmm2, %ecx
-    sub         $0xFFFF, %ecx
-    jnz         5f
-    sub         $32, %rdx
+    sub         $16, %rdx
+    cmp         $0xFFFF, %ecx
+    jne         5f
     cmp         $32, %rdx
     ja          4b
     test        %dl, %dl
