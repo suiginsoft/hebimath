@@ -18,12 +18,12 @@ MVFUNC_BEGIN pshl, avx
     mov         %rdx, %r8
     mov         %rcx, %r10
     add         $127, %rax
-    shr         $6, %r8                 # r8 := words = b / QWORD_BITS
-    and         $63, %edx               # edx := b % QWORD_BITS
+    shr         $6, %r8                 # r8 := words = b / QWORD_BIT
+    and         $63, %edx               # edx := b % QWORD_BIT
     shr         $7, %rax
     vpxor       %xmm4, %xmm4, %xmm4
-    add         %rcx, %rax              # rax := rn = n + (b + PACKET_BITS - 1) / PACKET_BITS
     mov         %rdi, %r9               # r9 := r
+    add         %rcx, %rax              # rax := rn = n + (b + PACKET_BIT - 1) / PACKET_BIT
 
     # Get destination start address of shifted data, and if shift
     # is aligned on quadword boundary use hebi_pmove
@@ -35,12 +35,12 @@ MVFUNC_BEGIN pshl, avx
 
     # Set up for bit-shifting loop
 
-    vmovd       %edx, %xmm5             # xmm5 := bits = b % QWORD_BITS
+    vmovd       %edx, %xmm5             # xmm5 := bits = b % QWORD_BIT
     neg         %edx
     and         $63, %edx
     lea         -16(%rsi,%r10), %rsi    # rsi := aw + n * PACKET_SIZE - 16
-    vmovd       %edx, %xmm6             # xmm6 := rbits = QWORD_BITS - (b % QWORD_BITS)
-    lea         -8(%rdi,%r10), %rdi      # rdi := rw + n * PACKET_SIZE + 8
+    vmovd       %edx, %xmm6             # xmm6 := rbits = QWORD_BIT - (b % QWORD_BIT)
+    lea         -8(%rdi,%r10), %rdi     # rdi := rw + n * PACKET_SIZE + 8
 
     # Process first octaword from input
 
@@ -81,9 +81,9 @@ MVFUNC_BEGIN pshl, avx
     vmovq       %xmm2, -8(%rdi)         # rw[0] := q
 
     # Determine length of result in number of packets assuming that
-    # input length was normalized. Zero the quadwords at beginning
-    # of result (note that hebi_pzero does not modify rax and so it
-    # is safe to tail-call while passing through result)
+    # input length was normalized. Finally, zero the quadwords if
+    # there are any at beginning of result (note that hebi_pzero does
+    # not modify rax and so it# is safe to tail call)
 
     .p2align 4,,7
 3:  vptest      %xmm7, %xmm4
@@ -132,101 +132,126 @@ FUNC_EXTERN pmove_sse2, @private
 FUNC_EXTERN pzero_sse2, @private
 MVFUNC_BEGIN pshl, sse2
 
-    # Check if we have any packets to shift
+    # Compute number of bits and quadwords to shift
 
-    mov         %rcx, %rax
-    test        %rcx, %rcx
-    jz          5f
-
-    # Compute number of bits and quadwords to shift by
-
-    mov         %rdx, %r10
+    mov         %rdx, %rax
     mov         %rdx, %r8
-    add         $255, %r10
-    shr         $6, %r8                 # r8 := words = b / QWORD_BITS
-    and         $63, %edx               # edx := b % QWORD_BITS
-    shr         $8, %r10
-    pxor        %xmm0, %xmm0            # xmm0 := q = 0
-    add         %rcx, %r10              # r10 := rn = n + (b + PACKET_BITS - 1) / PACKET_BITS
+    mov         %rcx, %r10
+    add         $127, %rax
+    shr         $6, %r8                 # r8 := words = b / QWORD_BIT
+    and         $63, %edx               # edx := b % QWORD_BIT
+    shr         $7, %rax
+    pxor        %xmm4, %xmm4
     mov         %rdi, %r9               # r9 := r
-    mov         %r10, %r11
-    shl         $5, %r11                # r11 := rn * PACKET_SIZE
+    add         %rcx, %rax              # rax := rn = n + (b + PACKET_BIT - 1) / PACKET_BIT
 
-    # Clear top packet if necessary, compute destination start
-    # address, and check if shift is aligned on quadword boundary
+    # Get destination start address of shifted data, and if shift
+    # is aligned on quadword boundary use hebi_pmove
 
-    cmp         %rcx, %r10              # if rn > n then
-    jle         1f                      #    r[rn-1] = 0
-    movdqa      %xmm0, -32(%rdi,%r11)
-    movdqa      %xmm0, -16(%rdi,%r11)
-1:  lea         (%rdi,%r8,8), %rdi      # rdi := rw = r + words * 8
+    lea         (%rdi,%r8,8), %rdi      # rdi := rw = r + words * 8
+    shl         $4, %r10
     test        %edx, %edx
     jz          6f
 
-    # Bit-shifting loop
+    # Set up for bit-shifting loop
 
-    shl         $5, %rax
-    shl         %rcx
-    lea         -16(%rsi,%rax), %rsi    # rsi := aw + n * PACKET_SIZE - 16
-    lea         8(%rdi,%rax), %rdi      # rdi := rw + n * PACKET_SIZE + 8
-    mov         $64, %eax
-    sub         %edx, %eax
-    movd        %edx, %xmm5             # xmm7 := bits = b % QWORD_BITS
-    movd        %eax, %xmm6             # xmm6 := rbits = QWORD_BITS - (b % QWORD_BITS)
+    movd        %edx, %xmm5             # xmm5 := bits = b % QWORD_BIT
+    neg         %edx
+    and         $63, %edx
+    lea         -16(%rsi,%r10), %rsi    # rsi := aw + n * PACKET_SIZE - 16
+    movd        %edx, %xmm6             # xmm6 := rbits = QWORD_BIT - (b % QWORD_BIT)
+    lea         -8(%rdi,%r10), %rdi     # rdi := rw + n * PACKET_SIZE + 8
+
+    # Process first octaword from input
+
+    movdqa      (%rsi), %xmm1           # xmm1 := s = aw[i]
+    pxor        %xmm0, %xmm0            # xmm0 := |00 00|
+    movdqa      %xmm1, %xmm2            # xmm2 := s
+    psrlq       %xmm6, %xmm1            # xmm1 := |0R 0r| = s >> rbits
+    psllq       %xmm5, %xmm2            # xmm2 := |L0 l0| = s << bits
+    movdqa      %xmm2, %xmm3
+    punpckhqdq  %xmm0, %xmm2            # xmm2 := |00 L0|
+    sub         $16, %rsi
+    por         %xmm2, %xmm1            # xmm1 := |qR Lr|
+    punpcklqdq  %xmm3, %xmm0            # xmm0 := |l0 00|
+
+    # If shifting odd number of quadwords, store zero in top quadword of
+    # destination and save destination in xmm7 for later size computation
+
+    movdqa      %xmm1, %xmm7
+    test        $1, %r8d
+    jnz         2f
+    movq        %xmm4, 16(%rdi)
+    punpckhqdq  %xmm4, %xmm7            # xmm7 := |00 0R|
+    jmp         2f
+
+    # Bit-shifting main loop
 
     .p2align 4,,15
-2:  movdqa      (%rsi), %xmm1           # xmm1 := s = aw[i]
+1:  movdqa      (%rsi), %xmm1           # xmm1 := s = aw[i]
     sub         $16, %rdi
     pxor        %xmm4, %xmm4            # xmm4 := |00 00|
-    movdqa      %xmm1, %xmm2            # xmm2 := s = aw[i]
+    movdqa      %xmm1, %xmm2            # xmm2 := s
     psrlq       %xmm6, %xmm1            # xmm1 := |0R 0r| = s >> rbits
     psllq       %xmm5, %xmm2            # xmm2 := |L0 l0| = s << bits
     por         %xmm0, %xmm1            # xmm1 := |qR 0r|
     movdqa      %xmm2, %xmm3
     punpckhqdq  %xmm4, %xmm2            # xmm2 := |00 L0|
+    sub         $16, %rsi
     punpcklqdq  %xmm3, %xmm4            # xmm4 := |l0 00|
     por         %xmm2, %xmm1            # xmm1 := |qR Lr|
-    sub         $16, %rsi
     movdqa      %xmm4, %xmm0            # xmm0 := q = s << bits
-    movdqu      %xmm1, (%rdi)           # rw[i+1] = s >> rbits | q
+2:  movdqu      %xmm1, (%rdi)           # rw[i+1] = s >> rbits | q
     dec         %rcx
-    jnz         2b
+    jnz         1b
     punpckhqdq  %xmm0, %xmm0            # xmm0 := |q0 q0|
+    pxor        %xmm4, %xmm4            # xmm4 := |00 00|
     movq        %xmm0, -8(%rdi)         # rw[0] := q
 
-    # Zero the quadwords at beginning of result
-
-3:  mov         %r8, %rcx
-    jrcxz       4f
-    cld
-    mov         %r9, %rdi
-    xor         %rax, %rax
-    rep
-    stosq
-
-    # Determine length of result, only need to check last packet
-
-4:  movdqa      -32(%r9,%r11), %xmm1
-    pxor        %xmm0, %xmm0
-    por         -16(%r9,%r11), %xmm1
-    mov         %r11, %rax
-    pcmpeqd     %xmm0, %xmm1
-    shr         $5, %rax
-    pmovmskb    %xmm1, %edx
-    xor         %rcx, %rcx
-    cmp         $0xFFFF, %edx
-    setz        %cl
-5:  sub         %rcx, %rax
-    ret
-
-    # Shift is aligned on quadword boundary, move packets (note
-    # that hebi_pmove can handle unaligned destination address)
+    # Determine length of result in number of packets assuming that
+    # input length was normalized. Finally, zero the quadwords if
+    # there are any at beginning of result (note that hebi_pzero does
+    # not modify rax and so it# is safe to tail call)
 
     .p2align 4,,7
-6:  mov         %rcx, %rdx
-    push        %r11
-    call        hebi_pmove_sse2__
-    pop         %r11
+3:  pcmpeqd     %xmm4, %xmm7
+    xor         %ecx, %ecx
+    pmovmskb    %xmm7, %edx
+    mov         %r8, %rsi
+    mov         %r9, %rdi
+    cmp         $0xFFFF, %edx
+    sete        %cl
+    test        $1, %sil
+    jz          4f
+    movq        %xmm4, -8(%rdi,%rsi,8)
+4:  sub         %rcx, %rax
+    shr         %rsi
+    jz          5f
+    jmp         hebi_pzero_avx__
+5:  ret
+
+    # Shift is aligned on quadword boundary, move packets (note that
+    # hebi_pmove can handle unaligned addresses, and does not modify
+    # registers rax, r8, r9 or xmm4-xmm15)
+
+    .p2align 4,,7
+6:  movdqa      -16(%rsi,%r10), %xmm7
+    mov         %rcx, %rdx
+    test        $1, %r8d
+    jz          7f
+    movq        %xmm4, (%rdi,%r10)
+    movdqu      %xmm7, -16(%rdi,%r10)
+    punpckhqdq  %xmm4, %xmm7
+    dec         %rdx
+    jz          3b
+    call        hebi_pmove_avx__
+    jmp         3b
+
+    .p2align 4,,7
+7:  movdqu      %xmm7, -16(%rdi,%r10)
+    dec         %rdx
+    jz          3b
+    call        hebi_pmove_avx__
     jmp         3b
 
 MVFUNC_END

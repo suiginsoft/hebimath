@@ -9,6 +9,6 @@ int
 main(int argc, char *argv[])
 {
 	checkinit(argc, argv);
-	zcheckbinop(hebi_zrem, "%Z %% %Z", RHS_NONZERO);
+	zcheckunaryop(hebi_zneg, "-(%Z)", 0);
 	return 0;
 }

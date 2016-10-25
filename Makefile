@@ -239,9 +239,8 @@ CHECK_Z := \
 	zgetset \
 	zshl \
 	zshr \
-	zand \
-	zor \
-	zxor \
+	zabs \
+	zneg \
 	zadd \
 	zaddi \
 	zaddu \
@@ -256,15 +255,20 @@ CHECK_Z := \
 	zdivu \
 	zrem \
 	zremi \
-	zremu
+	zremu \
+	zsqr \
+	zand \
+	zor \
+	zxor
 
 CHECK_SRC := \
 	check \
+	chkio \
 	bc \
 	zcheckbinop \
 	zcheckbinopi64 \
 	zcheckbinopu64 \
-	zcheckbitwisebinop \
+	zcheckunaryop \
 	zdirty \
 	zpermutation
 

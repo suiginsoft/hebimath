@@ -36,19 +36,24 @@ extern int check_verbose;
 void checkinit(int argc, char *argv[]);
 long maxpermutations(long n, int p);
 
+int vsnchkprintf(char *restrict s, size_t n, const char *restrict fmt, va_list ap);
+int vaschkprintf(char **restrict strp, const char *restrict fmt, va_list ap);
+int aschkprintf(char **restrict strp, const char *restrict fmt, ...);
+
 void bcwrite(const char *str);
 char *bcreadln(void);
 char *bcputs(const char *str);
 char *bcprintf(const char *format, ...);
 char *vbcprintf(const char *format, va_list ap);
-void scheckbc(const char *restrict hres, const char *restrict bcop, ...);
-void zcheckbc(hebi_zsrcptr restrict hres, const char *restrict bcop, ...);
+void zcheckbc(hebi_zsrcptr restrict actual, const char *bcopfmt, ...);
+void zcheckstr(hebi_zsrcptr restrict actual, const char *expected, const char* operation);
 
 void zdirty(hebi_zptr, ...);
 void zpermutation(long x, long n, int p, ...);
 void zcheckbinop(void (*f)(hebi_zptr, hebi_zsrcptr, hebi_zsrcptr), const char* op, int flags);
 void zcheckbinopi64(void (*f)(hebi_zptr, hebi_zsrcptr, int64_t), const char* op, int flags);
 void zcheckbinopu64(void (*f)(hebi_zptr, hebi_zsrcptr, uint64_t), const char* op, int flags);
-void zcheckbitwisebinop(void (*f)(hebi_zptr, hebi_zsrcptr, hebi_zsrcptr), const char* op);
+void zcheckshiftop(void (*f)(hebi_zptr, hebi_zsrcptr, size_t), const char* op, int flags);
+void zcheckunaryop(void (*f)(hebi_zptr, hebi_zsrcptr), const char* op, int flags);
 
 #endif

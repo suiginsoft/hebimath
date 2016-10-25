@@ -56,6 +56,7 @@ MVFUNC_BEGIN pshr, avx
     # Load last quadword from source if there is one, otherwise store
     # the final octaword to destination
 
+    .p2align 4,,7
 2:  test        $1, %dl
     jz          3f
     vmovq       (%rsi), %xmm2           # xmm2 := al[i+1]
@@ -138,6 +139,8 @@ MVFUNC_BEGIN pshr, sse2
     # Load last quadword from source if there is one, otherwise store
     # the final octaword to destination
 
+    .p2align 4,,7
+2:  test        $1, %dl
 2:  test        $1, %dl
     jz          3f
     movq        (%rsi), %xmm2           # xmm2 := al[i+1]

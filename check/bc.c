@@ -16,9 +16,9 @@
 static int bcrunning;
 static FILE *bcpipe[2];
 static char *bcopbuf;
-static char *hresbuf;
+static char *actualbuf;
 static size_t bcopbufsz;
-static size_t hresbufsz;
+static size_t actualbufsz;
 
 static void
 bcterm(void)
@@ -28,11 +28,11 @@ bcterm(void)
 	fclose(bcpipe[0]);
 	fclose(bcpipe[1]);
 	free(bcopbuf);
-	free(hresbuf);
+	free(actualbuf);
 	bcopbuf = NULL;
 	bcopbufsz = 0;
-	hresbuf = NULL;
-	hresbufsz = 0;
+	actualbuf = NULL;
+	actualbufsz = 0;
 	bcrunning = 0;
 }
 
@@ -87,81 +87,6 @@ bcinit(void)
 	/* register termination handler */
 	bcrunning = 1;
 	atexit(bcterm);
-}
-
-static
-int vsnzprintf(
-		char *restrict s,
-		size_t n,
-		const char *restrict format,
-		va_list ap )
-{
-	size_t f = 0, i = 0;
-	int c, j, k, ll;
-
-	for (;;) {
-		c = format[f++];
-		if (c == '\0') {
-			break;
-		} else if (c != '%') {
-			if (i < n)
-				s[i] = (char)c;
-			++i;
-			continue;
-		}
-		k = n > i ? n-i : 0;
-		j = ll = 0;
-	restart:
-		c = format[f++];
-		switch (c) {
-		case '%':
-			if (k > 0) {
-				s[i] = '%';
-				j = 1;
-			}
-			break;
-		case 'l':
-			if (++ll > 2)
-				assert(!"bad format string");
-			goto restart;
-		case 'i':
-		case 'd':
-			if (ll == 0)
-				j = snprintf(s+i, k, "%d", va_arg(ap, int));
-			else if (ll == 1)
-				j = snprintf(s+i, k, "%ld", va_arg(ap, long));
-			else
-				j = snprintf(s+i, k, "%lld", va_arg(ap, long long));
-			break;
-		case 'u':
-			if (ll == 0)
-				j = snprintf(s+i, k, "%u", va_arg(ap, unsigned int));
-			else if (ll == 1)
-				j = snprintf(s+i, k, "%lu", va_arg(ap, unsigned long));
-			else
-				j = snprintf(s+i, k, "%llu", va_arg(ap, unsigned long long));
-			break;
-		case 's':
-			j = snprintf(s+i, k, "%s", va_arg(ap, const char*));
-			break;
-		case 'Z':
-			if (ll != 0)
-				assert(!"bad format string");
-			j = (int)hebi_zgetstr(s+i, k, va_arg(ap, hebi_zsrcptr), 10);
-			break;
-		default:
-			assert(!"bad format string");
-			break;
-		}
-		assert(j >= 0);
-		i += j;
-	}
-
-	if (i < n)
-		s[i] = '\0';
-	else if (n)
-		s[n-1] = '\0';
-	return i < INT_MAX ? i : INT_MAX;
 }
 
 char *
@@ -286,38 +211,20 @@ bcprintf(const char *format, ...)
 }
 
 static void
-vscheckbc(const char *restrict hres, const char *restrict bcop, va_list ap)
+checkresults(const char *actual, const char *expected, const char *operation)
 {
-	va_list ap2;
-	char *bcres = NULL;
-	size_t n = 4096;
-	int r;
-	
-	assert(hres && bcop);
+	assert(actual);
+	assert(expected);
+	assert(operation);
 
-	do {
-		if (n >= bcopbufsz) {
-			bcopbufsz = MAX(n + 1, bcopbufsz * 2);
-			bcopbuf = realloc(bcopbuf, bcopbufsz);
-		}
-		va_copy(ap2, ap);
-		r = vsnzprintf(bcopbuf, bcopbufsz, bcop, ap2);
-		va_end(ap2);
-		assert(r >= 0);
-		n = (size_t)r;
-	} while (n >= bcopbufsz);
-
-	bcres = bcputs(bcopbuf);
-	assert(bcres);
-
-	if (strcmp(hres, bcres)) {
+	if (strcmp(actual, expected)) {
 		(void)fprintf(stderr,
-			"hebi operation does not match bc operation\n"
+			"ASSERTION FAILURE\nactual result does not match expected result\n"
 			"iteration: %ld pass: %ld\n"
-			"hebi:\n%s\n"
-			"bc:\n%s\n"
+			"actual:\n%s\n"
+			"expected:\n%s\n"
 			"operation:\n%s\n",
-			check_iter, check_pass, hres, bcres, bcopbuf);
+			check_iter, check_pass, actual, expected, operation);
 		if (!check_skip_error) {
 			(void)fflush(stderr);
 			abort();
@@ -325,40 +232,79 @@ vscheckbc(const char *restrict hres, const char *restrict bcop, va_list ap)
 	} else if (check_verbose) {
 		(void)printf(
 			"iteration: %ld pass: %ld\n"
-			"hebi:\n%s\n"
-			"bc:\n%s\n"
+			"actual:\n%s\n"
+			"expected:\n%s\n"
 			"operation:\n%s\n\n",
-			check_iter, check_pass, hres, bcres, bcopbuf);
+			check_iter, check_pass, actual, expected, operation);
 	}
-
-	free(bcres);
 }
 
-void
-scheckbc(const char *restrict hres, const char *restrict bcop, ...)
+static void
+vscheckbc(const char *actual, const char *bcopfmt, va_list ap)
 {
-	va_list ap;
+	va_list ap2;
+	char *expected = NULL;
+	size_t n = 4096;
+	int r;
+	
+	assert(actual);
+	assert(bcopfmt);
 
-	va_start(ap, bcop);
-	vscheckbc(hres, bcop, ap);
-	va_end(ap);
+	do {
+		if (n >= bcopbufsz) {
+			bcopbufsz = MAX(n + 1, bcopbufsz * 2);
+			bcopbuf = realloc(bcopbuf, bcopbufsz);
+		}
+		va_copy(ap2, ap);
+		r = vsnchkprintf(bcopbuf, bcopbufsz, bcopfmt, ap2);
+		va_end(ap2);
+		assert(r >= 0);
+		n = (size_t)r;
+	} while (n >= bcopbufsz);
+
+	expected = bcputs(bcopbuf);
+	checkresults(actual, expected, bcopbuf);
+	free(expected);
 }
 
 void
-zcheckbc(hebi_zsrcptr restrict hres, const char *restrict bcop, ...)
+zcheckbc(hebi_zsrcptr restrict actual, const char *bcopfmt, ...)
 {
 	size_t n = 1024;
 	va_list ap;
 
-	do {
-		if (n >= hresbufsz) {
-			hresbufsz = MAX(n + 1, hresbufsz * 2);
-			hresbuf = realloc(hresbuf, hresbufsz);
-		}
-		n = hebi_zgetstr(hresbuf, hresbufsz, hres, 10);
-	} while (n >= hresbufsz);
+	assert(actual);
+	assert(bcopfmt);
 
-	va_start(ap, bcop);
-	vscheckbc(hresbuf, bcop, ap);
+	do {
+		if (n >= actualbufsz) {
+			actualbufsz = MAX(n + 1, actualbufsz * 2);
+			actualbuf = realloc(actualbuf, actualbufsz);
+		}
+		n = hebi_zgetstr(actualbuf, actualbufsz, actual, 10);
+	} while (n >= actualbufsz);
+
+	va_start(ap, bcopfmt);
+	vscheckbc(actualbuf, bcopfmt, ap);
 	va_end(ap);
+}
+
+void
+zcheckstr(hebi_zsrcptr restrict actual, const char *expected, const char* operation)
+{
+	size_t n = 1024;
+
+	assert(actual);
+	assert(expected);
+	assert(operation);
+
+	do {
+		if (n >= actualbufsz) {
+			actualbufsz = MAX(n + 1, actualbufsz * 2);
+			actualbuf = realloc(actualbuf, actualbufsz);
+		}
+		n = hebi_zgetstr(actualbuf, actualbufsz, actual, 10);
+	} while (n >= actualbufsz);
+
+	checkresults(actualbuf, expected, operation);
 }

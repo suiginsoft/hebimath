@@ -25,6 +25,7 @@ check/p/pcopy
 check/p/pmove
 check/p/pnorm
 check/p/pzero
+check/z/zabs
 check/z/zadd
 check/z/zaddi
 check/z/zaddu
@@ -36,12 +37,14 @@ check/z/zgetset
 check/z/zmul
 check/z/zmuli
 check/z/zmulu
+check/z/zneg
 check/z/zor
 check/z/zrem
 check/z/zremi
 check/z/zremu
 check/z/zshl
 check/z/zshr
+check/z/zsqr
 check/z/zsub
 check/z/zsubi
 check/z/zsubu

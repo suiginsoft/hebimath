@@ -9,6 +9,6 @@ int
 main(int argc, char *argv[])
 {
 	checkinit(argc, argv);
-	zcheckbinop(hebi_zdiv, "/", RHS_NONZERO);
+	zcheckbinop(hebi_zdiv, "%Z / %Z", RHS_NONZERO);
 	return 0;
 }

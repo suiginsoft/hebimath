@@ -187,52 +187,52 @@ MVFUNC_END
 MVFUNC_BEGIN pclz, sse2
 
     cmp         $1, %rsi
-    ja          6f
+    ja          5f
+    mov         8(%rdi), %rcx
     xor         %eax, %eax
-1:  mov         8(%rdi), %rcx
-    mov         (%rdi), %rdx
-    jmp         3f
+    test        %rcx, %rcx
+    jnz         2f
+    mov         (%rdi), %rcx
+    add         $64, %rax
+    test        %rcx, %rcx
+    jnz         2f
+    add         $64, %rax
+    ret
 
     .p2align 4,,7
 2:  bsr         %rcx, %rcx
     xor         $63, %rcx
     add         %rcx, %rax
     ret
-3:  test        %rcx, %rcx
-    jnz         5b
-    mov         %rdx, %rcx
-    add         $64, %rax
-    test        %rdx, %rdx
-    jnz         5b
-    add         $64, %rax
-    ret
 
     .p2align 4,,7
-4:  cmp         $0xFF, %ch
-    je          5f
+3:  cmp         $0xFF, %ch
+    je          4f
     punpckhqdq  %xmm0, %xmm0
-    add         $64, %rax
-5:  movq        %xmm0, %rcx
+    movq        %xmm0, %rcx
+    jmp         2b
+4:  add         $64, %rax
+    movq        %xmm0, %rcx
     jmp         2b
 
     .p2align 4,,7
-6:  shl         $4, %rsi
+5:  shl         $4, %rsi
     lea         -16(%rdi,%rsi), %rdi
     mov         $-128, %rax
     pxor        %xmm1, %xmm1
     shr         $4, %rsi
 
     .p2align 4,,15
-7:  movdqa      (%rdi), %xmm0
+6:  movdqa      (%rdi), %xmm0
     add         $128, %rax
     pcmpeqd     %xmm0, %xmm1
     pmovmskb    %xmm1, %ecx
     pxor        %xmm1, %xmm1
     cmp         $0xFFFF, %ecx
-    jne         4b
+    jne         3b
     sub         $16, %rdi
     dec         %rsi
-    jnz         7b
+    jnz         6b
     add         $128, %rax
     ret
 

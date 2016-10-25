@@ -9,6 +9,6 @@ int
 main(int argc, char *argv[])
 {
 	checkinit(argc, argv);
-	zcheckbinop(hebi_zsub, "-", 0);
+	zcheckbinop(hebi_zsub, "%Z - %Z", 0);
 	return 0;
 }
