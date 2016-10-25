@@ -1,22 +1,25 @@
 Low-level Functions:
 
+* fix x86-64 implementations of pctz for 128-bit packet size
+* fix x86-64 implementation of pneg for 128-bit packet size
 * add/sub variants for inplace operations and same-sized inputs
 * port remainder of division implementation to x86-64 assembly
+* optimize pclz, almost always called on normalized input
 
 Integer Functions:
 
-* zpopcount
 * zhamdist
+* zpopcount
 * zscan0
 * zscan1
+* zsetbit
 * zgetstrlen/zsizeinbase
 * zgcd
 * zpowu
+* zsqrt
 
 Optimize:
-* zand
-* zor
-* zxor
+
 * znot
 * ztrunc
 * pandmsk__
@@ -24,11 +27,10 @@ Optimize:
 Other:
 
 * add a special invalid allocator id value for zinit_buffer functions
-* consider making pmul return normalized length, and remove zeroing
-  of bytes if length is null, would give small boost to karatsuba which
-  has already zeroed destination memory
 * add support for GCC/Clang overflow intrinsics when checking if
   memory allocation sizes exceed max size
-* optimize kernel functions for input constraints (non-zero sizes)
-* optimize use of ptest/vptest instruction by speculatively executing
-  instructions in between test and branch
+* fix memory leak with scratch memory due to TLS variables lacking
+  destructor function
+* cleanup use of USE_VALIDATION macro, do we even need this?
+* add a lot more checks/tests
+* create some sample programs
