@@ -43,7 +43,7 @@ FUNC_BEGIN \Name
     lea         32(%rdx), %rdx
     lea         32(%rdi), %rdi
     dec         %rcx
-    jne         1b
+    jnz         1b
 
     # Tail: process last packet if there's an odd number of packets
 
@@ -142,9 +142,12 @@ FUNC_BEGIN \Name, @private
     # Carry no longer set, simply copy remaining data to destination
 
     .p2align 4,,7
-4:  lea         (%rdx,%rcx,2), %rdx
+4:
 .if USE_MULTI_VERSIONING && USE_PIC
     mov         hebi_pcopy_ptr__@GOTPCREL(%rip), %r11
+.endif
+    lea         (%rdx,%rcx,2), %rdx
+.if USE_MULTI_VERSIONING && USE_PIC
     mov         (%r11), %r10
 .endif
     test        %rdx, %rdx

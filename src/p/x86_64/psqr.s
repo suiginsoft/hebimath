@@ -1,7 +1,8 @@
 # hebimath - arbitrary precision arithmetic library
 # See LICENSE file for copyright and license details
 
-# void hebi_psqr(hebi_packet *restrict r, const hebi_packet *restrict a, size_t n);
+# void
+# hebi_psqr(hebi_packet *restrict r, const hebi_packet *restrict a, size_t n);
 
 .include "src/p/x86_64/x86_64.inc"
 
