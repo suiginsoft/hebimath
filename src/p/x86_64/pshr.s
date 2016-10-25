@@ -141,7 +141,6 @@ MVFUNC_BEGIN pshr, sse2
 
     .p2align 4,,7
 2:  test        $1, %dl
-2:  test        $1, %dl
     jz          3f
     movq        (%rsi), %xmm2           # xmm2 := al[i+1]
     pxor        %xmm4, %xmm4
@@ -160,10 +159,10 @@ MVFUNC_BEGIN pshr, sse2
 
     pcmpeqd     %xmm4, %xmm0
     pmovmskb    %xmm0, %eax
-    shr         $2, %rdx
+    shr         %rdx
     cmp         $0xFFFF, %eax
     mov         %rdx, %rax
-    setz        %cl
+    sete        %cl
     sub         %rcx, %rax
     ret
 
