@@ -32,6 +32,8 @@ static const char xor_script[] =
 int
 main(int argc, char *argv[])
 {
+	check_max_perm = 64;
+	check_scale_perm = 2;
 	checkinit(argc, argv);
 	bcwrite(xor_script);
 	zcheckbinop(hebi_zxor, "xor(%Z, %Z)", 0);

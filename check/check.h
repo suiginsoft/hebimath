@@ -16,7 +16,8 @@
 
 enum {
 	LHS_NONZERO = 0x01,
-	RHS_NONZERO = 0x02
+	RHS_NONZERO = 0x02,
+	NONZERO = 0x03
 };
 
 extern const int64_t check_i64values[];
@@ -27,9 +28,10 @@ extern const long check_num_u64values;
 
 extern long check_pass;
 extern long check_iter;
-extern long check_start_iter;
+extern long check_first_iter;
 extern long check_max_iter;
 extern long check_max_perm;
+extern long check_scale_perm;
 extern int check_skip_error;
 extern int check_verbose;
 

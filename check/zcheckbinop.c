@@ -19,16 +19,14 @@ zcheckbinop(
 
 	assert(f);
 	assert(opfmt);
+	assert(check_first_iter >= 0);
+	assert(check_max_perm >= 0);
 
 	hebi_zinits(r, a, b, NULL);
 
-	if (check_max_perm <= 0)
-		check_max_perm = 128;
+	check_iter = check_first_iter;
 	check_max_iter = check_max_perm * check_max_perm;
-
-	for (check_iter = check_start_iter;
-			check_iter < check_max_iter;
-			check_iter++) {
+	for ( ; check_iter < check_max_iter; check_iter++) {
 		/* generate test inputs */
 		zpermutation(check_iter, check_max_perm, 2, a, b);
 		if ((flags & LHS_NONZERO) && hebi_zzero(a))

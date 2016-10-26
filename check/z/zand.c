@@ -32,6 +32,8 @@ static const char and_script[] =
 int
 main(int argc, char *argv[])
 {
+	check_max_perm = 64;
+	check_scale_perm = 2;
 	checkinit(argc, argv);
 	bcwrite(and_script);
 	zcheckbinop(hebi_zand, "and(%Z, %Z)", 0);

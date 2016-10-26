@@ -4,6 +4,6 @@ int
 main(int argc, char *argv[])
 {
 	checkinit(argc, argv);
-	zcheckbinopu64(hebi_zdivu, "/", RHS_NONZERO);
+	zcheckbinopu64(hebi_zdivu, "%Z / %llu", RHS_NONZERO);
 	return 0;
 }

@@ -42,6 +42,11 @@ zpermutation(long x, long n, int p, ...)
 	long y;
 	int i;
 
+	assert(x >= 0);
+	assert(n >= 0);
+	assert(p >= 0);
+	assert(check_scale_perm > 0);
+
 	if (!initialized) {
 		bcwrite(bczrand);
 		initialized = 1;
@@ -58,6 +63,7 @@ zpermutation(long x, long n, int p, ...)
 			hebi_zsetu(z, check_u64values[y - check_num_i64values + 3]);
 		} else {
 			y -= check_num_i64values + check_num_u64values - 3;
+			y *= check_scale_perm;
 			s = bcprintf("zrand(%d,%ld)", seeds[i%4], y);
 			hebi_zsetstr(z, s, NULL, 10);
 			free(s);

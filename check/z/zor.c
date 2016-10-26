@@ -32,6 +32,8 @@ static const char or_script[] =
 int
 main(int argc, char *argv[])
 {
+	check_max_perm = 64;
+	check_scale_perm = 2;
 	checkinit(argc, argv);
 	bcwrite(or_script);
 	zcheckbinop(hebi_zor, "or(%Z, %Z)", 0);

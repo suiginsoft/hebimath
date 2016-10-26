@@ -236,9 +236,8 @@ CHECK_P := \
 	pzero
 
 CHECK_Z := \
-	zgetset \
-	zshl \
-	zshr \
+	getset \
+	shift \
 	zabs \
 	zneg \
 	zadd \

@@ -9,6 +9,6 @@ int
 main(int argc, char *argv[])
 {
 	checkinit(argc, argv);
-	zcheckbinopu64(hebi_zmulu, "*", 0);
+	zcheckbinopu64(hebi_zmulu, "%Z * %llu", 0);
 	return 0;
 }

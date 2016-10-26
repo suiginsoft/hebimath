@@ -63,6 +63,10 @@ vsnchkprintf(char *restrict s, size_t n, const char *restrict fmt, va_list ap)
 		case 's':
 			j = snprintf(s+i, k, "%s", va_arg(ap, const char*));
 			break;
+		case 'z':
+			if ((ll += (sizeof(size_t) / sizeof(long))) > 2)
+				assert(!"bad format string");
+			goto restart;
 		case 'Z':
 			if (ll != 0)
 				assert(!"bad format string");
