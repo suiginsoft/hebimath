@@ -4,7 +4,7 @@ int
 main(int argc, char *argv[])
 {
 	hebi_z q, r, a;
-	size_t b, n;
+	size_t b, l, n;
 
 	check_max_perm = 64;
 	check_scale_perm = 4;
@@ -18,6 +18,7 @@ main(int argc, char *argv[])
 		/* generate test inputs */
 		zpermutation(check_iter, check_max_perm, 1, a);
 		n = hebi_zbits(a);
+		l = hebi_zlsb(a);
 
 		check_pass = 0;
 		for ( ; check_pass < 1024; check_pass++) {
@@ -36,7 +37,7 @@ main(int argc, char *argv[])
 
 			/* check bit length and trailing zero count */
 			assert(hebi_zbits(r) == (n ? b + n : 0));
-			/* FIXME on x86-64: assert(hebi_zlsb(r) == (n ? b : 0));*/
+			assert(hebi_zlsb(r) == (n ? b + l : 0));
 
 			/* right shift, read-only input */
 			zdirty(q, NULL);

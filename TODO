@@ -1,6 +1,5 @@
 Low-level Functions:
 
-* fix x86-64 implementations of pctz for 128-bit packet size
 * fix x86-64 implementation of pneg for 128-bit packet size
 * add/sub variants for inplace operations and same-sized inputs
 * port remainder of division implementation to x86-64 assembly

@@ -187,52 +187,52 @@ MVFUNC_END
 MVFUNC_BEGIN pclz, sse2
 
     cmp         $1, %rsi
-    ja          5f
+    ja          4f
     mov         8(%rdi), %rcx
     xor         %eax, %eax
     test        %rcx, %rcx
-    jnz         2f
+    jnz         1f
     mov         (%rdi), %rcx
     add         $64, %rax
     test        %rcx, %rcx
-    jnz         2f
+    jnz         1f
     add         $64, %rax
     ret
 
     .p2align 4,,7
-2:  bsr         %rcx, %rcx
+1:  bsr         %rcx, %rcx
     xor         $63, %rcx
     add         %rcx, %rax
     ret
 
     .p2align 4,,7
-3:  cmp         $0xFF, %ch
-    je          4f
+2:  cmp         $0xFF, %ch
+    je          3f
     punpckhqdq  %xmm0, %xmm0
     movq        %xmm0, %rcx
-    jmp         2b
-4:  add         $64, %rax
+    jmp         1b
+3:  add         $64, %rax
     movq        %xmm0, %rcx
-    jmp         2b
+    jmp         1b
 
     .p2align 4,,7
-5:  shl         $4, %rsi
+4:  shl         $4, %rsi
     lea         -16(%rdi,%rsi), %rdi
     mov         $-128, %rax
     pxor        %xmm1, %xmm1
     shr         $4, %rsi
 
     .p2align 4,,15
-6:  movdqa      (%rdi), %xmm0
+5:  movdqa      (%rdi), %xmm0
     add         $128, %rax
     pcmpeqd     %xmm0, %xmm1
     pmovmskb    %xmm1, %ecx
     pxor        %xmm1, %xmm1
     cmp         $0xFFFF, %ecx
-    jne         3b
+    jne         2b
     sub         $16, %rdi
     dec         %rsi
-    jnz         6b
+    jnz         5b
     add         $128, %rax
     ret
 
