@@ -248,6 +248,8 @@ CHECK_Z := \
 	shift \
 	zcmp \
 	zcmpmag \
+	zcmpi \
+	zcmpu \
 	zabs \
 	zneg \
 	zadd \

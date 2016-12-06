@@ -709,7 +709,7 @@ hebi_zcmpi(hebi_zsrcptr a__, int64_t b__)
 	if (HEBI_UNLIKELY(!b__))
 		return s__;
 	else if (HEBI_UNLIKELY(!s__))
-		return b__ < 0 ? -1 : 1;
+		return b__ < 0 ? 1 : -1;
 	if (b__ < 0) {
 		if (s__ > 0)
 			return 1;
