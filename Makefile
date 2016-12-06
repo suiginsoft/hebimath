@@ -186,7 +186,15 @@ CFG_TARGETS_x86_64 := config.h config.inc
 
 DEPS_generic := src/p/generic/generic.h
 DEPS_x86_64 := config.inc src/p/x86_64/x86_64.inc
-DEPS := $(CONFIG) hebimath.h config.h internal.h src/p/pcommon.h $(DEPS_$(DRIVER_selected))
+
+DEPS := \
+	Makefile \
+	$(CONFIG) \
+	hebimath.h \
+	config.h \
+	internal.h \
+	src/p/pcommon.h \
+	$(DEPS_$(DRIVER_selected))
 
 OBJ_shared := $(SRC:%=src/%.po)
 OBJ_static := $(SRC:%=src/%.o)
@@ -238,6 +246,8 @@ CHECK_P := \
 CHECK_Z := \
 	getset \
 	shift \
+	zcmp \
+	zcmpmag \
 	zabs \
 	zneg \
 	zadd \

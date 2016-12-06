@@ -687,7 +687,7 @@ hebi_zcmpmag(hebi_zsrcptr a__, hebi_zsrcptr b__)
 {
 	size_t m__, n__;
 	if (HEBI_UNLIKELY(!a__->hebi_sign__))
-		return -!b__->hebi_sign__;
+		return -!!b__->hebi_sign__;
 	else if (HEBI_UNLIKELY(!b__->hebi_sign__))
 		return 1;
 	m__ = a__->hebi_used__;
