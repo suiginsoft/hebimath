@@ -109,8 +109,8 @@ enum {
 	HEBI_EZERODIVZERO = 2,
 	HEBI_EZEROPOWZERO = 3,
 	HEBI_EBADALLOCID = 4,
-	HEBI_EBADVALUE = 5,
-	HEBI_EBADRANGE = 6,
+	HEBI_EBADLENGTH = 5,
+	HEBI_EBADVALUE = 6,
 	HEBI_ENOHWCAPS = 7,
 	HEBI_ENOMEM = 8,
 	HEBI_ENOSLOTS = 9,
@@ -208,6 +208,13 @@ struct hebi_kiss {
 	UINT64_C(123456789987654321), \
 	0, 1, { UINT64_C(4261283300534326642) } }
 
+enum {
+	HEBI_STR_BASEMASK = 63,
+	HEBI_STR_PREFIX = 64,
+	HEBI_STR_SIGN = 128,
+	HEBI_STR_UPPER = 256
+};
+
 #define HEBI_PACKET_ALIGNMENT 16
 #define HEBI_PACKET_BIT 128
 #define HEBI_PACKET_LIMBS32 4
@@ -281,14 +288,6 @@ HEBI_API HEBI_CONST size_t hebi_pmul_karatsuba_space(size_t, size_t);
 HEBI_API void hebi_psqr_karatsuba(hebi_packet *HEBI_RESTRICT, hebi_packet *HEBI_RESTRICT, const hebi_packet *, size_t);
 HEBI_API HEBI_CONST size_t hebi_psqr_karatsuba_space(size_t);
 HEBI_API void hebi_prand_kiss(hebi_packet *HEBI_RESTRICT, size_t, size_t, struct hebi_kiss *HEBI_RESTRICT);
-
-enum {
-	HEBI_STR_BASEMASK = 63,
-	HEBI_STR_PREFIX = 64,
-	HEBI_STR_SIGN = 128,
-	HEBI_STR_UPPER = 256
-};
-
 HEBI_API size_t hebi_pgetstr(char *HEBI_RESTRICT, size_t, hebi_packet *HEBI_RESTRICT, size_t, int);
 HEBI_API size_t hebi_pgetstrlen(const hebi_packet *, size_t, int);
 
@@ -344,9 +343,10 @@ HEBI_INLINE HEBI_ALLOC HEBI_WARNUNUSED
 hebi_packet *
 hebi_pallocfp(const struct hebi_allocfnptrs *f__, size_t n__)
 {
-	size_t s__ = n__ * sizeof(hebi_packet);
-	if (HEBI_UNLIKELY(s__ / sizeof(hebi_packet) != n__))
-		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
+	size_t s__;
+	if (HEBI_UNLIKELY(n__ > HEBI_PACKET_MAXLEN))
+		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADLENGTH);
+	s__ = n__ * sizeof(hebi_packet);
 	return hebi_allocfp(f__, HEBI_PACKET_ALIGNMENT, s__);
 }
 

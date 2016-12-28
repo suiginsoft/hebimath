@@ -15,22 +15,17 @@ hebi_zinit_copy_reserve(
 {
 	const struct hebi_allocfnptrs *fp;
 	hebi_packet *p;
-	size_t nbytes, u;
+	size_t u;
 
 	fp = hebi_alloc_query(&id, id);
-	p = NULL;
 
 	u = hebi_zused(a);
 	if (n < u)
 		n = u;
 
+	p = NULL;
 	if (LIKELY(n)) {
-		nbytes = n * sizeof(hebi_packet);
-#ifdef USE_VALIDATION
-		if (UNLIKELY(nbytes / sizeof(hebi_packet) != n))
-			hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
-#endif
-		p = hebi_allocfp(fp, HEBI_PACKET_ALIGNMENT, nbytes);
+		p = hebi_pallocfp(fp, n);
 		if (LIKELY(u))
 			hebi_pcopy(p, a->hz_packs, u);
 	}

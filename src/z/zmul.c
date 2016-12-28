@@ -29,7 +29,7 @@ hebi_zmul(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 
 	rn = an + bn + 1;
 	if (UNLIKELY(rn <= an))
-		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
+		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADLENGTH);
 
 	rz = r;
 	if (rz == a || rz == b)

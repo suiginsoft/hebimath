@@ -11,26 +11,20 @@ hebi_zrealloc(hebi_zptr r, size_t n)
 {
 	hebi_allocid id;
 	const struct hebi_allocfnptrs *fp;
-	hebi_packet *p, *old_p;
-	size_t u, nbytes;
+	hebi_packet *p, *oldp;
+	size_t u;
 
 	fp = hebi_alloc_query(&id, hebi_zallocator(r));
 
-	nbytes = n * sizeof(hebi_packet);
-#ifdef USE_VALIDATION
-	if (UNLIKELY(nbytes / sizeof(hebi_packet) != n))
-		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
-#endif
-
 	p = NULL;
-	if (LIKELY(nbytes))
-		p = hebi_allocfp(fp, HEBI_PACKET_ALIGNMENT, nbytes);
+	if (LIKELY(n))
+		p = hebi_pallocfp(fp, n);
 
-	old_p = r->hz_packs;
+	oldp = r->hz_packs;
 	if ((u = MIN(n, hebi_zused(r))))
-		hebi_pcopy(p, old_p, u);
+		hebi_pcopy(p, oldp, u);
 
-	hebi_freefp(fp, old_p, r->hz_resv * sizeof(hebi_packet));
+	hebi_pfreefp(fp, oldp, r->hz_resv);
 
 	r->hz_packs = p;
 	r->hz_resv = n;

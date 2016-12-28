@@ -24,11 +24,7 @@ Optimize:
 Other:
 
 * add a special invalid allocator id value for zinit_buffer functions
-* make sure can't allocate more than HEBI_PACKET_MAXLEN packets
-* add support for GCC/Clang overflow intrinsics when checking if
-  memory allocation sizes exceed max size
 * fix memory leak with scratch memory due to TLS variables lacking
   destructor function
-* cleanup use of USE_VALIDATION macro, do we even need this?
 * add a lot more checks/tests
 * create some sample programs

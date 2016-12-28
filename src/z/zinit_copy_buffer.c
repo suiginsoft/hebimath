@@ -15,17 +15,13 @@ hebi_zinit_copy_buffer(
 {
 	size_t u;
 
-#ifdef USE_VALIDATION
-	if (UNLIKELY((!buffer && n) ||
+	if (UNLIKELY((buffer == NULL && n) ||
 			((uintptr_t)buffer & (HEBI_PACKET_ALIGNMENT - 1))))
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
-#endif
 
 	u = hebi_zused(a);
-#ifdef USE_VALIDATION
-	if (UNLIKELY(n < u))
-		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
-#endif
+	if (UNLIKELY(n < u || n > HEBI_PACKET_MAXLEN))
+		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADLENGTH);
 
 	if (LIKELY(u))
 		hebi_pcopy(buffer, a->hz_packs, u);

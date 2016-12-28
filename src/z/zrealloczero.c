@@ -12,21 +12,14 @@ hebi_zrealloczero(hebi_zptr r, size_t n)
 	hebi_allocid id;
 	const struct hebi_allocfnptrs *fp;
 	hebi_packet *p;
-	size_t nbytes;
-
-	nbytes = n * sizeof(hebi_packet);
-#ifdef USE_VALIDATION
-	if (UNLIKELY(nbytes / sizeof(hebi_packet) != n))
-		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
-#endif
 
 	fp = hebi_alloc_query(&id, hebi_zallocator(r));
 
 	p = NULL;
-	if (LIKELY(nbytes))
-		p = hebi_allocfp(fp, HEBI_PACKET_ALIGNMENT, nbytes);
+	if (LIKELY(n))
+		p = hebi_pallocfp(fp, n);
 
-	hebi_freefp(fp, r->hz_packs, r->hz_resv * sizeof(hebi_packet));
+	hebi_pfreefp(fp, r->hz_packs, r->hz_resv);
 
 	r->hz_packs = p;
 	r->hz_resv = n;

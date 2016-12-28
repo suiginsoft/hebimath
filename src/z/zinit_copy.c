@@ -12,15 +12,14 @@ hebi_zinit_copy(hebi_zptr restrict r, hebi_zsrcptr restrict a)
 	const struct hebi_allocfnptrs* fp;
 	hebi_allocid id;
 	hebi_packet *p;
-	size_t n, nbytes;
+	size_t n;
 
 	fp = hebi_alloc_query(&id, HEBI_ALLOC_DEFAULT);
-	n = a->hz_used;
-	p = NULL;
 
+	p = NULL;
+	n = a->hz_used;
 	if (LIKELY(n)) {
-		nbytes = n * sizeof(hebi_packet);
-		p = hebi_allocfp(fp, HEBI_PACKET_ALIGNMENT, nbytes);
+		p = hebi_pallocfp(fp, n);
 		hebi_pcopy(p, a->hz_packs, n);
 	}
 

@@ -15,7 +15,7 @@ hebi_zshl(hebi_zptr r, hebi_zsrcptr a, size_t b)
 	if (UNLIKELY(!b)) {
 		hebi_zset(r, a);
 		return;
-	} else if (UNLIKELY(b > SIZE_MAX - HEBI_PACKET_BIT + 1)) {
+	} else if (UNLIKELY(b > HEBI_PACKET_MAXLEN * HEBI_PACKET_BIT)) {
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
 	}
 
@@ -26,8 +26,8 @@ hebi_zshl(hebi_zptr r, hebi_zsrcptr a, size_t b)
 
 	au = a->hz_used;
 	rn = au + (b + HEBI_PACKET_BIT - 1) / HEBI_PACKET_BIT;
-	if (UNLIKELY(rn < au))
-		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
+	if (UNLIKELY(rn < au || rn > HEBI_PACKET_MAXLEN))
+		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
 
 	if (rn > r->hz_resv)
 		hebi_zrealloc_copyif__(r, rn, r == a);

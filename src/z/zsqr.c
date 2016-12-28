@@ -23,7 +23,7 @@ hebi_zsqr(hebi_zptr r, hebi_zsrcptr a)
 	au = a->hz_used;
 	tn = 2 * au + 1;
 	if (UNLIKELY(tn <= au))
-		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
+		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADLENGTH);
 
 	t = r;
 	if (t == a)

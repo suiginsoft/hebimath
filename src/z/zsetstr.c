@@ -18,10 +18,8 @@ hebi_zsetstr(
 	unsigned char digit, digit_range, letter_range;
 	int neg;
 
-#ifdef USE_VALIDATION
 	if (UNLIKELY(base && (base < 2 || 36 < base)))
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
-#endif
 
 	/* skip whitespace */
 	for (ptr = str; isspace(*ptr); ++ptr) ;

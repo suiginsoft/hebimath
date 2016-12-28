@@ -12,14 +12,6 @@
 /* #define USE_ASSERTIONS */
 
 /*
- * Comment out to disable validation of input arguments on high-level
- * integer functions (functions with hebi_z*** prefix). Validation
- * checks help guard against constraint violations in external data.
- * Disabling this may improve performance at the cost of safety.
- */
-#define USE_VALIDATION
-
-/*
  * Enables internal use of __int128 compiler extension when supported
  * by the compiler and target platform.
  */
