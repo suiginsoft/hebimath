@@ -70,6 +70,8 @@ PFUNCTIONS := \
 	pmul_karatsuba_space \
 	pdivrem \
 	prand_kiss \
+	pgetstr \
+	pgetstrlen \
 	psetu \
 	psetu2 \
 	psetzero \

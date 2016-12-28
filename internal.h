@@ -497,6 +497,56 @@ hebi_ctz64__(uint64_t x)
 #endif
 }
 
+/* 64-bit x 64-bit -> 128-bit unsigned multiply */
+static inline HEBI_ALWAYSINLINE
+void
+hebi_umul128__(
+		uint64_t *restrict lo,
+		uint64_t *restrict hi,
+		uint64_t x,
+		uint64_t y )
+{
+#ifdef USE_INT128
+	hebi_uint128 p = (hebi_uint128)x * y;
+	*hi = (uint64_t)(p >> 64);
+	*lo = (uint64_t)(p & UINT64_MAX);
+#else
+	uint64_t a, b, c, d, ac, ad, bc, bd, mid34;
+	a = x >> 32;
+	b = x & UINT32_MAX;
+	c = y >> 32;
+	d = y & UINT32_MAX;
+	ac = a * c;
+	bc = b * c;
+	ad = a * d;
+	bd = b * d;
+	mid34 = (bd >> 32) + (bc & UINT32_MAX) + (ad & UINT32_MAX);
+	*hi = ac + (bc >> 32) + (ad >> 32) + (mid34 >> 32);
+	*lo = (mid34 << 32) | (bd & UINT32_MAX);
+#endif
+}
+
+/* 64-bit x 64-bit + 64-bit -> 128-bit unsigned multiply & addition */
+static inline HEBI_ALWAYSINLINE
+void
+hebi_umad128__(
+		uint64_t *restrict lo,
+		uint64_t *restrict hi,
+		uint64_t x,
+		uint64_t y,
+		uint64_t z )
+{
+#ifdef USE_INT128
+	hebi_uint128 p = (hebi_uint128)x * y + z;
+	*hi = (uint64_t)(p >> 32);
+	*lo = (uint64_t)(p & UINT64_MAX);
+#else
+	hebi_umul128__(lo, hi, x, y);
+	*lo += z;
+	*hi += *lo < z;
+#endif
+}
+
 static inline HEBI_ALWAYSINLINE
 void
 hebi_pandmsk__(hebi_packet *a, int bits)

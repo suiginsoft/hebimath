@@ -208,10 +208,18 @@ struct hebi_kiss {
 	UINT64_C(123456789987654321), \
 	0, 1, { UINT64_C(4261283300534326642) } }
 
+enum {
+	HEBI_STR_BASEMASK = 63,
+	HEBI_STR_PREFIX = 64,
+	HEBI_STR_SIGN = 128,
+	HEBI_STR_UPPER = 256
+};
+
 #define HEBI_PACKET_ALIGNMENT 16
 #define HEBI_PACKET_BIT 128
 #define HEBI_PACKET_LIMBS32 4
 #define HEBI_PACKET_LIMBS64 2
+#define HEBI_PACKET_MAXLEN (SIZE_MAX / HEBI_PACKET_BIT)
 
 typedef union hebi_packet {
 	HEBI_ALIGNAS(HEBI_PACKET_ALIGNMENT)
@@ -279,6 +287,8 @@ HEBI_API void hebi_pmul_karatsuba(hebi_packet *HEBI_RESTRICT, hebi_packet *HEBI_
 HEBI_API HEBI_CONST size_t hebi_pmul_karatsuba_space(size_t, size_t);
 HEBI_API void hebi_psqr_karatsuba(hebi_packet *HEBI_RESTRICT, hebi_packet *HEBI_RESTRICT, const hebi_packet *, size_t);
 HEBI_API HEBI_CONST size_t hebi_psqr_karatsuba_space(size_t);
+HEBI_API size_t hebi_pgetstr(char *HEBI_RESTRICT, size_t, hebi_packet *HEBI_RESTRICT, size_t, int);
+HEBI_API size_t hebi_pgetstrlen(const hebi_packet *, size_t, int);
 HEBI_API void hebi_prand_kiss(hebi_packet *HEBI_RESTRICT, size_t, size_t, struct hebi_kiss *HEBI_RESTRICT);
 
 HEBI_INLINE

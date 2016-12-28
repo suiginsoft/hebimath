@@ -7,63 +7,51 @@
 
 HEBI_API
 size_t
-hebi_zgetstr(char *restrict str, size_t n, hebi_zsrcptr restrict a, int base)
+hebi_zgetstr(char *restrict str, size_t len, hebi_zsrcptr restrict a, int base)
 {
-	const struct hebi_allocfnptrs *fp;
-	char *restrict start, *restrict end, *restrict ptr;
-	hebi_packet *restrict work;
-	size_t sz, nbytes;
-	char remainder;
-	int s;
+	int maskedbase, s;
+	char *start, *end;
+	hebi_packet *restrict w;
+	size_t n, rlen;
 
 	/* validate base */
-#ifdef USE_VALIDATION
-	if (UNLIKELY(base < 2 || 36 < base))
+	maskedbase = base & HEBI_STR_BASEMASK;
+	if (UNLIKELY(maskedbase < 2 || 36 < maskedbase))
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
-#endif
 
-	/* handle case of too small an output buffer */
-	if (UNLIKELY(n <= 1)) {
-		if (n)
-			str[0] = '\0';
-		return n;
+	/* setup pointers and result length */
+	start = str;
+	end = str + len - (len > 0);
+	rlen = 0;
+
+	/* write out negative sign or optional plus sign */
+	s = a->hz_sign;
+	if (s < 0) {
+		if (LIKELY(str < end))
+			*str++ = '-';
+		rlen++;
+	} else if (base & HEBI_STR_SIGN) {
+		if (LIKELY(str < end))
+			*str++ = '+';
+		rlen++;
 	}
 
 	/* fast-path for zero */
-	s = a->hz_sign;
 	if (UNLIKELY(!s)) {
-		str[0] = '0';
-		str[1] = '\0';
-		return 1;
+		if (LIKELY(str < end))
+			*str++ = '0';
+		if (LIKELY(len > 0))
+			*str = '\0';
+		return ++rlen;
 	}
 
-	/* copy integer data into work buffer */
-	sz = a->hz_used;
-	nbytes = sz * sizeof(hebi_packet);
-	fp = hebi_alloc_query(NULL, HEBI_ALLOC_SCRATCH);
-	work = hebi_allocfp(fp, HEBI_PACKET_ALIGNMENT, nbytes);
-	hebi_pcopy(work, a->hz_packs, sz);
+	/* copy integer data into scratch-pad buffer */
+	n = a->hz_used;
+	w = hebi_pscratch__(n);
+	hebi_pcopy(w, a->hz_packs, n);
 
-	/* setup pointers and write negative sign */
-	ptr = str;
-	end = ptr + n - 1;
-	if (s < 0)
-		*ptr++ = '-';
-
-	/* write out digits */
-	start = ptr;
-	for ( ; ptr < end && sz > 0; ++ptr) {
-		remainder = (char)hebi_pdivremu(work, work, base, sz);
-		sz = hebi_pnorm(work, sz);
-		*ptr = remainder + (remainder < 10 ? '0' : 'A' - 10);
-	}
-
-	/* reverse digits for right-to-left order */
-	*ptr = '\0';
-	for (end = ptr - 1; start < end; ++start, --end)
-		SWAP(char, *start, *end);
-
-	/* cleanup and return result */
-	hebi_freefp(fp, work, nbytes);
-	return !sz ? (size_t)(ptr - str) : n;
+	/* get character string from packet sequence */
+	len -= (size_t)(str - start);
+	rlen += hebi_pgetstr(str, len, w, n, base);
+	return rlen;
 }

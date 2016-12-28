@@ -32,6 +32,10 @@ check/z/zadd
 check/z/zaddi
 check/z/zaddu
 check/z/zand
+check/z/zcmp
+check/z/zcmpi
+check/z/zcmpmag
+check/z/zcmpu
 check/z/zdiv
 check/z/zdivi
 check/z/zdivu
@@ -39,6 +43,7 @@ check/z/zmul
 check/z/zmuli
 check/z/zmulu
 check/z/zneg
+check/z/znot
 check/z/zor
 check/z/zrem
 check/z/zremi
