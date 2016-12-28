@@ -5,7 +5,8 @@
 #define NUM_PACKETS 501
 #define NUM_BYTES (NUM_PACKETS * sizeof(hebi_packet))
 
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
 	hebi_packet *x, *y;
 	size_t i;
