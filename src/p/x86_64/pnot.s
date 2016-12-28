@@ -46,8 +46,8 @@ MVFUNC_BEGIN pnot, \Version
     movdqa      %xmm1, 16(%rdi)
     movdqa      %xmm2, 32(%rdi)
     movdqa      %xmm3, 48(%rdi)
-    add         $32, %rsi
-    add         $32, %rdi
+    add         $64, %rsi
+    add         $64, %rdi
     dec         %rcx
     jnz         4b
     test        $2, %dl

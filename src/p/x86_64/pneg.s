@@ -8,20 +8,18 @@
 
 FUNC_BEGIN pneg
 
-    # Negation loop unrolled 4x
-    #
-    # Input:             Output:    Intermediate:
-    #   %rdi %rsi %rdx      %rax         %r8-%r11
-    #      r    a    n     carry          temp[4]
-
+    mov         %rdx, %rcx
     xor         %eax, %eax
+    and         $1, %rdx
+    shr         %rcx
     bt          $0, %edi        # clear carry, address is aligned, lsb is 0
+    jrcxz       2f
 
     .p2align 4,,15
-1:  mov         %eax, %r8d
-    mov         %eax, %r9d
-    mov         %eax, %r10d
-    mov         %eax, %r11d
+1:  mov         $0, %r8d
+    mov         $0, %r9d
+    mov         $0, %r10d
+    mov         $0, %r11d
     sbb         (%rsi), %r8
     sbb         8(%rsi), %r9
     sbb         16(%rsi), %r10
@@ -32,10 +30,19 @@ FUNC_BEGIN pneg
     mov         %r11, 24(%rdi)
     lea         32(%rsi), %rsi
     lea         32(%rdi), %rdi
-    dec         %rdx
+    dec         %rcx
     jnz         1b
 
-    setc        %al
+    .p2align 4,,7
+2:  dec         %rdx
+    jnz         3f
+    mov         $0, %r8d
+    mov         $0, %r9d
+    sbb         (%rsi), %r8
+    sbb         8(%rsi), %r9
+    mov         %r8, (%rdi)
+    mov         %r9, 8(%rdi)
+3:  setc        %al
     ret
 
 FUNC_END

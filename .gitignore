@@ -23,6 +23,7 @@ check/libcheck.a
 check/p/pcmp
 check/p/pcopy
 check/p/pmove
+check/p/pneg
 check/p/pnorm
 check/p/pzero
 check/z/getset

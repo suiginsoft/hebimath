@@ -242,6 +242,7 @@ CHECK_P := \
 	pcmp \
 	pcopy \
 	pmove \
+	pneg \
 	pnorm \
 	pzero
 
@@ -270,6 +271,7 @@ CHECK_Z := \
 	zremi \
 	zremu \
 	zsqr \
+	znot \
 	zand \
 	zor \
 	zxor
