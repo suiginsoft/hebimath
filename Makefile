@@ -119,6 +119,7 @@ ZFUNCTIONS := \
 	zgetsi \
 	zgetsu \
 	zgetstr \
+	zgetstrlen \
 	zbits \
 	zlsb \
 	ztrunc \

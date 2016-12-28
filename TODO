@@ -1,6 +1,5 @@
 Low-level Functions:
 
-* fix x86-64 implementation of pneg for 128-bit packet size
 * add/sub variants for inplace operations and same-sized inputs
 * port remainder of division implementation to x86-64 assembly
 * optimize pclz, almost always called on normalized input
@@ -12,7 +11,6 @@ Integer Functions:
 * zscan0
 * zscan1
 * zsetbit
-* zgetstrlen/zsizeinbase
 * zgcd
 * zpowu
 * zsqrt
@@ -26,6 +24,7 @@ Optimize:
 Other:
 
 * add a special invalid allocator id value for zinit_buffer functions
+* make sure can't allocate more than HEBI_PACKET_MAXLEN packets
 * add support for GCC/Clang overflow intrinsics when checking if
   memory allocation sizes exceed max size
 * fix memory leak with scratch memory due to TLS variables lacking
