@@ -51,6 +51,6 @@ hebi_zxor(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 		r->hz_used = m;
 		r->hz_sign = (as ^ bs) < 0 ? -1 : 1;
 	} else {
-		hebi_zsetzero(r);
+		r->hz_sign = 0;
 	}
 }
