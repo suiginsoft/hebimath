@@ -588,10 +588,9 @@ static inline HEBI_ALWAYSINLINE HEBI_ALLOC HEBI_WARNUNUSED
 hebi_packet *
 hebi_pscratch__(size_t n)
 {
-	size_t sz = n * sizeof(hebi_packet);
-	if (UNLIKELY(sz / sizeof(hebi_packet) != n))
-		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
-	return (hebi_packet *)hebi_scratch__(sz);
+	if (UNLIKELY(n > HEBI_PACKET_MAXLEN))
+		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADLENGTH);
+	return (hebi_packet *)hebi_scratch__(n * sizeof(hebi_packet));
 }
 
 static inline HEBI_ALWAYSINLINE
