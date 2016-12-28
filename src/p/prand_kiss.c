@@ -21,8 +21,8 @@ hebi_prand_kiss(
 	if (UNLIKELY(!n))
 		return;
 
-	/* determine number of limbs to randomly generate */
-	if (UNLIKELY(!(limbs = (bits + 64 -1) / 64))) {
+	/* determine number of 64-bit limbs to randomly generate */
+	if (UNLIKELY(!(limbs = (bits + 63) / 64))) {
 		hebi_pzero(r, n);
 		return;
 	}
