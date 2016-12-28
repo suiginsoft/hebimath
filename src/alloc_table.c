@@ -389,8 +389,9 @@ hebi_alloc_query(hebi_allocid *rid, hebi_allocid id)
 				*rid = HEBI_ALLOC_STDLIB;
 			return &stdlibfp;
 		}
-		else if (UNLIKELY(key < 0))
+		else if (UNLIKELY(key < 0)) {
 			raisebadalloc();
+		}
 	}
 
 	/* extract allocator slot & generation */
@@ -409,7 +410,6 @@ hebi_alloc_query(hebi_allocid *rid, hebi_allocid id)
 	if (!ctx)
 		ctx = hebi_context_get();
 	used = ctx->allocused;
-
 	if (used) {
 		for (i = hashcode; ctx->allockeys[i] != 0; i++)
 			if (ctx->allockeys[i] == key)

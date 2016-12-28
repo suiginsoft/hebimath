@@ -345,7 +345,7 @@ struct hebi_context {
 	int allockeys[ALLOC_CACHE_MAX_SIZE];
 	const struct hebi_allocfnptrs *allocvalues[ALLOC_CACHE_MAX_SIZE];
 
-#endif /* USE_THREADS */
+#endif
 };
 
 #if defined USE_C11_THREAD_LOCAL
