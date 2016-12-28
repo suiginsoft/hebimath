@@ -104,7 +104,7 @@
 #if defined __i386__ || defined __x86_64__
 #define CACHE_LINE_SIZE 64
 #elif defined __arm__
-#define CACHE_LINE_SIZE 32
+#define CACHE_LINE_SIZE 128
 #elif defined __aarch64__
 #define CACHE_LINE_SIZE 128
 #else
