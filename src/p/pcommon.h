@@ -34,7 +34,7 @@ R N##__ P { return (*N##_ptr__) A; }
 #define LIMB_CTZ(X) hebi_ctz64__(X)
 #define LIMB_PTR(X) (X)->hp_limbs64
 
-#else /* USE_INT128 */
+#else /* USE_LIMB64_ARITHMETIC */
 
 #define LIMB uint32_t
 #define LIMB_BIT 32
@@ -44,7 +44,7 @@ R N##__ P { return (*N##_ptr__) A; }
 #define LIMB_CTZ(X) hebi_ctz32__(X)
 #define LIMB_PTR(X) (X)->hp_limbs32
 
-#endif /* USE_INT128 */
+#endif /* USE_LIMB64_ARITHMETIC */
 
 #ifdef USE_LIMB64_MULDIV
 

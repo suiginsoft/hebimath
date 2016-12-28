@@ -9,8 +9,8 @@ HEBI_API
 uint64_t
 hebi_pdivremu(hebi_packet *q, const hebi_packet *a, uint64_t b, size_t n)
 {
-	MLIMB* ql;
-	const MLIMB* al;
+	MLIMB *ql;
+	const MLIMB *al;
 	size_t nl;
 	int bits;
 	uint64_t d, r;
