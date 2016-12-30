@@ -89,25 +89,25 @@ stdliballoc(void *arg, size_t alignment, size_t size)
 
 #else
 
-	size_t amsk;
+	size_t mask;
 	char *q;
 
 	if (UNLIKELY(alignment < sizeof(void*)))
 		alignment = sizeof(void*);
 
-	amsk = alignment - 1;
-	if (UNLIKELY((alignment & amsk) || (size & amsk))) {
+	mask = alignment - 1;
+	if (UNLIKELY((alignment & mask) || (size & mask))) {
 		errno = EINVAL;
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
 	}
 
-	q = malloc(size + amsk + sizeof(void *));
+	q = malloc(size + mask + sizeof(void *));
 	if (UNLIKELY(!q)) {
 		errno = ENOMEM;
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
 	}
 
-	p = (void *)(((uintptr_t)q + amsk) & amsk);
+	p = (void *)(((uintptr_t)q + mask) & mask);
 	((void **)p)[-1] = q;
 
 #endif
@@ -246,11 +246,9 @@ static struct hebi_allocfnptrs fnptrs[TABLE_CAPACITY];
 
 #endif /* ALLOC_TABLE_DYNAMIC */
 
-#ifdef USE_GLOBAL_DESTRUCTORS
-
-HEBI_DESTRUCTOR
-static void
-shuttable(void)
+HEBI_HIDDEN
+void
+hebi_alloc_table_shut__(void)
 {
 #ifdef ALLOC_TABLE_DYNAMIC
 	unsigned int i;
@@ -267,8 +265,6 @@ shuttable(void)
 	(void)pthread_rwlock_destroy(&trwlock);
 #endif
 }
-
-#endif /* USE_GLOBAL_DESTRUCTORS */
 
 HEBI_API
 hebi_allocid

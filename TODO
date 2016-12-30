@@ -24,7 +24,5 @@ Optimize:
 Other:
 
 * add a special invalid allocator id value for zinit_buffer functions
-* fix memory leak with scratch memory due to TLS variables lacking
-  destructor function
 * add a lot more checks/tests
 * create some sample programs

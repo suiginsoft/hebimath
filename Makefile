@@ -171,7 +171,9 @@ FUNCTIONS := \
 	alloc \
 	allocfp \
 	free \
-	freefp
+	freefp \
+	free_scratch \
+	realloc_scratch
 
 MODULES_dynamic := hwcaps
 
@@ -180,6 +182,7 @@ MODULES := \
 	alloc_set \
 	alloc_table \
 	context \
+	shutdown \
 	$(MODULES_$(DISPATCH_driver))
 
 SRC := $(FUNCTIONS) $(MODULES)

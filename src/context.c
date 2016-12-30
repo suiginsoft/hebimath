@@ -4,7 +4,7 @@
  */
 
 #include "../internal.h"
-#if !defined USE_THREAD_LOCAL && defined USE_THREADS
+#ifdef USE_THREADS
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,15 +20,7 @@ STATIC_ASSERT((CACHE_LINE_SIZE & (CACHE_LINE_SIZE - 1)) == 0, "must be a power o
 
 STATIC_ASSERT(ZSTACK_MAX_SIZE > 0, "must be greater than zero");
 
-#if defined USE_C11_THREAD_LOCAL
-
-EXTENSION HEBI_HIDDEN _Thread_local struct hebi_context hebi_context__;
-
-#elif defined USE_GNUC_THREAD_LOCAL
-
-EXTENSION HEBI_HIDDEN __thread struct hebi_context hebi_context__;
-
-#elif defined USE_THREADS
+#ifdef USE_THREADS
 
 #if defined USE_C11_THREADS
 static once_flag ctxonce = ONCE_FLAG_INIT
@@ -41,42 +33,18 @@ static pthread_key_t ctxkey;
 static int ctxkeyactive;
 static int ctxkeyerr;
 
-static void
-ctxkeyinit(void)
-{
-	int e;
-
-#if defined USE_C11_THREADS
-
-	e = tss_create(&ctxkey, free);
-	if (UNLIKELY(e != thrd_success)) {
-		ctxkeyerr = errno;
-		if (!ctxkeyerr)
-			ctxkeyerr = EINVAL;
-		return;
-	}
-
-#elif defined USE_POSIX_THREADS
-
-	e = pthread_key_create(&ctxkey, free);
-	if (UNLIKELY(e)) {
-		ctxkeyerr = e;
-		return;
-	}
-
-#endif
-
-	ctxkeyactive = 1;
-	ctxkeyerr = 0;
-}
-
-static struct hebi_context *
+static void *
 ctxinit(void)
 {
 	void *p;
 	int e;
 
+#ifdef USE_THREAD_LOCAL
+	p = calloc(1, sizeof(struct hebi_shadow_context));
+#else
 	p = calloc(1, sizeof(struct hebi_context));
+#endif
+
 	if (UNLIKELY(!p)) {
 		if (UNLIKELY(!errno))
 			errno = ENOMEM;
@@ -106,24 +74,68 @@ ctxinit(void)
 	return p;
 }
 
-#ifdef USE_GLOBAL_DESTRUCTORS
-
-HEBI_DESTRUCTOR
 static void
-ctxshut(void)
+ctxshut(void *arg)
 {
-	if (ctxkeyactive) {
-		ctxkeyactive = 0;
-		ctxkeyerr = EFAULT;
-#if defined USE_C11_THREADS
-		tss_delete(ctxkey);
-#elif defined USE_POSIX_THREADS
-		(void)pthread_key_delete(ctxkey);
+#ifdef USE_THREAD_LOCAL
+	struct hebi_shadow_context *ctx = arg;
+#else
+	struct hebi_context *ctx = arg;
 #endif
+
+	const struct hebi_allocfnptrs *fp;
+	void *p;
+	size_t n;
+
+	if (ctx) {
+		if ((p = ctx->scratch)) {
+			fp = ctx->scratchfp;
+			n = ctx->scratchsize;
+			ASSERT(fp);
+
+			ctx->scratchfp = NULL;
+			ctx->scratch = NULL;
+			ctx->scratchsize = 0;
+
+			hebi_freefp(fp, p, n);
+		}
+
+#ifdef USE_ASSERTIONS
+		ASSERT(!ctx->zstackused);
+#endif
+
+		free(ctx);
 	}
 }
 
-#endif /* USE_GLOBAL_DESTRUCTORS */
+static void
+ctxkeyinit(void)
+{
+	int e;
+
+#if defined USE_C11_THREADS
+
+	e = tss_create(&ctxkey, ctxshut);
+	if (UNLIKELY(e != thrd_success)) {
+		ctxkeyerr = errno;
+		if (!ctxkeyerr)
+			ctxkeyerr = EINVAL;
+		return;
+	}
+
+#elif defined USE_POSIX_THREADS
+
+	e = pthread_key_create(&ctxkey, ctxshut);
+	if (UNLIKELY(e)) {
+		ctxkeyerr = e;
+		return;
+	}
+
+#endif
+
+	ctxkeyactive = 1;
+	ctxkeyerr = 0;
+}
 
 HEBI_NORETURN
 static void
@@ -142,11 +154,11 @@ ctxraise(hebi_errhandler handler, void *arg, int e)
 	abort();
 }
 
-HEBI_HIDDEN HEBI_PURE HEBI_WARNUNUSED
-struct hebi_context *
-hebi_context_get__(hebi_errhandler handler, void *arg)
+HEBI_PURE HEBI_WARNUNUSED
+static void *
+ctxget(hebi_errhandler handler, void *arg)
 {
-	struct hebi_context *ctx;
+	void *ctx;
 
 #if defined USE_C11_THREADS
 
@@ -177,8 +189,81 @@ hebi_context_get__(hebi_errhandler handler, void *arg)
 	return ctx;
 }
 
-#else /* !defined USE_THREADS */
+#ifdef USE_THREAD_LOCAL
+
+#if defined USE_C11_THREAD_LOCAL
+
+EXTENSION HEBI_HIDDEN _Thread_local struct hebi_context hebi_context__;
+
+#elif defined USE_GNUC_THREAD_LOCAL
+
+EXTENSION HEBI_HIDDEN __thread struct hebi_context hebi_context__;
+
+#endif
+
+HEBI_HIDDEN HEBI_PURE HEBI_WARNUNUSED
+struct hebi_shadow_context *
+hebi_shadow_context_get__(struct hebi_context *ctx)
+{
+	ASSERT(ctx);
+
+	if (!ctx->shadow)
+		ctx->shadow = ctxget(NULL, NULL);
+
+	return ctx->shadow;
+}
+
+#else /* USE_THREAD_LOCAL */
+
+HEBI_HIDDEN HEBI_PURE HEBI_WARNUNUSED
+struct hebi_context *
+hebi_context_get__(hebi_errhandler handler, void *arg)
+{
+	return ctxget(handler, arg);
+}
+
+#endif /* USE_THREAD_LOCAL */
+
+HEBI_HIDDEN
+void
+hebi_context_shut__(void)
+{
+	if (ctxkeyactive) {
+		ctxkeyactive = 0;
+		ctxkeyerr = EFAULT;
+#if defined USE_C11_THREADS
+		tss_delete(ctxkey);
+#elif defined USE_POSIX_THREADS
+		(void)pthread_key_delete(ctxkey);
+#endif
+	}
+}
+
+#else /* USE_THREADS */
 
 HEBI_HIDDEN struct hebi_context hebi_context__;
 
-#endif /* !defined USE_THREADS */
+HEBI_HIDDEN
+void
+hebi_context_shut__(void)
+{
+	const struct hebi_allocfnptrs *fp;
+	void *p;
+	size_t n;
+
+	if ((p = hebi_context__.scratch)) {
+		fp = hebi_context__.scratchfp;
+		n = hebi_context__.scratchsize;
+		ASSERT(fp);
+
+		hebi_context__.scratchfp = NULL;
+		hebi_context__.scratch = NULL;
+		hebi_context__.scratchsize = 0;
+
+		hebi_freefp(fp, p, n);
+	}
+
+	ASSERT(!hebi_context__.zstackused);
+}
+
+#endif /* USE_THREADS */

@@ -23,8 +23,8 @@ setallocidx(struct hebi_context *ctx, hebi_allocid id, int index)
 		id = ctx->allocids[key & 1];
 	else if (!key)
 		id = 0;
-	ctx->allocids[index] = id;
 
+	ctx->allocids[index] = id;
 	return rid;
 }
 
@@ -40,16 +40,7 @@ hebi_allocid
 hebi_alloc_set_scratch(hebi_allocid id)
 {
 	struct hebi_context *ctx;
-	hebi_allocid rid;
-
 	ctx = hebi_context_get();
-	rid = setallocidx(ctx, id, 1);
-
-	if (ctx->scratch) {
-		hebi_free(rid, ctx->scratch, ctx->scratchsize);
-		ctx->scratch = NULL;
-		ctx->scratchsize = 0;
-	}
-
-	return rid;
+	(void)hebi_realloc_scratch__(ctx, 0);
+	return setallocidx(ctx, id, 1);
 }

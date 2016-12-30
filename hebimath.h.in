@@ -152,14 +152,15 @@ typedef struct hebi_alloctag *hebi_allocid;
 #define HEBI_ALLOC_STDLIB ((hebi_allocid)((intptr_t)-2))
 #define HEBI_ALLOC_INVALID ((hebi_allocid)((intptr_t)-3))
 
+HEBI_API HEBI_NOTHROW int hebi_alloc_valid(hebi_allocid);
+HEBI_API const struct hebi_allocfnptrs *hebi_alloc_query(hebi_allocid *, hebi_allocid);
+HEBI_API hebi_allocid hebi_alloc_add(const struct hebi_allocfnptrs *);
+HEBI_API void hebi_alloc_remove(hebi_allocid);
 HEBI_API hebi_allocid hebi_alloc_get_default(void);
 HEBI_API hebi_allocid hebi_alloc_set_default(hebi_allocid);
 HEBI_API hebi_allocid hebi_alloc_get_scratch(void);
 HEBI_API hebi_allocid hebi_alloc_set_scratch(hebi_allocid);
-HEBI_API hebi_allocid hebi_alloc_add(const struct hebi_allocfnptrs *);
-HEBI_API void hebi_alloc_remove(hebi_allocid);
-HEBI_API const struct hebi_allocfnptrs *hebi_alloc_query(hebi_allocid *, hebi_allocid);
-HEBI_API HEBI_NOTHROW int hebi_alloc_valid(hebi_allocid);
+HEBI_API void hebi_free_scratch(void);
 
 HEBI_INLINE HEBI_ALLOC HEBI_WARNUNUSED
 void *
