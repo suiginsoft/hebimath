@@ -237,7 +237,7 @@ static void
 global_shutdown(void)
 {
 	struct hebi_context* ctx = hebi_context_get();
-	hebi_realloc_scratch__(ctx, 0);
+	(void)hebi_realloc_scratch__(ctx, 0);
 	ASSERT(!ctx->zstackused);
 
 #ifdef USE_THREADS
