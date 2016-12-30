@@ -28,6 +28,6 @@ hebi_znot(hebi_zptr r, hebi_zsrcptr a)
 		r->hz_used = n;
 		r->hz_sign = -s;
 	} else {
-		hebi_zsetzero(r);
+		r->hz_sign = 0;
 	}
 }

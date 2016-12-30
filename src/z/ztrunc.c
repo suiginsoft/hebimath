@@ -28,9 +28,6 @@ hebi_ztrunc(hebi_zptr r, hebi_zsrcptr a, size_t bits)
 	}
 
 	r->hz_used = u;
-	if (UNLIKELY(u < n))
-		return;
-
-	if (LIKELY((b = (int)(bits % HEBI_PACKET_BIT))))
+	if (LIKELY(u >= n && (b = (int)(bits % HEBI_PACKET_BIT))))
 		hebi_pandmsk__(r->hz_packs+u-1, b);
 }
