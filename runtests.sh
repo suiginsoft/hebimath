@@ -1,6 +1,7 @@
 #!/bin/sh
 
-export LD_LIBRARY_PATH=$(pwd)
+LD_LIBRARY_PATH=$(pwd)
+export LD_LIBRARY_PATH
 
 printf "running %s tests\n" "$1"
 printf "=============================================\n"
