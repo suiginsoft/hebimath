@@ -380,10 +380,10 @@ EXTENSION extern HEBI_HIDDEN _Thread_local struct hebi_context hebi_context__;
 #define hebi_context_get() (&hebi_context__)
 EXTENSION extern HEBI_HIDDEN __thread struct hebi_context hebi_context__;
 #elif defined USE_THREADS
-#define hebi_context_get() (hebi_context_get__(NULL, NULL))
+#define hebi_context_get() (hebi_context_get_or_create__(NULL, NULL))
 HEBI_HIDDEN HEBI_PURE HEBI_WARNUNUSED
 struct hebi_context *
-hebi_context_get__(hebi_errhandler, void *);
+hebi_context_get_or_create__(hebi_errhandler, void *);
 #else
 #define hebi_context_get() (&hebi_context__)
 extern HEBI_HIDDEN struct hebi_context hebi_context__;
@@ -391,13 +391,20 @@ extern HEBI_HIDDEN struct hebi_context hebi_context__;
 
 #ifdef USE_THREAD_LOCAL
 
-/*
- * gets a pointer to thread-specific shadow context if it hasn't yet
- * been initialized for the given context object
- */
+/* gets or creates the thread-specific shadow context */
 HEBI_HIDDEN HEBI_PURE HEBI_WARNUNUSED
 struct hebi_shadow_context *
-hebi_shadow_context_get__(struct hebi_context *);
+hebi_shadow_context_get_or_create__(struct hebi_context *);
+
+/* gets a pointer to thread-specific shadow context */
+static inline HEBI_ALWAYSINLINE HEBI_PURE HEBI_WARNUNUSED
+struct hebi_shadow_context *
+hebi_shadow_context_get__(struct hebi_context *ctx)
+{
+	if (ctx->shadow)
+		return ctx->shadow;
+	return hebi_shadow_context_get_or_create__(ctx);
+}
 
 #endif /* USE_THREAD_LOCAL */
 
@@ -662,6 +669,9 @@ hebi_zinit_push__(hebi_zptr r, hebi_allocid id)
 	struct hebi_context *ctx = hebi_context_get();
 	if (UNLIKELY(ctx->zstackused >= ZSTACK_MAX_SIZE))
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOSLOTS);
+#if defined USE_ASSERTIONS && defined USE_THREAD_LOCAL
+	hebi_shadow_context_get__(ctx)->zstackused++;
+#endif
 	ctx->zstack[ctx->zstackused++] = r;
 	if (UNLIKELY(id == HEBI_ALLOC_INVALID))
 		id = HEBI_ALLOC_DEFAULT;
@@ -675,6 +685,9 @@ hebi_zdestroy_pop__(hebi_zptr r)
 	struct hebi_context *ctx = hebi_context_get();
 	ASSERT(ctx->zstackused > 0 && ctx->zstack[ctx->zstackused - 1] == r);
 	ctx->zstack[--ctx->zstackused] = NULL;
+#if defined USE_ASSERTIONS && defined USE_THREAD_LOCAL
+	hebi_shadow_context_get__(ctx)->zstackused--;
+#endif
 	hebi_zdestroy(r);
 }
 

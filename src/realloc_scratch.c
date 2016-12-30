@@ -48,9 +48,8 @@ hebi_realloc_scratch__(struct hebi_context *ctx, size_t newsize)
 		ctx->scratchsize = newsize;
 
 #ifdef USE_THREAD_LOCAL
-		if (!shadow || !(shadow = ctx->shadow))
+		if (!shadow)
 			shadow = hebi_shadow_context_get__(ctx);
-
 		shadow->scratchfp = fp;
 		shadow->scratch = p;
 		shadow->scratchsize = newsize;

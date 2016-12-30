@@ -156,7 +156,7 @@ ctxraise(hebi_errhandler handler, void *arg, int e)
 
 HEBI_PURE HEBI_WARNUNUSED
 static void *
-ctxget(hebi_errhandler handler, void *arg)
+ctxgetorcreate(hebi_errhandler handler, void *arg)
 {
 	void *ctx;
 
@@ -203,12 +203,12 @@ EXTENSION HEBI_HIDDEN __thread struct hebi_context hebi_context__;
 
 HEBI_HIDDEN HEBI_PURE HEBI_WARNUNUSED
 struct hebi_shadow_context *
-hebi_shadow_context_get__(struct hebi_context *ctx)
+hebi_shadow_context_get_or_create__(struct hebi_context *ctx)
 {
 	ASSERT(ctx);
 
 	if (!ctx->shadow)
-		ctx->shadow = ctxget(NULL, NULL);
+		ctx->shadow = ctxgetorcreate(NULL, NULL);
 
 	return ctx->shadow;
 }
@@ -217,9 +217,9 @@ hebi_shadow_context_get__(struct hebi_context *ctx)
 
 HEBI_HIDDEN HEBI_PURE HEBI_WARNUNUSED
 struct hebi_context *
-hebi_context_get__(hebi_errhandler handler, void *arg)
+hebi_context_get_or_create__(hebi_errhandler handler, void *arg)
 {
-	return ctxget(handler, arg);
+	return ctxgetorcreate(handler, arg);
 }
 
 #endif /* USE_THREAD_LOCAL */
