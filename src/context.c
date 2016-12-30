@@ -224,10 +224,24 @@ hebi_context_get__(hebi_errhandler handler, void *arg)
 
 #endif /* USE_THREAD_LOCAL */
 
-HEBI_HIDDEN
-void
-hebi_context_shut__(void)
+#else /* USE_THREADS */
+
+HEBI_HIDDEN struct hebi_context hebi_context__;
+
+#endif /* USE_THREADS */
+
+#ifdef USE_GLOBAL_DESTRUCTORS
+
+HEBI_DESTRUCTOR
+static void
+global_shutdown(void)
 {
+	struct hebi_context* ctx = hebi_context_get();
+	hebi_realloc_scratch__(ctx, 0);
+	ASSERT(!ctx->zstackused);
+
+#ifdef USE_THREADS
+
 	if (ctxkeyactive) {
 		ctxkeyactive = 0;
 		ctxkeyerr = EFAULT;
@@ -237,33 +251,10 @@ hebi_context_shut__(void)
 		(void)pthread_key_delete(ctxkey);
 #endif
 	}
+
+#endif
+
+	hebi_alloc_table_shut__();
 }
 
-#else /* USE_THREADS */
-
-HEBI_HIDDEN struct hebi_context hebi_context__;
-
-HEBI_HIDDEN
-void
-hebi_context_shut__(void)
-{
-	const struct hebi_allocfnptrs *fp;
-	void *p;
-	size_t n;
-
-	if ((p = hebi_context__.scratch)) {
-		fp = hebi_context__.scratchfp;
-		n = hebi_context__.scratchsize;
-		ASSERT(fp);
-
-		hebi_context__.scratchfp = NULL;
-		hebi_context__.scratch = NULL;
-		hebi_context__.scratchsize = 0;
-
-		hebi_freefp(fp, p, n);
-	}
-
-	ASSERT(!hebi_context__.zstackused);
-}
-
-#endif /* USE_THREADS */
+#endif /* USE_GLOBAL_DESTRUCTORS */

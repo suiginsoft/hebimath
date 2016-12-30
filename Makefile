@@ -182,7 +182,6 @@ MODULES := \
 	alloc_set \
 	alloc_table \
 	context \
-	shutdown \
 	$(MODULES_$(DISPATCH_driver))
 
 SRC := $(FUNCTIONS) $(MODULES)

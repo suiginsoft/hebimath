@@ -402,16 +402,8 @@ hebi_shadow_context_get__(struct hebi_context *);
 #endif /* USE_THREAD_LOCAL */
 
 /*
- * permanently shuts down the context subsystem, should only be called
- * by the library destructor
- */
-HEBI_HIDDEN
-void
-hebi_context_shut__(void);
-
-/*
  * permanently shuts down the global allocator tables, should only be
- * called by the library destructor
+ * called by the global library destructor in src/context.c
  */
 HEBI_HIDDEN
 void
