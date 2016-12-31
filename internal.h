@@ -38,7 +38,7 @@
 #define __has_extension(X) GNUC_EXTENSION_##X
 #define GNUC_EXTENSION_c_atomic GNUC_VERSION_AT_LEAST(4,9,0)
 #define GNUC_EXTENSION_c_thread_local GNUC_VERSION_AT_LEAST(4,9,0)
-#define GNUC_EXTENSION_c_static_assert GNUC_VERSION_AT_LEAST(4,7,0)
+#define GNUC_EXTENSION_c_static_assert GNUC_VERSION_AT_LEAST(4,6,0)
 #endif
 
 #endif
@@ -260,7 +260,7 @@ HEBI_NORETURN void hebi_error_assert__(const char *, const char *, const char *,
 #endif
 
 #if __has_extension(c_static_assert) || (defined __STDC_VERSION__ && __STDC_VERSION__ >= 201112L)
-#define STATIC_ASSERT(E,S) _Static_assert(E, S)
+#define STATIC_ASSERT(E,S) EXTENSION _Static_assert(E, S)
 #else
 #define STATIC_ASSERT(E,S) typedef char CONCAT(static_assert_on_line_, __LINE__)[(!!(E))*2-1]
 #endif
