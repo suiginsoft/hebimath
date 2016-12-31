@@ -1,2 +1,2 @@
-script: make options
+script: make --version && make DRIVER=x86_64 && make check DRIVER=x86_64
 compiler: gcc
