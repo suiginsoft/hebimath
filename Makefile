@@ -95,6 +95,7 @@ ZFUNCTIONS := \
 	zdestroy \
 	zdestroys \
 	zdestroyn \
+	zgrow \
 	zrealloc \
 	zrealloczero \
 	zreserve \
@@ -245,9 +246,9 @@ CHECK_P := \
 	pcmp \
 	pcopy \
 	pmove \
-	pneg \
 	pnorm \
-	pzero
+	pzero \
+	negnot
 
 CHECK_Z := \
 	getset \

@@ -12,7 +12,7 @@ hebi_zsubu(hebi_zptr r, hebi_zsrcptr a, uint64_t b)
 	const hebi_packet *ap;
 	hebi_packet *rp;
 	uint64_t c;
-	size_t n, u;
+	size_t u;
 	int s;
 
 	if (UNLIKELY(!b)) {
@@ -24,29 +24,38 @@ hebi_zsubu(hebi_zptr r, hebi_zsrcptr a, uint64_t b)
 		return;
 	} 
 
-	n = u = a->hz_used;
-	if (s < 0)
-		++n;
-
-	if (n > r->hz_resv)
-		hebi_zrealloc_copyif__(r, n, r == a);
-
-	rp = r->hz_packs;
 	ap = a->hz_packs;
+	u = a->hz_used;
 
-	if (s <= 0) {
-		if ((c = hebi_paddu(rp, ap, b, u)))
+	if (s < 0) {
+		if (r == a || u <= r->hz_resv)
+			rp = r->hz_packs;
+		else
+			rp = hebi_zgrowrealloczero__(r, u + 1, r->hz_resv);
+		if ((c = hebi_paddu(rp, ap, b, u))) {
+			rp = hebi_zgrow__(r, u + 1);
 			hebi_psetu(rp + u++, c);
+		}
+		r->hz_used = u;
+		r->hz_sign = s;
 	} else if (u > 1 || ap->hp_limbs64[0] > b || ap->hp_limbs64[1] != 0) {
+		if (r == a)
+			rp = r->hz_packs;
+		else
+			rp = hebi_zgrowzero__(r, u);
 		(void)hebi_psubu(rp, ap, b, u);
 		u = hebi_pnorm(rp, u);
+		r->hz_used = u;
+		r->hz_sign = s;
 	} else {
 		c = b - ap->hp_limbs64[0];
-		hebi_psetu(rp, c);
-		u = c ? 1 : 0;
-		s = c ? -1 : 0;
+		if (LIKELY(c)) {
+			rp = hebi_zgrowzero__(r, 1);
+			hebi_psetu(rp, c);
+			r->hz_used = 1;
+			r->hz_sign = -1;
+		} else {
+			r->hz_sign = 0;
+		}
 	}
-
-	r->hz_used = u;
-	r->hz_sign = s;
 }

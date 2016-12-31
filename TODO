@@ -1,6 +1,5 @@
 Low-level Functions:
 
-* fix bugs in znot/ztrunc
 * add/sub variants for inplace operations and same-sized inputs
 * port remainder of division implementation to x86-64 assembly
 * optimize pclz, almost always called on normalized input
@@ -21,9 +20,13 @@ Optimize:
 * znot
 * ztrunc
 * pandmsk__
+* pclz
 
 Other:
 
+* audit use of zgrow, zrealloc, zrealloczero to ensure we're only setting
+  hz_used and hz_sign once
+* test and fix bugs in ztrunc
 * add a special invalid allocator id value for zinit_buffer functions
 * add a lot more checks/tests
 * create some sample programs

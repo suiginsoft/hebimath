@@ -7,22 +7,7 @@
 
 static const char and_script[] =
 "define not(a) {\n"
-"	auto r, s, t, u\n"
-"	s = 1\n"
-"	if (a < 0) {\n"
-"		a = -a\n"
-"		s = -1\n"
-"	}\n"
-"	r = 0\n"
-"	u = 1\n"
-"	while (a) {\n"
-"		t = a % 2\n"
-"		a /= 2\n"
-"		if (!t)\n"
-"			r += u\n"
-"		u *= 2\n"
-"	}\n"
-"	return r * -s\n"
+"	return -(a + 1)\n"
 "}\n";
 
 int

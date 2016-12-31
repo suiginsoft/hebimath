@@ -636,8 +636,8 @@ void *
 hebi_realloc_scratch__(struct hebi_context *, size_t);
 
 /*
- * gets a pointer to the scratchpad buffer, resizing it to the
- * specified size in bytes if necessary
+ * gets a pointer to the scratchpad buffer, resizing it to the specified
+ * size in bytes if necessary
  */
 static inline HEBI_ALWAYSINLINE HEBI_ALLOC
 void *
@@ -650,8 +650,8 @@ hebi_scratch__(size_t n)
 }
 
 /*
- * gets a packet pointer to the scratchpad buffer, resizing it
- * to the specified size in packets if necessary
+ * gets a packet pointer to the scratchpad buffer, resizing it to the
+ * specified size in packets if necessary
  */
 static inline HEBI_ALWAYSINLINE HEBI_ALLOC
 hebi_packet *
@@ -662,6 +662,10 @@ hebi_pscratch__(size_t n)
 	return (hebi_packet *)hebi_scratch__(n * sizeof(hebi_packet));
 }
 
+/*
+ * pushes a integer pointer on the internal stack, ensuring it will be tracked
+ * for cleanup in the event of an error being raised
+ */
 static inline HEBI_ALWAYSINLINE
 void
 hebi_zinit_push__(hebi_zptr r, hebi_allocid id)
@@ -678,6 +682,10 @@ hebi_zinit_push__(hebi_zptr r, hebi_allocid id)
 	hebi_zinit_allocator(r, id);
 }
 
+/*
+ * pops the integer off the internal stack, removing it from being tracked for
+ * cleanup. integers must be popped in LIFO order.
+ */
 static inline HEBI_ALWAYSINLINE
 void
 hebi_zdestroy_pop__(hebi_zptr r)
@@ -691,30 +699,55 @@ hebi_zdestroy_pop__(hebi_zptr r)
 	hebi_zdestroy(r);
 }
 
-static inline HEBI_ALWAYSINLINE
-void
-hebi_zrealloc_copyif__(hebi_zptr r, size_t n, int c)
-{
-	if (c)
-		hebi_zrealloc(r, n);
-	else
-		hebi_zrealloczero(r, n);
-}
+/*
+ * internal and unsafe versions of hebi_zrealloc and heb_zrealloczero that
+ * always assumes the new capacity is greater than hz_used, doen't modify
+ * hz_used or hz_sign, and require the old capacity to be passed in as the
+ * third argument to avoid a double-read from memory of that value. these
+ * functions return a pointer to the newly allocated packet buffer.
+ */
+HEBI_HIDDEN
+hebi_packet *
+hebi_zgrowrealloc__(hebi_zptr, size_t, size_t);
+
+HEBI_HIDDEN
+hebi_packet *
+hebi_zgrowrealloczero__(hebi_zptr, size_t, size_t);
 
 static inline HEBI_ALWAYSINLINE
 hebi_packet *
-hebi_zgrow_copyif__(hebi_zptr r, size_t n, int c)
+hebi_zgrow__(hebi_zptr r, size_t n)
 {
-	if (n > r->hz_resv)
-		hebi_zrealloc_copyif__(r, n, c);
-	return r->hz_packs;
+	if (n <= r->hz_resv)
+		return r->hz_packs;
+	return hebi_zgrowrealloc__(r, n, r->hz_resv);
 }
 
 static inline HEBI_ALWAYSINLINE
 hebi_packet *
 hebi_zgrowzero__(hebi_zptr r, size_t n)
 {
-	if (n > r->hz_resv)
+	if (n <= r->hz_resv)
+		return r->hz_packs;
+	return hebi_zgrowrealloczero__(r, n, r->hz_resv);
+}
+
+static inline HEBI_ALWAYSINLINE
+hebi_packet *
+hebi_zrealloc_copyif__(hebi_zptr r, size_t n, int c)
+{
+	if (c)
+		hebi_zrealloc(r, n);
+	else
 		hebi_zrealloczero(r, n);
 	return r->hz_packs;
+}
+
+static inline HEBI_ALWAYSINLINE
+hebi_packet *
+hebi_zgrow_copyif__(hebi_zptr r, size_t n, int c)
+{
+	if (n <= r->hz_resv)
+		return r->hz_packs;
+	return hebi_zrealloc_copyif__(r, n, c);
 }

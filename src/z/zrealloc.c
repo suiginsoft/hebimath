@@ -15,12 +15,9 @@ hebi_zrealloc(hebi_zptr r, size_t n)
 	size_t u;
 
 	fp = hebi_alloc_query(&id, hebi_zallocator(r));
-
-	p = NULL;
-	if (LIKELY(n))
-		p = hebi_pallocfp(fp, n);
-
+	p = LIKELY(n) ? hebi_pallocfp(fp, n) : NULL;
 	oldp = r->hz_packs;
+
 	if ((u = MIN(n, hebi_zused(r))))
 		hebi_pcopy(p, oldp, u);
 
@@ -28,9 +25,7 @@ hebi_zrealloc(hebi_zptr r, size_t n)
 
 	r->hz_packs = p;
 	r->hz_resv = n;
-	if (LIKELY(u))
-		r->hz_used = u;
-	else
-		r->hz_sign = 0;
+	r->hz_used = u;
+	r->hz_sign = !!u;
 	r->hz_allocid = (int)(intptr_t)id;
 }
