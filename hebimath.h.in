@@ -281,6 +281,8 @@ HEBI_API void hebi_psqr(hebi_packet *HEBI_RESTRICT, const hebi_packet *HEBI_REST
 HEBI_API uint64_t hebi_pneg(hebi_packet *, const hebi_packet *, size_t);
 HEBI_API uint64_t hebi_padd(hebi_packet *, const hebi_packet *, const hebi_packet *, size_t, size_t);
 HEBI_API uint64_t hebi_psub(hebi_packet *, const hebi_packet *, const hebi_packet *, size_t, size_t);
+HEBI_API uint64_t hebi_padda(hebi_packet *, const hebi_packet *, size_t, size_t);
+HEBI_API uint64_t hebi_psuba(hebi_packet *, const hebi_packet *, size_t, size_t);
 HEBI_API uint64_t hebi_paddu(hebi_packet *, const hebi_packet *, uint64_t, size_t);
 HEBI_API uint64_t hebi_psubu(hebi_packet *, const hebi_packet *, uint64_t, size_t);
 HEBI_API size_t hebi_pdivrem(hebi_packet *HEBI_RESTRICT, hebi_packet *HEBI_RESTRICT, hebi_packet *HEBI_RESTRICT, size_t *HEBI_RESTRICT, const hebi_packet *, const hebi_packet *, size_t, size_t);

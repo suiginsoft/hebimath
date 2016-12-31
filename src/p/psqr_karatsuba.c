@@ -46,14 +46,14 @@ hebi_psqr_karatsuba(
 	hebi_psqr_karatsuba(w, w+j+1, a+m, n-m);
 
 	/* accumulate a1a1*B^(m*2) - a1a1*B^m */
-	hebi_padd(r+k, r+k, w, l-k, j);
-	hebi_psub(r+m, r+m, w, l-m, j);
+	hebi_padda(r+k, w, l-k, j);
+	hebi_psuba(r+m, w, l-m, j);
 
 	/* compute a0a0 */
 	hebi_pzero(w, k+1);
 	hebi_psqr_karatsuba(w, w+k+1, a, m);
 
 	/* accumulate a0b0 - a0b0*B^m */
-	hebi_padd(r, r, w, l, k);
-	hebi_psub(r+m, r+m, w, l-m, k);
+	hebi_padda(r, w, l, k);
+	hebi_psuba(r+m, w, l-m, k);
 }

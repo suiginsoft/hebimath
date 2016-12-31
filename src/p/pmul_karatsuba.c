@@ -39,7 +39,7 @@ hebi_pmul_karatsuba(
 		hebi_pmul_karatsuba(r, w, a, b, m, bn);
 		hebi_pzero(w, an-m+bn+1);
 		hebi_pmul_karatsuba(w, w+an-m+bn+1, a+m, b, an-m, bn);
-		hebi_padd(r+m, r+m, w, an-m+bn, an-m+bn);
+		hebi_padda(r+m, w, an-m+bn, an-m+bn);
 		return;
 	}
 
@@ -66,14 +66,14 @@ hebi_pmul_karatsuba(
 	hebi_pmul_karatsuba(w, w+k+1, a+m, b+m, an-m, bn-m);
 
 	/* accumulate a1b1*B^(2m) - a1b1*B^m */
-	hebi_padd(r+j, r+j, w, l-j, k);
-	hebi_psub(r+m, r+m, w, l-m, k);
+	hebi_padda(r+j, w, l-j, k);
+	hebi_psuba(r+m, w, l-m, k);
 
 	/* compute a0b0 */
 	hebi_pzero(w, j+1);
 	hebi_pmul_karatsuba(w, w+j+1, a, b, m, m);
 
 	/* accumulate a0b0 - a0b0*B^m */
-	hebi_padd(r, r, w, l, j);
-	hebi_psub(r+m, r+m, w, l-m, j);
+	hebi_padda(r, w, l, j);
+	hebi_psuba(r+m, w, l-m, j);
 }

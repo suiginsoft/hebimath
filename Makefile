@@ -23,14 +23,18 @@ CPPFLAGS_x86_64 := -DUSE_DRIVER_X86_64
 CPPFLAGS_driver := $(CPPFLAGS_$(DRIVER_selected))
 
 PDRIVERFUNCS_x86_64 := \
+	paddac \
+	psubac \
 	paddc \
 	psubc
 
 PDRIVERFUNCS := \
 	padd \
+	padda \
 	paddu \
 	pneg \
 	psub \
+	psuba \
 	psubu \
 	recipulut \
 	$(PDRIVERFUNCS_$(DRIVER_selected))

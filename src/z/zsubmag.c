@@ -23,7 +23,7 @@ hebi_zsubmag(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 
 	au = a->hz_used;
 	bu = b->hz_used;
-	if (au < bu) {
+	if (au < bu || (au == bu && r == b)) {
 		SWAP(hebi_zsrcptr, a, b);
 		SWAP(size_t, au, bu);
 	}
@@ -40,8 +40,14 @@ hebi_zsubmag(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 		}
 	}
 
-	rp = hebi_zgrowcopyif__(r, au, r == a || r == b);
-	(void)hebi_psub(rp, a->hz_packs, b->hz_packs, au, bu);
+	if (r == a) {
+		rp = r->hz_packs;
+		(void)hebi_psuba(rp, b->hz_packs, au, bu);
+	} else {
+		rp = hebi_zgrowcopyif__(r, au, r == b);
+		(void)hebi_psub(rp, a->hz_packs, b->hz_packs, au, bu);
+	}
+
 	au = hebi_pnorm(rp, au);
 
 	r->hz_used = au;
