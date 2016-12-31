@@ -29,7 +29,7 @@ hebi_zand(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 		ap = rp = r->hz_packs;
 		bp = a->hz_packs;
 	} else {
-		rp = hebi_zgrowzero__(r, n);
+		rp = hebi_zgrow__(r, n);
 		ap = a->hz_packs;
 		bp = b->hz_packs;
 	}

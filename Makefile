@@ -95,7 +95,7 @@ ZFUNCTIONS := \
 	zdestroy \
 	zdestroys \
 	zdestroyn \
-	zgrow \
+	zexpand \
 	zrealloc \
 	zrealloczero \
 	zreserve \

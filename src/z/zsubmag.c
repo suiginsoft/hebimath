@@ -40,7 +40,7 @@ hebi_zsubmag(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 		}
 	}
 
-	rp = hebi_zgrow_copyif__(r, au, r == a || r == b);
+	rp = hebi_zgrowcopyif__(r, au, r == a || r == b);
 	(void)hebi_psub(rp, a->hz_packs, b->hz_packs, au, bu);
 	au = hebi_pnorm(rp, au);
 

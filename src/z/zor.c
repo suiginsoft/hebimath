@@ -35,9 +35,10 @@ hebi_zor(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 	}
 
 	if (r != a && r->hz_resv < m)
-		hebi_zrealloc_copyif__(r, m, r == b);
+		rp = hebi_zexpandcopyif__(r, m, r->hz_resv, r == b);
+	else
+		rp = r->hz_packs;
 
-	rp = r->hz_packs;
 	ap = a->hz_packs;
 	bp = b->hz_packs;
 

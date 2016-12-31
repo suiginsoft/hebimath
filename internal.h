@@ -706,13 +706,18 @@ hebi_zdestroy_pop__(hebi_zptr r)
  * third argument to avoid a double-read from memory of that value. these
  * functions return a pointer to the newly allocated packet buffer.
  */
-HEBI_HIDDEN
-hebi_packet *
-hebi_zgrowrealloc__(hebi_zptr, size_t, size_t);
 
 HEBI_HIDDEN
 hebi_packet *
-hebi_zgrowrealloczero__(hebi_zptr, size_t, size_t);
+hebi_zexpand__(hebi_zptr, size_t, size_t);
+
+HEBI_HIDDEN
+hebi_packet *
+hebi_zexpandcopy__(hebi_zptr, size_t, size_t);
+
+HEBI_HIDDEN
+hebi_packet *
+hebi_zexpandcopyif__(hebi_zptr, size_t, size_t, int);
 
 static inline HEBI_ALWAYSINLINE
 hebi_packet *
@@ -720,34 +725,23 @@ hebi_zgrow__(hebi_zptr r, size_t n)
 {
 	if (n <= r->hz_resv)
 		return r->hz_packs;
-	return hebi_zgrowrealloc__(r, n, r->hz_resv);
+	return hebi_zexpand__(r, n, r->hz_resv);
 }
 
 static inline HEBI_ALWAYSINLINE
 hebi_packet *
-hebi_zgrowzero__(hebi_zptr r, size_t n)
+hebi_zgrowcopy__(hebi_zptr r, size_t n)
 {
 	if (n <= r->hz_resv)
 		return r->hz_packs;
-	return hebi_zgrowrealloczero__(r, n, r->hz_resv);
+	return hebi_zexpandcopy__(r, n, r->hz_resv);
 }
 
 static inline HEBI_ALWAYSINLINE
 hebi_packet *
-hebi_zrealloc_copyif__(hebi_zptr r, size_t n, int c)
-{
-	if (c)
-		hebi_zrealloc(r, n);
-	else
-		hebi_zrealloczero(r, n);
-	return r->hz_packs;
-}
-
-static inline HEBI_ALWAYSINLINE
-hebi_packet *
-hebi_zgrow_copyif__(hebi_zptr r, size_t n, int c)
+hebi_zgrowcopyif__(hebi_zptr r, size_t n, int c)
 {
 	if (n <= r->hz_resv)
 		return r->hz_packs;
-	return hebi_zrealloc_copyif__(r, n, c);
+	return hebi_zexpandcopyif__(r, n, r->hz_resv, c);
 }

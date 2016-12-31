@@ -32,7 +32,7 @@ hebi_zsub(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 	}
 
 	if ((as ^ bs) >= 0) {
-		rp = hebi_zgrow_copyif__(r, au + 1, r == a || r == b);
+		rp = hebi_zgrowcopyif__(r, au + 1, r == a || r == b);
 		if ((carry = hebi_padd(rp, a->hz_packs, b->hz_packs, au, bu)))
 			hebi_psetu(rp + au++, carry);
 	} else {
@@ -47,7 +47,7 @@ hebi_zsub(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 				as = -as;
 			}
 		}
-		rp = hebi_zgrow_copyif__(r, au, r == a || r == b);
+		rp = hebi_zgrowcopyif__(r, au, r == a || r == b);
 		(void)hebi_psub(rp, a->hz_packs, b->hz_packs, au, bu);
 		au = hebi_pnorm(rp, au);
 	}

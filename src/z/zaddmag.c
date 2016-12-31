@@ -28,7 +28,7 @@ hebi_zaddmag(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 		SWAP(size_t, au, bu);
 	}
 
-	rp = hebi_zgrow_copyif__(r, au + 1, r == a || r == b);
+	rp = hebi_zgrowcopyif__(r, au + 1, r == a || r == b);
 	if ((carry = hebi_padd(rp, a->hz_packs, b->hz_packs, au, bu)))
 		hebi_psetu(rp + au++, carry);
 

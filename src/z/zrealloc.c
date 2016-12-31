@@ -26,6 +26,7 @@ hebi_zrealloc(hebi_zptr r, size_t n)
 	r->hz_packs = p;
 	r->hz_resv = n;
 	r->hz_used = u;
-	r->hz_sign = !!u;
+	if (UNLIKELY(!u))
+		r->hz_sign = 0;
 	r->hz_allocid = (int)(intptr_t)id;
 }

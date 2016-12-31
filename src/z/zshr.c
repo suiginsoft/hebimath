@@ -9,6 +9,7 @@ HEBI_API
 void
 hebi_zshr(hebi_zptr r, hebi_zsrcptr a, size_t b)
 {
+	hebi_packet *rp;
 	size_t rn, au;
 	int as;
 
@@ -20,16 +21,16 @@ hebi_zshr(hebi_zptr r, hebi_zsrcptr a, size_t b)
 	as = a->hz_sign;
 	au = a->hz_used;
 	rn = b / HEBI_PACKET_BIT;
+
 	if (UNLIKELY(!as || au <= rn)) {
 		hebi_zsetzero(r);
 		return;
 	}
 
 	rn = au - rn;
-	if (rn > r->hz_resv)
-		hebi_zrealloc_copyif__(r, rn, r == a);
+	rp = hebi_zgrowcopyif__(r, rn, r == a);
 
-	if (LIKELY(rn = hebi_pshr(r->hz_packs, a->hz_packs, b, au))) {
+	if (LIKELY(rn = hebi_pshr(rp, a->hz_packs, b, au))) {
 		r->hz_used = rn;
 		r->hz_sign = as;
 	} else {
