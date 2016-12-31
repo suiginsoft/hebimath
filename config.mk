@@ -65,7 +65,7 @@ ARFLAGS = -rc
 #LDFLAGS =
 
 # additional flags used when building shared library
-ASFLAGS_shared = -mshared --defsym USE_PIC=1
+ASFLAGS_shared = --defsym USE_PIC=1
 CPPFLAGS_shared = -DHEBI_EXPORT_SYMBOLS
 CFLAGS_shared = -fpic -fvisibility=hidden
 LDFLAGS_shared = -shared
