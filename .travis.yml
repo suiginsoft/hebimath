@@ -16,7 +16,7 @@ addons:
       name: "suiginsoft/hebimath"
       description: "Build submitted via Travis CI"
     notification_email: suigin@national.shitposting.agency
-    build_command_prepend: bmake clean DRIVER=generic LINKAGE=static
-    build_command: bmake DRIVER=generic LINKAGE=static
+    build_command_prepend: make clean
+    build_command: make
     branch_pattern: coverity_scan
-script: 
+script: make

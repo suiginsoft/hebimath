@@ -7,14 +7,14 @@ VERSION = 0.6
 #   both    - builds both shared and static libraries
 #   shared  - only build the shared library
 #   static  - only build the static library
-LINKAGE = both
+LINKAGE = static
 
 # DRIVER controls which low-level functions backend to compile
 # and use and can be set to one of the following options:
 #   auto    - auto-detect best backend for host system
 #   generic - generic portable backend
 #   x86_64  - optimized for x86-64 processors
-DRIVER = auto
+DRIVER = generic
 
 # DISPATCH controls function multi-versioning for the backend
 # and can be set to either dynamic or static:
@@ -26,7 +26,7 @@ DRIVER = auto
 #   static  - will determine which kernel version to use at
 #             build time, using the best version matching
 #             flags in 'config.inc'
-DISPATCH = dynamic
+DISPATCH = static
 
 # SIMD controls whether to generate support for using GNU C style
 # vector extensions (supported by both GCC and Clang). When this
@@ -46,10 +46,9 @@ SIMD = on
 PREFIX = /usr/local
 
 # toolchain
-CC = cov-build
-AR = ar
+#AR = ar
+#AS = as
 RANLIB = ranlib
-AS = as
 STRIP = strip
 
 # toolchain flags
