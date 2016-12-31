@@ -1,2 +1,7 @@
-script: make DRIVER_selected=x86_64 DISPATCH_driver=dynamic
+addons:
+  apt:
+    packages:
+    - bc
+before_install: apt-cache search make
+script: make DRIVER_selected=x86_64 DISPATCH_driver=dynamic && make check DRIVER_selected=x86_64 DISPATCH_driver=dynamic
 compiler: gcc
