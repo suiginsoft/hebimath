@@ -374,18 +374,18 @@ struct hebi_context {
 
 /* gets a pointer to the thread-specific context */
 #if defined USE_C11_THREAD_LOCAL
-#define hebi_context_get() (&hebi_context__)
+#define hebi_context_get__() (&hebi_context__)
 EXTENSION extern HEBI_HIDDEN _Thread_local struct hebi_context hebi_context__;
 #elif defined USE_GNUC_THREAD_LOCAL
-#define hebi_context_get() (&hebi_context__)
+#define hebi_context_get__() (&hebi_context__)
 EXTENSION extern HEBI_HIDDEN __thread struct hebi_context hebi_context__;
 #elif defined USE_THREADS
-#define hebi_context_get() (hebi_context_get_or_create__(NULL, NULL))
+#define hebi_context_get__() (hebi_context_get_or_create__(NULL, NULL))
 HEBI_HIDDEN HEBI_PURE HEBI_WARNUNUSED
 struct hebi_context *
 hebi_context_get_or_create__(hebi_errhandler, void *);
 #else
-#define hebi_context_get() (&hebi_context__)
+#define hebi_context_get__() (&hebi_context__)
 extern HEBI_HIDDEN struct hebi_context hebi_context__;
 #endif
 
@@ -643,7 +643,7 @@ static inline HEBI_ALWAYSINLINE HEBI_ALLOC
 void *
 hebi_scratch__(size_t n)
 {
-	struct hebi_context *ctx = hebi_context_get();
+	struct hebi_context *ctx = hebi_context_get__();
 	if (ctx->scratchsize >= n)
 		return ctx->scratch;
 	return hebi_realloc_scratch__(ctx, n);
@@ -670,7 +670,7 @@ static inline HEBI_ALWAYSINLINE
 void
 hebi_zinit_push__(hebi_zptr r, hebi_allocid id)
 {
-	struct hebi_context *ctx = hebi_context_get();
+	struct hebi_context *ctx = hebi_context_get__();
 	if (UNLIKELY(ctx->zstackused >= ZSTACK_MAX_SIZE))
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOSLOTS);
 #if defined USE_ASSERTIONS && defined USE_THREAD_LOCAL
@@ -690,7 +690,7 @@ static inline HEBI_ALWAYSINLINE
 void
 hebi_zdestroy_pop__(hebi_zptr r)
 {
-	struct hebi_context *ctx = hebi_context_get();
+	struct hebi_context *ctx = hebi_context_get__();
 	ASSERT(ctx->zstackused > 0 && ctx->zstack[ctx->zstackused - 1] == r);
 	ctx->zstack[--ctx->zstackused] = NULL;
 #if defined USE_ASSERTIONS && defined USE_THREAD_LOCAL

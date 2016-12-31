@@ -11,7 +11,7 @@ getallocidx(int index)
 	struct hebi_context *ctx;
 	hebi_allocid rid;
 	
-	ctx = hebi_context_get();
+	ctx = hebi_context_get__();
 	rid = ctx->allocids[index];
 	if ((intptr_t)rid <= 0)
 		rid = HEBI_ALLOC_STDLIB;

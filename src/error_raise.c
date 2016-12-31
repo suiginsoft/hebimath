@@ -18,7 +18,7 @@ hebi_error_raise(enum hebi_errdom domain, int code)
 	struct hebi_context *ctx;
 	unsigned int i;
 
-	ctx = hebi_context_get();
+	ctx = hebi_context_get__();
 
 	if (ctx->scratch) {
 		hebi_free(ctx->allocids[1], ctx->scratch, ctx->scratchsize);

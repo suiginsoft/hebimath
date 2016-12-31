@@ -376,7 +376,7 @@ hebi_alloc_query(hebi_allocid *rid, hebi_allocid id)
 	key = (int)(intptr_t)id;
 	if (LIKELY(key <= 0)) {
 		if ((key += 2) > 0) {
-			ctx = hebi_context_get();
+			ctx = hebi_context_get__();
 			id = ctx->allocids[key & 1];
 			key = (int)(intptr_t)id;
 		}
@@ -404,7 +404,7 @@ hebi_alloc_query(hebi_allocid *rid, hebi_allocid id)
 
 	/* check thread-local cache for allocator entry */
 	if (!ctx)
-		ctx = hebi_context_get();
+		ctx = hebi_context_get__();
 	used = ctx->allocused;
 	if (used) {
 		for (i = hashcode; ctx->allockeys[i] != 0; i++)

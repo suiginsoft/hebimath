@@ -10,7 +10,7 @@ HEBI_API
 void
 hebi_error_save(struct hebi_errstate *state)
 {
-	struct hebi_context *ctx = hebi_context_get();
+	struct hebi_context *ctx = hebi_context_get__();
 	state->hes_handler = ctx->errhandler;
 	if (ctx->errarg != &ctx->errjmparg) {
 		state->hes_arg = ctx->errarg;
