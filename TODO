@@ -25,8 +25,16 @@ Optimize:
 
 Other:
 
+* create some sample programs
+* add a lot more checks/tests
+* add hebi_kiss init/destroy functions
+* add additional random number generators
 * test and fix bugs in ztrunc
 * improve zand, zor and zxor to generate correct results for negative numbers
 * add a special invalid allocator id value for zinit_buffer functions
-* add a lot more checks/tests
-* create some sample programs
+* add support for compiler static analysis
+* add support for SEI CERT C validation and perform security audit
+* perform an audit on floating-point values, make sure we aren't using any
+  except for when we need to convert to/from these data types
+* code cleanup audit, remove any C++ style comments, C++ style pointer
+  declarations, trailing whitespace, convert spaces to tabs, etc.
