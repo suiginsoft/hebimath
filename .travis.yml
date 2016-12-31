@@ -1,9 +1,19 @@
 sudo: required
 dist: trusty
-language: c
-compiler: gcc
 before_install:
   - sudo apt-get update -qq
   - sudo apt-get install bc
   - sudo apt-get install bmake
-script: bmake && bmake check
+script: bmake DRIVER=generic
+env:
+  global:
+    - secure: "JoiF8VNBc-rcUzAyO0JBbg"
+addons:
+  coverity_scan:
+    project:
+      name: suiginsoft/hebimath
+      version: 0.6
+      description: hebimath
+    notification_email: suigin@national.shitposting.agency
+    build_command: make
+    branch_pattern: coverity_scan

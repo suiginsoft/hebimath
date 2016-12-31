@@ -46,7 +46,7 @@ SIMD = on
 PREFIX = /usr/local
 
 # toolchain
-CC = c99
+CC = cov-build
 AR = ar
 RANLIB = ranlib
 AS = as
@@ -55,7 +55,7 @@ STRIP = strip
 # toolchain flags
 ASFLAGS =
 CPPFLAGS = -DVERSION=\"${VERSION}\" -D_POSIX_C_SOURCE=200809L
-CFLAGS = -O3 -pedantic -pthread -Wall
+CFLAGS = -std=c99 -pedantic -Wall -pthread -O3
 LDFLAGS = -s
 LDLIBS = -lc -lm
 ARFLAGS = -rc
