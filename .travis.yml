@@ -1,2 +1,2 @@
-script: make --version && make DRIVER=x86_64 && make check DRIVER=x86_64
+script: make DRIVER_selected=x86_64 DISPATCH_driver=dynamic && make check DRIVER_selected=x86_64 DISPATCH_driver=dynamic
 compiler: gcc
