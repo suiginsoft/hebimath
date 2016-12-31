@@ -1,6 +1,5 @@
 sudo: required
 dist: trusty
-language: c
 env:
   global:
     - secure: "MJfW0c7X4lCeczrbJRaGTRRUCdvPnvOJln35+m4ZbBd7jx6e9ryJD2dz6SBQK79OZHPpmDLcqgvQBm1pj6H+FsDT4lKOXx3XWx5Ul/GeRimrR3edska/4NN5BqOhJRAgVS6osdIg4ki0y7GyphXdbIREVuqL2EgamfwY/D3iVMbIJeYAHVEgGqo/Ol/44jVxKLNeJqmWCPh242/fsPiWiu0jEjZZKNML5Rf/qDagJ8eoJ83X6a2w9ewcO9DOFdgTREGVcAsV2zzZH3UBbr1uZ+AWmJ9ucxA9sqW5mQz3OCyIt0qasvAwbRvpYt5L4KWxgGPOD1rFRoJ+Iu40+/PaYvwnrfA6UTwYxRhEiwNrHDG6gOZqGfpbXeKR22Ocjpj6XMLmAM+WRy4IiTNPf1B8JfYHzor+Pwdtp1GX8ZrY4Lnz1DKrMz1b6MNjcKf/3gRNSsoZkys10p6Xkk3JKngCH8mJj38mPZVNKPePBnqRnWej1G0i71vCMAPbjzgPxBW2qn7yLt6diL6ScDas0gdQk9G8LDxJsBPUcSzdHnzXXBCqBiwXJpVazioC0oPp7S99NZnfNedTNgR5sP9PJvcY+qccFUmpeuB3eDa3ciemlEOh+oBJVVN8JrnrNTtVJf1mX0ganOSuKIKdXO7QHwamcnto9sV+KE+lbTauxxf8XvE="
@@ -15,5 +14,6 @@ addons:
       name: "suiginsoft/hebimath"
       description: "Build submitted via Travis CI"
     notification_email: suigin@national.shitposting.agency
+    build_command_prepend: bmake clean DRIVER=generic
     build_command: bmake DRIVER=generic
     branch_pattern: coverity_scan
