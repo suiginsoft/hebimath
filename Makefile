@@ -264,9 +264,11 @@ CHECK_Z := \
 	zabs \
 	zneg \
 	zadd \
+	zaddmag \
 	zaddi \
 	zaddu \
 	zsub \
+	zsubmag \
 	zsubi \
 	zsubu \
 	zmul \
