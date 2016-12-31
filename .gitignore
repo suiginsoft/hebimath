@@ -39,6 +39,7 @@ check/z/zcmpmag
 check/z/zcmpu
 check/z/zdiv
 check/z/zdivi
+check/z/zdivrem
 check/z/zdivu
 check/z/zmul
 check/z/zmuli

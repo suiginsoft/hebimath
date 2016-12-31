@@ -271,6 +271,7 @@ CHECK_Z := \
 	zdiv \
 	zdivi \
 	zdivu \
+	zdivrem \
 	zrem \
 	zremi \
 	zremu \
