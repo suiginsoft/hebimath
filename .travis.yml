@@ -1,2 +1,2 @@
-script: make && make check
+script: make options
 compiler: gcc
