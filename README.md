@@ -2,6 +2,7 @@ hebimath - arbitrary precision arithmetic library
 -------------------------------------------------------------------------------
 [![Build Status](https://travis-ci.org/suiginsoft/hebimath.svg?branch=master)](https://travis-ci.org/suiginsoft/hebimath)
 [![Coverity Scan](https://img.shields.io/coverity/scan/11311.svg)](https://scan.coverity.com/projects/suiginsoft-hebimath)
+[![License](https://img.shields.io/packagist/l/doctrine/orm.svg)](https://github.com/suiginsoft/hebimath/raw/master/LICENSE)
 
 What is Hebimath?
 ===============================================================================
@@ -48,8 +49,6 @@ Hebimath adheres to these principles in its implementation:
   version, favor runtime speed above all else.
 - Avoid unnecessary memory allocations, and delay allocations until they are
   absolutely required for output variables.
-- Prefer pure numerical methods over use of lookup tables as accessing uncached
-  memory is becoming more expensive in terms of latency on modern processors.
 - Allocate all temporary work memory upfront for algorithms using sharp upper
   bounds on the input argument lengths. No allocations/deallocations at each
   recursive or iterative level.
