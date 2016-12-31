@@ -6,12 +6,12 @@ What is Hebimath?
 ===============================================================================
 
 ヘビー 【Hebī】
-1. Heavy. Big. Huge. Of great weight; hard to lift or carry: ``A heavy load.''
-2. Extreme. Intense. Scary. Tough. ``A heavy drinker.''
+1. Heavy. Big. Huge. Of great weight; hard to lift or carry: "A heavy load."
+2. Extreme. Intense. Scary. Tough. "A heavy drinker."
 3. Applying power; a final burst of energy.
 
 ヘビ 【Hebi】
-1. Snake. Serpent. Reptile. ``Best watch out for that SICP snake!''
+1. Snake. Serpent. Reptile. "Best watch out for that SICP snake!"
 
 In short, Hebimath is a library capable of performing bignum arithmetic in the
 same vein as GMP, libtommath, TomsFastMath, MPI and friends.
@@ -41,7 +41,7 @@ Hebimath has the following design features:
 Hebimath adheres to these principles in its implementation:
 
 - Be compact, concise and readable. Favor small code, but don't over-do it.
-  In the low-level kernel functions, with the exception of the ``generic''
+  In the low-level kernel functions, with the exception of the "generic"
   version, favor runtime speed above all else.
 - Avoid unnecessary memory allocations, and delay allocations until they are
   absolutely required for output variables.
