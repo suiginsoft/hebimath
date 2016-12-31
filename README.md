@@ -5,15 +5,15 @@ hebimath - arbitrary precision arithmetic library
 What is Hebimath?
 ===============================================================================
 
-ヘビー 【Hebī】
+**ヘビー 【Hebī】**
 
-1. Heavy. Big. Huge. Of great weight; hard to lift or carry: "A heavy load."
-2. Extreme. Intense. Scary. Tough. "A heavy drinker."
-3. Applying power; a final burst of energy.
+1. *Heavy. Big. Huge. Of great weight; hard to lift or carry: "A heavy load."*
+2. *Extreme. Intense. Scary. Tough. "A heavy drinker."*
+3. *Applying power; a final burst of energy.*
 
-ヘビ 【Hebi】
+**ヘビ 【Hebi】**
 
-1. Snake. Serpent. Reptile. "Best watch out for that SICP snake!"
+1. *Snake. Serpent. Reptile. "Best watch out for that SICP snake!"*
 
 In short, Hebimath is a library capable of performing bignum arithmetic in the
 same vein as GMP, libtommath, TomsFastMath, MPI and friends.
