@@ -3,8 +3,7 @@ dist: trusty
 language: c
 compiler: gcc
 before_install:
-  - echo "deb http://archive.ubuntu.com/ubuntu xenial main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
   - sudo apt-get update -qq
-  - sudo apt-get build-dep make-dfsg -y
-  - sudo apt-get -b source -t xenial make-dfsg -y
-script: make && make check
+  - sudo apt-get install bc
+  - sudo apt-get install bmake
+script: bmake && bmake check
