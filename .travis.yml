@@ -2,9 +2,9 @@ sudo: required
 dist: trusty
 language: c
 compiler: gcc
-addons:
-  apt:
-    packages:
-    - bc
-before_install: sudo apt-get update -qq
+before_install:
+  - echo "deb http://archive.ubuntu.com/ubuntu trusty-backports main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
+  - sudo apt-get update -qq
+  - sudo apt-get install make/trusty-backports -y
+  - sudo apt-get install bc -y
 script: make && make check
