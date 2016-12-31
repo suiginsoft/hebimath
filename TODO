@@ -36,6 +36,7 @@ Other:
 * add additional random number generators
 * add a special invalid allocator id value for zinit_buffer functions
 * add support for compiler static analysis
+	* enable additional warnings and security hardening flags by default
 * add support for SEI CERT C validation and perform security audit
 * more testing on other Linux and BSD distributions
 * more testing with different C compilers and with older versions of compilers
