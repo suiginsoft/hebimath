@@ -20,10 +20,10 @@ bench/p/psub
 bench/p/psubu
 bench/p/pzero
 check/libcheck.a
+check/p/negnot
 check/p/pcmp
 check/p/pcopy
 check/p/pmove
-check/p/pneg
 check/p/pnorm
 check/p/pzero
 check/z/getset
