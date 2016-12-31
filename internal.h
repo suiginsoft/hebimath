@@ -38,7 +38,7 @@
 #define __has_extension(X) GNUC_EXTENSION_##X
 #define GNUC_EXTENSION_c_atomic GNUC_VERSION_AT_LEAST(4,9,0)
 #define GNUC_EXTENSION_c_thread_local GNUC_VERSION_AT_LEAST(4,9,0)
-#define GNUC_EXTENSION_c_static_assert GNUC_VERSION_AT_LEAST(4,6,0)
+#define GNUC_EXTENSION_c_static_assert GNUC_VERSION_AT_LEAST(4,7,0)
 #endif
 
 #endif
