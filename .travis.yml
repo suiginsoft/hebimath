@@ -1,2 +1,2 @@
-script: uname -m
+script: make options
 compiler: gcc

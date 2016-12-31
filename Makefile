@@ -447,6 +447,7 @@ uninstall:
 options:
 	@echo libhebimath build options:
 	@echo "LINKAGE           = $(LINKAGE)"
+	@echo "DRIVER_auto       = $(DRIVER_auto)"
 	@echo "DRIVER            = $(DRIVER_selected)"
 	@echo "DISPATCH          = $(DISPATCH_driver)"
 	@echo "SIMD              = $(SIMD)"
