@@ -273,10 +273,11 @@ hebi_alloc_add(const struct hebi_allocfnptrs *newfp)
 	unsigned short *gp;
 	struct hebi_allocfnptrs *fp;
 	unsigned int slot, genr;
+	int key, el;
 #ifdef ALLOC_TABLE_DYNAMIC
 	unsigned int page, offs;
+	int es;
 #endif
-	int key, el, es = 0;
 
 	TABLE_LOCK(wr, el);
 
@@ -286,12 +287,14 @@ hebi_alloc_add(const struct hebi_allocfnptrs *newfp)
 		tfreelist = (uintptr_t)fp->ha_arg;
 	} else {
 #ifdef ALLOC_TABLE_DYNAMIC
-		if (UNLIKELY(tsize >= tresv && (es = expandtable())))
-			goto unlock;
+		if (UNLIKELY(tsize >= tresv && (es = expandtable()))) {
+			TABLE_UNLOCK(el);
+			hebi_error_raise(HEBI_ERRDOM_HEBI, es);
+		}
 #else
 		if (UNLIKELY(tsize >= TABLE_CAPACITY)) {
-			es = HEBI_ENOSLOTS;
-			goto unlock;
+			TABLE_UNLOCK(el);
+			hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOSLOTS);
 		}
 #endif
 		slot = tsize++;
@@ -302,11 +305,8 @@ hebi_alloc_add(const struct hebi_allocfnptrs *newfp)
 	genr = *gp;
 	++tused;
 
-unlock:
 	TABLE_UNLOCK(el);
 
-	if (es)
-		hebi_error_raise(HEBI_ERRDOM_HEBI, es);
 	key = (genr << KEY_GENR_SHFT) | (slot + 1);
 	return (hebi_allocid)(intptr_t)key;
 }

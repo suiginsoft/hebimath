@@ -30,6 +30,8 @@ Other:
 * create some sample programs
 * add a lot more checks/tests
 * add documetation and man pages
+	* build tool requirements (gmake 4.0+, bmake, awk, etc.)
+	* supported compilers
 * add hebi_kiss init/destroy functions
 * add additional random number generators
 * add a special invalid allocator id value for zinit_buffer functions

@@ -1,2 +1,2 @@
-script: make DRIVER_selected=x86_64 DISPATCH_driver=dynamic && make check DRIVER_selected=x86_64 DISPATCH_driver=dynamic
+script: make DRIVER_selected=x86_64 DISPATCH_driver=dynamic CC=gcc CFLAGS="-std=c11 -pedantic -Wall -O3 -pthread"
 compiler: gcc
