@@ -1,7 +1,7 @@
 hebimath - arbitrary precision arithmetic library
 -------------------------------------------------------------------------------
 [![Build Status](https://travis-ci.org/suiginsoft/hebimath.svg?branch=master)](https://travis-ci.org/suiginsoft/hebimath)
-[![Coverity Scan Build Status](https://img.shields.io/coverity/scan/11311.svg")](https://scan.coverity.com/projects/suiginsoft-hebimath)
+[![Coverity Scan Build Status](https://scan.coverity.com/projects/11311/badge.svg)(https://scan.coverity.com/projects/suiginsoft-hebimath)
 
 What is Hebimath?
 ===============================================================================
