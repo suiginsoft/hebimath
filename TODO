@@ -20,21 +20,35 @@ Optimize:
 
 * znot
 * ztrunc
-* pandmsk__
+* pandmsk__ (get rid of this?)
 * pclz
 
 Other:
 
+* improve zand, zor and zxor to generate correct results for negative numbers
+* test and fix bugs in ztrunc
 * create some sample programs
 * add a lot more checks/tests
+* add documetation and man pages
 * add hebi_kiss init/destroy functions
 * add additional random number generators
-* test and fix bugs in ztrunc
-* improve zand, zor and zxor to generate correct results for negative numbers
 * add a special invalid allocator id value for zinit_buffer functions
 * add support for compiler static analysis
 * add support for SEI CERT C validation and perform security audit
+* more testing on other Linux and BSD distributions
+* more testing with different C compilers and with older versions of compilers
 * perform an audit on floating-point values, make sure we aren't using any
   except for when we need to convert to/from these data types
 * code cleanup audit, remove any C++ style comments, C++ style pointer
   declarations, trailing whitespace, convert spaces to tabs, etc.
+
+Longer Term:
+
+* add arbitrary precision rationals and floating-point numbers
+* add GNU MP style API wrapper header
+* add header only C++11/14 library
+* port low-level packet backend to AArch64
+* port to Android
+* port to Mac OS X / iOS
+* port to Windows (MinGW, Ubuntu on Windows and MSVC++ w/ Clang frontend)
+* add support for big-endian machines
