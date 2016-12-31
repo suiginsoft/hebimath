@@ -12,17 +12,17 @@ hebi_zrand_kiss(
 		size_t bits,
 		struct hebi_kiss *restrict k )
 {
-	size_t n = (bits + HEBI_PACKET_BIT - 1) / HEBI_PACKET_BIT;
-
+	hebi_packet *p;
+	size_t n;
+	
+	n = (bits + HEBI_PACKET_BIT - 1) / HEBI_PACKET_BIT;
 	if (UNLIKELY(!n)) {
 		hebi_zsetzero(r);
 		return;
 	}
 
-	if (n > r->hz_resv)
-		hebi_zrealloczero(r, n);
-
-	hebi_prand_kiss(r->hz_packs, n, bits, k);
+	p = hebi_zgrow__(r, n);
+	hebi_prand_kiss(p, n, bits, k);
 	r->hz_used = n;
 	r->hz_sign = 1;
 }

@@ -37,20 +37,17 @@ hebi_zmul(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 
 	if (an > KARATSUBA_MUL_CUTOFF) {
 		wp = hebi_pscratch__(hebi_pmul_karatsuba_space(an, bn));
-		if (rn > rz->hz_resv)
-			hebi_zrealloczero(rz, rn);
-		rp = rz->hz_packs;
+		rp = hebi_zgrow__(rz, rn);
 		hebi_pzero(rp, rn);
 		hebi_pmul_karatsuba(rp, wp, a->hz_packs, b->hz_packs, an, bn);
 	} else {
-		if (--rn > rz->hz_resv)
-			hebi_zrealloczero(rz, rn);
-		rp = rz->hz_packs;
+		rp = hebi_zgrow__(rz, --rn);
 		hebi_pmul(rp, a->hz_packs, b->hz_packs, an, bn);
 	}
 
 	rz->hz_used = hebi_pnorm(rp, rn);
 	rz->hz_sign = (as ^ bs) < 0 ? -1 : 1;
+
 	if (rz != r) {
 		hebi_zswap(rz, r);
 		hebi_zdestroy_pop__(rz);

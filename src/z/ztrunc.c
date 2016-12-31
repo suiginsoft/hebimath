@@ -9,6 +9,7 @@ HEBI_API
 void
 hebi_ztrunc(hebi_zptr r, hebi_zsrcptr a, size_t bits)
 {
+	hebi_packet *rp;
 	size_t n, u;
 	int b, s;
 
@@ -20,14 +21,16 @@ hebi_ztrunc(hebi_zptr r, hebi_zsrcptr a, size_t bits)
 	n = (bits + HEBI_PACKET_BIT - 1) / HEBI_PACKET_BIT;
 	u = MIN(n, a->hz_used);
 
-	if (r != a) {
-		if (u > r->hz_resv)
-			hebi_zrealloczero(r, u);
-		hebi_pcopy(r->hz_packs, a->hz_packs, u);
+	if (r == a) {
+		rp = r->hz_packs;
+		r->hz_used = u;
+	} else {
+		rp = hebi_zgrow__(r, u);
+		hebi_pcopy(rp, a->hz_packs, u);
 		r->hz_sign = s;
+		r->hz_used = u;
 	}
 
-	r->hz_used = u;
 	if (LIKELY(u >= n && (b = (int)(bits % HEBI_PACKET_BIT))))
-		hebi_pandmsk__(r->hz_packs+u-1, b);
+		hebi_pandmsk__(rp + u - 1, b);
 }

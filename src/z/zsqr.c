@@ -31,15 +31,11 @@ hebi_zsqr(hebi_zptr r, hebi_zsrcptr a)
 
 	if (au > KARATSUBA_SQR_CUTOFF) {
 		wp = hebi_pscratch__(hebi_psqr_karatsuba_space(au));
-		if (tn > t->hz_resv)
-			hebi_zrealloczero(t, tn);
-		tp = t->hz_packs;
+		tp = hebi_zgrow__(t, tn);
 		hebi_pzero(tp, tn);
 		hebi_psqr_karatsuba(tp, wp, a->hz_packs, au);
 	} else {
-		if (--tn > t->hz_resv)
-			hebi_zrealloczero(t, tn);
-		tp = t->hz_packs;
+		tp = hebi_zgrow__(t, --tn);
 		hebi_psqr(tp, a->hz_packs, au);
 	}
 
