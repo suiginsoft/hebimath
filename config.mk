@@ -55,13 +55,13 @@ STRIP = strip
 # toolchain flags
 ASFLAGS =
 CPPFLAGS = -DVERSION=\"${VERSION}\" -D_POSIX_C_SOURCE=200809L
-CFLAGS = -O3 -pedantic -pthread -Wall
+CFLAGS = -O3 -pedantic -pthread -Wall -Wextra
 LDFLAGS = -s
 LDLIBS = -lc -lm
 ARFLAGS = -rc
 
 # debug toolchain flags
-#CFLAGS = -g -O0 -pedantic -pthread -Wall -DUSE_ASSERTIONS
+#CFLAGS = -g -O0 -pedantic -pthread -Wall -Wextra -DUSE_ASSERTIONS
 #LDFLAGS =
 
 # additional flags used when building shared library

@@ -164,7 +164,7 @@ init_hwcaps(void)
 
 	unsigned long caps, mask;
 	char *p, *s, *t, *v;
-	int i;
+	size_t i;
 
 	caps = native_hwcaps();
 

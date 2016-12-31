@@ -205,7 +205,7 @@ EXTENSION typedef unsigned __int128 hebi_uint128;
 
 /* internal-use attributes */
 #if __has_attribute(always_inline)
-#if __has_attribute(hidden)
+#if __has_attribute(visibility) && defined(__clang__)
 #define HEBI_ALWAYSINLINE __attribute__((__always_inline__,__visibility__("hidden")))
 #else
 #define HEBI_ALWAYSINLINE __attribute__((__always_inline__))

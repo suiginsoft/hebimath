@@ -21,6 +21,8 @@ int main(int argc, char *argv[])
 	char buf[2048];
 	hebi_z a;
 
+	checkinit(argc, argv);
+
 	hebi_zinit(a);
 
 	assert(hebi_zsign(a) == 0);

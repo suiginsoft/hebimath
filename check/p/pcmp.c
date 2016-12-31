@@ -16,6 +16,8 @@ main(int argc, char *argv[])
 	hebi_packet *x, *y;
 	size_t i;
 
+	checkinit(argc, argv);
+
 	x = hebi_palloc(HEBI_ALLOC_DEFAULT, NUM_PACKETS);
 	y = hebi_palloc(HEBI_ALLOC_DEFAULT, NUM_PACKETS);
 	assert(x && y);

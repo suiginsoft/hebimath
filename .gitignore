@@ -31,6 +31,7 @@ check/z/shift
 check/z/zabs
 check/z/zadd
 check/z/zaddi
+check/z/zaddmag
 check/z/zaddu
 check/z/zand
 check/z/zcmp
@@ -53,6 +54,7 @@ check/z/zremu
 check/z/zsqr
 check/z/zsub
 check/z/zsubi
+check/z/zsubmag
 check/z/zsubu
 check/z/zxor
 config.h
