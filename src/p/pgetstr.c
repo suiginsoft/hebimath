@@ -22,7 +22,7 @@ hebi_pgetstr(
 	flags = base;
 	base = base & HEBI_STR_BASEMASK;
 
-	ASSERT(0 < n && n <= HEBI_PACKET_MAXLEN);
+	ASSERT(n <= HEBI_PACKET_MAXLEN);
 	ASSERT(2 <= base && base <= 62);
 
 	/* setup pointers and result length */
@@ -49,6 +49,18 @@ hebi_pgetstr(
 				*ptr++ = 'b';
 			rlen += 2;
 		}
+	}
+
+	/* special case for zero-length input packet sequence */
+	if (UNLIKELY(!n)) {
+		if (LIKELY(!rlen || base != 8)) {
+			if (LIKELY(ptr < end))
+				*ptr++ = '0';
+			rlen++;
+		}
+		if (LIKELY(len > 0))
+			*ptr = '\0';
+		return rlen;
 	}
 
 	/* determine lowercase or uppercase */
@@ -107,18 +119,17 @@ hebi_pgetstr(
 		}
 	} while (UNLIKELY(n > 0));
 
-	/* reverse the digits to get right-to-left ordered sequence */
-	if (LIKELY(rlen < len)) {
-		*ptr = '\0';
+	/* reverse the digits to arrive at a right-to-left ordered sequence */
+	if (UNLIKELY(rlen >= len)) {
 		for (end = ptr - 1; start < end; start++, end--)
 			SWAP(char, *start, *end);
-	} else {
-		for (end = ptr - 1; start < end; start++, end--)
-			SWAP(char, *start, *end);
-		str[len - 1] = '\0';
-		for (end = str + len - (len > 0); ptr < end; ptr++, end--)
-			SWAP(char, *ptr, *end);
+		start = ptr;
+		ptr = str + len - 1;
 	}
+
+	*ptr = '\0';
+	for (end = ptr - 1; start < end; start++, end--)
+		SWAP(char, *start, *end);
 
 	return rlen;
 }

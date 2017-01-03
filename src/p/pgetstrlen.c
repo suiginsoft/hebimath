@@ -166,30 +166,33 @@ hebi_pgetstrlen(const hebi_packet *a, size_t n, int base)
 	flags = base;
 	base = base & HEBI_STR_BASEMASK;
 
-	ASSERT(0 < n && n <= HEBI_PACKET_MAXLEN);
+	ASSERT(n <= HEBI_PACKET_MAXLEN);
 	ASSERT(2 <= base && base <= 62);
 
-	nbits = n * HEBI_PACKET_BIT - hebi_pclz(a, n);
-
-	if ((base & (base - 1)) != 0) {
+	if (LIKELY(n > 0)) {
+		nbits = n * HEBI_PACKET_BIT - hebi_pclz(a, n);
+		if ((base & (base - 1)) != 0) {
 #if SIZE_MAX > UINT32_MAX
-		logb2 = logb2u64lut[base];
-		hebi_umad128__(&lenlo, &lenhi, logb2, nbits, nbits);
-		len = (size_t)lenhi;
+			logb2 = logb2u64lut[base];
+			hebi_umad128__(&lenlo, &lenhi, logb2, nbits, nbits);
+			len = (size_t)lenhi;
 #else
-		logb2 = logb2u32lut[base];
-		len = (size_t)(((uint64_t)logb2 * nbits + nbits) >> 32);
+			logb2 = logb2u32lut[base];
+			len = (size_t)(((uint64_t)logb2 * nbits + nbits) >> 32);
 #endif
-		++len;
+			++len;
+		} else {
+			log2b = hebi_floorlog2sz__((size_t)base);
+			len = (nbits + log2b - 1) / log2b;
+		}
 	} else {
-		log2b = hebi_floorlog2sz__((size_t)base);
-		len = (nbits + log2b - 1) / log2b;
+		len = 1;
 	}
 
 	if (flags & HEBI_STR_PREFIX) {
 		if (base == 2 || base == 16)
 			len += 2;
-		else if (base == 8)
+		else if (base == 8 && n > 0)
 			len += 1;
 	}
 
