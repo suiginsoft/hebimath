@@ -167,12 +167,14 @@ EXTENSION typedef unsigned __int128 hebi_uint128;
 #endif
 #endif
 
-#ifdef USE_LIMB64_ARITHMETIC
+#if defined USE_LIMB64_ARITHMETIC && defined USE_LIMB32_ARITHMETIC
 #undef USE_LIMB32_ARITHMETIC
 #endif
 
 /* detect limb type for full multiplication and division operations */
+#ifdef USE_LIMB64_MULDIV
 #undef USE_LIMB64_MULDIV
+#endif
 #ifndef USE_LIMB32_MULDIV
 #if defined USE_LIMB64_ARITHMETIC && defined USE_INT128
 #define USE_LIMB64_MULDIV
@@ -181,7 +183,7 @@ EXTENSION typedef unsigned __int128 hebi_uint128;
 #endif
 #endif
 
-#ifdef USE_LIMB64_MULDIV
+#if defined USE_LIMB64_MULDIV && defined USE_LIMB32_MULDIV
 #undef USE_LIMB32_MULDIV
 #endif
 
@@ -585,16 +587,15 @@ hebi_umul128__(
 	*hi = (uint64_t)(p >> 64);
 	*lo = (uint64_t)(p & UINT64_MAX);
 #else
-	uint64_t a, b, c, d, ac, ad, bc, bd, mid34;
-	a = x >> 32;
-	b = x & UINT32_MAX;
-	c = y >> 32;
-	d = y & UINT32_MAX;
-	ac = a * c;
-	bc = b * c;
-	ad = a * d;
-	bd = b * d;
-	mid34 = (bd >> 32) + (bc & UINT32_MAX) + (ad & UINT32_MAX);
+	uint64_t a = x >> 32;
+	uint64_t b = x & UINT32_MAX;
+	uint64_t c = y >> 32;
+	uint64_t d = y & UINT32_MAX;
+	uint64_t ac = a * c;
+	uint64_t bc = b * c;
+	uint64_t ad = a * d;
+	uint64_t bd = b * d;
+	uint64_t mid34 = (bd >> 32) + (bc & UINT32_MAX) + (ad & UINT32_MAX);
 	*hi = ac + (bc >> 32) + (ad >> 32) + (mid34 >> 32);
 	*lo = (mid34 << 32) | (bd & UINT32_MAX);
 #endif
@@ -625,7 +626,8 @@ static inline HEBI_ALWAYSINLINE
 void
 hebi_pandmsk__(hebi_packet *a, int bits)
 {
-	int b, i;
+	int b;
+	int i;
 
 	ASSERT(0 < bits && bits < HEBI_PACKET_BIT);
 
