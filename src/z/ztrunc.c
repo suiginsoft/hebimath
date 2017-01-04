@@ -10,8 +10,11 @@ void
 hebi_ztrunc(hebi_zptr r, hebi_zsrcptr a, size_t bits)
 {
 	hebi_packet *rp;
-	size_t n, u;
-	int b, i, s;
+	unsigned int b;
+	size_t i;
+	size_t n;
+	size_t u;
+	int s;
 
 	if (UNLIKELY(!(s = a->hz_sign) || !bits)) {
 		r->hz_sign = 0;
@@ -27,11 +30,11 @@ hebi_ztrunc(hebi_zptr r, hebi_zsrcptr a, size_t bits)
 	} else {
 		rp = hebi_zgrow__(r, u);
 		hebi_pcopy(rp, a->hz_packs, u);
-		r->hz_sign = s;
 		r->hz_used = u;
+		r->hz_sign = s;
 	}
 
-	if (LIKELY(u >= n && (b = (int)(bits % HEBI_PACKET_BIT)))) {
+	if (LIKELY(u >= n && (b = (unsigned int)(bits % HEBI_PACKET_BIT)))) {
 		rp += u - 1;
 		if (LIKELY(b)) {
 			b = HEBI_PACKET_BIT - b;

@@ -103,10 +103,12 @@ gethwcapbyname(const char *name)
 	return 0;
 }
 
-static inline unsigned long
-sethwcap(unsigned int reg, unsigned int mask, unsigned long hwcap)
+static inline void
+sethwcap(unsigned long *c, unsigned int reg, unsigned int mask,
+		unsigned long hwcap)
 {
-	return ((reg & mask) == mask) ? hwcap : 0UL;
+	if ((reg & mask) == mask)
+		*c |= hwcap;
 }
 
 static unsigned long
@@ -126,47 +128,45 @@ nativehwcaps()
 
 	__cpuid(0x00000001U, eax, ebx, ecx, edx);
 
-	c |= sethwcap(edx, 1U << 25, hebi_hwcap_sse);
-	c |= sethwcap(edx, 1U << 26, hebi_hwcap_sse2);
-	if (ecx & (1U <<  0)) c |= hebi_hwcap_sse3;
-	if (ecx & (1U <<  9)) c |= hebi_hwcap_ssse3;
-	if (ecx & (1U << 19)) c |= hebi_hwcap_sse4_1;
-	if (ecx & (1U << 20)) c |= hebi_hwcap_sse4_2;
-	if (ecx & (1U << 25)) c |= hebi_hwcap_aesni;
-	if (ecx & (1U <<  1)) c |= hebi_hwcap_clmul;
-	if (ecx & (1U << 23)) c |= hebi_hwcap_popcnt;
-	if (ecx & (1U << 29)) c |= hebi_hwcap_f16c;
-	if (ecx & (1U << 12)) c |= hebi_hwcap_fma;
-
-	if ((ecx & ((1U << 27) | (1U << 28))) == ((1U << 27) | (1U << 28)))
-		c |= hebi_hwcap_avx;
+	sethwcap(&c, edx, 1U << 25, hebi_hwcap_sse);
+	sethwcap(&c, edx, 1U << 26, hebi_hwcap_sse2);
+	sethwcap(&c, ecx, 1U <<  0, hebi_hwcap_sse3);
+	sethwcap(&c, ecx, 1U <<  9, hebi_hwcap_ssse3);
+	sethwcap(&c, ecx, 1U << 19, hebi_hwcap_sse4_1);
+	sethwcap(&c, ecx, 1U << 20, hebi_hwcap_sse4_2);
+	sethwcap(&c, ecx, 1U << 25, hebi_hwcap_aesni);
+	sethwcap(&c, ecx, 1U <<  1, hebi_hwcap_clmul);
+	sethwcap(&c, ecx, 1U << 23, hebi_hwcap_popcnt);
+	sethwcap(&c, ecx, 1U << 29, hebi_hwcap_f16c);
+	sethwcap(&c, ecx, 1U << 12, hebi_hwcap_fma);
+	sethwcap(&c, ecx, (1U << 27) | (1U << 28), hebi_hwcap_avx);
 
 	maxextlevel = (unsigned int)__get_cpuid_max(0x80000000U, NULL);
+
 	if (maxextlevel > 0x80000000U) {
 		__cpuid(0x80000001U, eax, ebx, ecx, edx);
-		if (ecx & (1 << 5))
-			c |= hebi_hwcap_popcnt | hebi_hwcap_lzcnt;
+		sethwcap(&c, ecx, 1U << 5, hebi_hwcap_popcnt | hebi_hwcap_lzcnt);
 	}
 
 	if (maxlevel > 6) {
 		__cpuid(0x00000007U, eax, ebx, ecx, edx);
 
-		if (ebx & (1U <<  3)) c |= hebi_hwcap_bmi;
-		if (ebx & (1U <<  8)) c |= hebi_hwcap_bmi2;
-		if (ebx & (1U <<  9)) c |= hebi_hwcap_ermsb;
-		if (ebx & (1U << 19)) c |= hebi_hwcap_adx;
-		if (ebx & (1U << 29)) c |= hebi_hwcap_sha;
+		sethwcap(&c, ebx, 1U <<  3, hebi_hwcap_bmi);
+		sethwcap(&c, ebx, 1U <<  8, hebi_hwcap_bmi2);
+		sethwcap(&c, ebx, 1U <<  9, hebi_hwcap_ermsb);
+		sethwcap(&c, ebx, 1U << 19, hebi_hwcap_adx);
+		sethwcap(&c, ebx, 1U << 29, hebi_hwcap_sha);
 
 		if (c & hebi_hwcap_avx) {
-			if (ebx & (1U <<  5)) c |= hebi_hwcap_avx2;
-			if (ebx & (1U << 16)) c |= hebi_hwcap_avx512f;
-			if (ebx & (1U << 30)) c |= hebi_hwcap_avx512bw;
-			if (ebx & (1U << 28)) c |= hebi_hwcap_avx512cd;
-			if (ebx & (1U << 17)) c |= hebi_hwcap_avx512dq;
-			if (ebx & (1U << 27)) c |= hebi_hwcap_avx512er;
-			if (ebx & (1U << 31)) c |= hebi_hwcap_avx512vl;
-			if (ebx & (1U << 21)) c |= hebi_hwcap_avx512ifma;
-			if (ecx & (1U << 21)) c |= hebi_hwcap_avx512vbmi;
+			sethwcap(&c, ebx, 1U <<  5, hebi_hwcap_avx2);
+			sethwcap(&c, ebx, 1U << 16, hebi_hwcap_avx512f);
+			sethwcap(&c, ebx, 1U << 30, hebi_hwcap_avx512bw);
+			sethwcap(&c, ebx, 1U << 28, hebi_hwcap_avx512cd);
+			sethwcap(&c, ebx, 1U << 17, hebi_hwcap_avx512dq);
+			sethwcap(&c, ebx, 1U << 27, hebi_hwcap_avx512er);
+			sethwcap(&c, ebx, 1U << 31, hebi_hwcap_avx512vl);
+			sethwcap(&c, ebx, 1U << 21, hebi_hwcap_avx512ifma);
+			sethwcap(&c, ecx, 1U << 21, hebi_hwcap_avx512vbmi);
 		}
 	}
 
