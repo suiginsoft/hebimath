@@ -1,9 +1,17 @@
 sudo: required
 dist: trusty
 language: c
-compiler: gcc
 before_install:
   - sudo apt-get update -qq
   - sudo apt-get install bc
   - sudo apt-get install bmake
-script: bmake && bmake check
+addons:
+  sonarqube:
+    token:
+      secure: "BJOC+5F4ClAyhxi2GbpJYbWz294+L5PoiwyELVP4SI/hW3K722fcMbqD6YOsG3OT/sMS4b3D56wFhcnQI818Fwl7CIc1RjM8ScssQ9iXSdyp7A+EdIs9DtMSgSnMlLL/qVZQFvpybLiLodSs7n6wWfomVEdECe2BbaqKp+bC32FTtTasdD7AoTII0BWhj97M9mgdB58LBVcDKzg0HGacMbcpH4k0q/ZaObZaoYd06L6EbasOBeDu7ZRst1nkgfsZe6zXhQLpKVDI4iO/msS9XFjyyaRGYjBXLbrPNa+OEBcuue1Q01gwmlkyJrVExBfcNe+X8wvVm/xCFqai/H0bG1pbZLXjYH4GWZK0iubhqBDS9628MhYGa7sBoctYto0xUPeslVkHzHDxklNH3zzIQzksN5v4ROFMww1Z8id8odSvfRke5AVmSixbZuDVdHDsAtIOQruYzzCOxDsETseUnHNj0oi7/IT+jZQwIh/bJtHqwf6P1Lsc8a6BHPne//iPr6EEjnPZXr4ikw32BSofKqxZ9teMWAU97vLF7T787SYPFL6GHh6SWWhuUj35KdBgDLwGdSaS8c0JUKDrRq/lzD3DYRbXqS50ZWonQrxsgRD6zse4Bx0fSWk/gEZiuM5UA8reUpNjx1iyVy6MmfvGS64D/jTt1KU51o/hHU5+GQo="
+script:
+  - build-wrapper-linux-x86-64 --out-dir bw-output bmake clean check
+  - sonar-scanner
+cache:
+  directories:
+    - '$HOME/.sonar/cache'
