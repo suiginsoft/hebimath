@@ -244,11 +244,17 @@ EXTENSION typedef unsigned __int128 hebi_uint128;
 #define MULTILINEEND } while(0)
 
 /* ignore unused arguments or variables */
-int hebi_ignore__(int, ...);
+HEBI_HIDDEN
+int
+hebi_ignore__(int x, ...);
+
 #define IGNORE(...) ((void)sizeof(hebi_ignore__(0, __VA_ARGS__)))
 
 /* runtime and static assertions */
-HEBI_NORETURN void hebi_error_assert__(const char *, const char *, const char *, long);
+HEBI_HIDDEN HEBI_NORETURN
+void
+hebi_error_assert__(const char *expr, const char *func, const char *file, long line);
+
 #ifdef USE_ASSERTIONS
 #define ASSERT(E) \
 	MULTILINEBEGIN \
@@ -380,7 +386,7 @@ EXTENSION extern HEBI_HIDDEN __thread struct hebi_context hebi_context__;
 #elif defined USE_THREADS
 HEBI_HIDDEN HEBI_PURE HEBI_WARNUNUSED
 struct hebi_context *
-hebi_context_get_or_create__(hebi_errhandler, void *);
+hebi_context_get_or_create__(hebi_errhandler handler, void *arg);
 #else
 extern HEBI_HIDDEN struct hebi_context hebi_context__;
 #endif
@@ -641,7 +647,7 @@ hebi_pandmsk__(hebi_packet *a, int bits)
 /* reallocates the internal thread-specific scratchpad buffer */
 HEBI_HIDDEN HEBI_ALLOC
 void *
-hebi_realloc_scratch__(struct hebi_context *, size_t);
+hebi_realloc_scratch__(struct hebi_context *ctx, size_t n);
 
 /*
  * gets a pointer to the scratchpad buffer, resizing it to the specified
@@ -717,15 +723,15 @@ hebi_zdestroy_pop__(hebi_zptr r)
 
 HEBI_HIDDEN
 hebi_packet *
-hebi_zexpand__(hebi_zptr, size_t, size_t);
+hebi_zexpand__(hebi_zptr r, size_t n, size_t oldn);
 
 HEBI_HIDDEN
 hebi_packet *
-hebi_zexpandcopy__(hebi_zptr, size_t, size_t);
+hebi_zexpandcopy__(hebi_zptr r, size_t n, size_t oldn);
 
 HEBI_HIDDEN
 hebi_packet *
-hebi_zexpandcopyif__(hebi_zptr, size_t, size_t, int);
+hebi_zexpandcopyif__(hebi_zptr r, size_t n, size_t oldn, int c);
 
 static inline HEBI_ALWAYSINLINE
 hebi_packet *

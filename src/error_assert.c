@@ -6,7 +6,7 @@
 #include "../internal.h"
 #include <stdio.h>
 
-HEBI_NORETURN
+HEBI_HIDDEN HEBI_NORETURN
 void
 hebi_error_assert__(
 		const char *expr,
