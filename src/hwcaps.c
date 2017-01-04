@@ -91,8 +91,26 @@ static const struct name_hwcaps hwcapsbyname[] =
 	{   "avx512vbmi",   hebi_hwcap_avx512vbmi }
 };
 
-static
-unsigned long native_hwcaps()
+static inline unsigned long
+gethwcapbyname(const char *name)
+{
+	size_t i;
+
+	for (i = 0; i < COUNTOF(hwcapsbyname); ++i)
+		if (!strcmp(hwcapsbyname[i].name, name))
+			return hwcapsbyname[i].caps;
+
+	return 0;
+}
+
+static inline unsigned long
+sethwcap(unsigned int reg, unsigned int mask, unsigned long hwcap)
+{
+	return ((reg & mask) == mask) ? hwcap : 0UL;
+}
+
+static unsigned long
+nativehwcaps()
 {
 	unsigned int maxlevel;
 	unsigned int maxextlevel;
@@ -108,8 +126,8 @@ unsigned long native_hwcaps()
 
 	__cpuid(0x00000001U, eax, ebx, ecx, edx);
 
-	if (edx & (1U << 25)) c |= hebi_hwcap_sse;
-	if (edx & (1U << 26)) c |= hebi_hwcap_sse2;
+	c |= sethwcap(edx, 1U << 25, hebi_hwcap_sse);
+	c |= sethwcap(edx, 1U << 26, hebi_hwcap_sse2);
 	if (ecx & (1U <<  0)) c |= hebi_hwcap_sse3;
 	if (ecx & (1U <<  9)) c |= hebi_hwcap_ssse3;
 	if (ecx & (1U << 19)) c |= hebi_hwcap_sse4_1;
@@ -162,33 +180,37 @@ unsigned long native_hwcaps()
 #endif
 
 static void
-init_hwcaps(void)
+inithwcaps(void)
 {
 #if HAS_HWCAPS
 
-	unsigned long caps, mask;
-	char *p, *s, *t, *v;
-	size_t i;
+	unsigned long caps = nativehwcaps();
+	unsigned long mask = 0;
+	char *p;
+	char *s;
+	char *t;
+	char *v;
 
-	caps = native_hwcaps();
-
-	if ((v = getenv("HEBI_HWCAPS")) && (s = strdup(v))) {
-		mask = 0;
-		t = strtok_r(s, " \t\v\r\n", &p);
-		while (t) {
-			for (i = 0; i < COUNTOF(hwcapsbyname); ++i) {
-				if (!strcmp(hwcapsbyname[i].name, t)) {
-					mask |= hwcapsbyname[i].caps;
-					break;
-				}
-			}
-			t = strtok_r(NULL, " \t\v\r\n", &p);
-		}
-		caps &= mask;
-		free(s);
+	v = getenv("HEBI_HWCAPS");
+	if (!v) {
+		hwcaps = caps;
+		return;
 	}
-	
-	hwcaps = caps;
+
+	s = strdup(v);
+	if (!s) {
+		hwcaps = caps;
+		return;
+	}
+
+	t = strtok_r(s, " \t\v\r\n", &p);
+	while (t) {
+		mask |= gethwcapbyname(t);
+		t = strtok_r(NULL, " \t\v\r\n", &p);
+	}
+
+	free(s);
+	hwcaps = caps & mask;
 
 #else
 
@@ -202,9 +224,9 @@ unsigned long
 hebi_hwcaps__(void)
 {
 #if defined USE_C11_THREADS
-	call_once(&hwcaps_once, init_hwcaps);
+	call_once(&hwcaps_once, inithwcaps);
 #elif defined USE_POSIX_THREADS
-	(void)pthread_once(&hwcaps_once, init_hwcaps);
+	(void)pthread_once(&hwcaps_once, inithwcaps);
 #else
 	if (!hwcaps_once) {
 		init_hwcaps();
