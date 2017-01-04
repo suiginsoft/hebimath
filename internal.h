@@ -228,12 +228,13 @@ EXTENSION typedef unsigned __int128 hebi_uint128;
 #endif
 
 /* common macros */
-#define ALIGNAS(A) HEBI_ALIGNAS(A)
 #define ABS(A) ((A)<0?-(A):(A))
-#define MIN(A,B) ((A)<(B)?(A):(B))
-#define MAX(A,B) ((A)>(B)?(A):(B))
-#define SWAP(T,A,B) { T T_ = A; A = B; B = T_; }
+#define ALIGNAS(A) HEBI_ALIGNAS(A)
 #define COUNTOF(A) (sizeof(A) / sizeof(A[0]))
+#define MAX(A,B) ((A)>(B)?(A):(B))
+#define MIN(A,B) ((A)<(B)?(A):(B))
+#define MULTILINEBEGIN do {
+#define MULTILINEEND } while(0)
 #define LIKELY(E) HEBI_LIKELY(E)
 #define UNLIKELY(E) HEBI_UNLIKELY(E)
 #define CONCAT__(A,B) A##B
@@ -241,8 +242,7 @@ EXTENSION typedef unsigned __int128 hebi_uint128;
 #define CONCAT(A,B) CONCAT_(A,B)
 #define STRINGIZE_(A) #A
 #define STRINGIZE(A) STRINGIZE_(A)
-#define MULTILINEBEGIN do {
-#define MULTILINEEND } while(0)
+#define SWAP(T,A,B) MULTILINEBEGIN { T T_ = A; A = B; B = T_; } MULTILINEEND
 
 /* ignore unused arguments or variables */
 HEBI_HIDDEN
