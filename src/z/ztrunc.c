@@ -11,7 +11,7 @@ hebi_ztrunc(hebi_zptr r, hebi_zsrcptr a, size_t bits)
 {
 	hebi_packet *rp;
 	size_t n, u;
-	int b, s;
+	int b, i, s;
 
 	if (UNLIKELY(!(s = a->hz_sign) || !bits)) {
 		r->hz_sign = 0;
@@ -31,6 +31,20 @@ hebi_ztrunc(hebi_zptr r, hebi_zsrcptr a, size_t bits)
 		r->hz_used = u;
 	}
 
-	if (LIKELY(u >= n && (b = (int)(bits % HEBI_PACKET_BIT))))
-		hebi_pandmsk__(rp + u - 1, b);
+	if (LIKELY(u >= n && (b = (int)(bits % HEBI_PACKET_BIT)))) {
+		rp += u - 1;
+		if (LIKELY(b)) {
+			b = HEBI_PACKET_BIT - b;
+			i = 1;
+			if (b >= 64) {
+				rp->hp_limbs64[i] = 0;
+				b -= 64;
+				i--;
+			}
+			rp->hp_limbs64[i] &= (UINT64_C(1) << (64 - b)) - 1;
+		} else {
+			rp->hp_limbs64[0] = 0;
+			rp->hp_limbs64[1] = 1;
+		}
+	}
 }

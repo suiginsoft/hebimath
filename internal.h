@@ -611,29 +611,6 @@ hebi_umad128__(
 #endif
 }
 
-static inline HEBI_ALWAYSINLINE
-void
-hebi_pandmsk__(hebi_packet *a, int bits)
-{
-	int b;
-	int i;
-
-	ASSERT(0 < bits && bits < HEBI_PACKET_BIT);
-
-	if (LIKELY(bits)) {
-		b = HEBI_PACKET_BIT - bits;
-		i = 1;
-		if (b >= 64) {
-			b -= 64;
-			a->hp_limbs64[i--] = 0;
-		}
-		a->hp_limbs64[i] &= (UINT64_C(1) << (64 - b)) - 1;
-	} else {
-		a->hp_limbs64[0] = 0;
-		a->hp_limbs64[1] = 1;
-	}
-}
-
 /* reallocates the internal thread-specific scratchpad buffer */
 HEBI_HIDDEN HEBI_ALLOC
 void *

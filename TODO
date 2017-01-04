@@ -18,10 +18,8 @@ Integer Functions:
 
 Optimize:
 
-* znot
-* ztrunc
-* pandmsk__ (get rid of this?)
 * pclz
+* ztrunc
 
 Other:
 
