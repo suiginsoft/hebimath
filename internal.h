@@ -150,7 +150,6 @@
 #endif
 
 #ifdef USE_INT128
-EXTENSION typedef signed __int128 hebi_int128;
 EXTENSION typedef unsigned __int128 hebi_uint128;
 #endif
 
