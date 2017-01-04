@@ -172,9 +172,9 @@ init_hwcaps(void)
 
 	caps = native_hwcaps();
 
-	if ((v = getenv("HEBI_HWCAPS")) && (s = malloc(strlen(v) + 1))) {
+	if ((v = getenv("HEBI_HWCAPS")) && (s = strdup(v))) {
 		mask = 0;
-		t = strtok_r(strcpy(s, v), " \t\v\r\n", &p);
+		t = strtok_r(s, " \t\v\r\n", &p);
 		while (t) {
 			for (i = 0; i < COUNTOF(hwcapsbyname); ++i) {
 				if (!strcmp(hwcapsbyname[i].name, t)) {
