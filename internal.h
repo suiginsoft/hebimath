@@ -272,17 +272,6 @@ hebi_error_assert__(const char *expr, const char *func, const char *file, long l
 #define STATIC_ASSERT(E,S) typedef char CONCAT(static_assert_on_line_, __LINE__)[(!!(E))*2-1]
 #endif
 
-/* vector shuffle/swizzle */
-#ifdef HEBI_SIMD
-#if defined __clang__
-#define SHUFFLE2(A,B,X,Y) __builtin_shufflevector((A),(B),(X),(Y))
-#define SHUFFLE4(A,B,X,Y,Z,W) __builtin_shufflevector((A),(B),(X),(Y),(Z),(W))
-#elif defined __GNUC__
-#define SHUFFLE2(A,B,X,Y) __builtin_shuffle((A),(B), EXTENSION (hebi_v2di){(X),(Y)})
-#define SHUFFLE4(A,B,X,Y,Z,W) __builtin_shuffle((A),(B), EXTENSION (hebi_v4si){(X),(Y),(Z),(W)})
-#endif
-#endif
-
 /* hebi_errstate field names */
 #define hes_handler hebi_handler__
 #define hes_arg hebi_arg__

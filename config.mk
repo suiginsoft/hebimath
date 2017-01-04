@@ -28,20 +28,6 @@ DRIVER = auto
 #             flags in 'config.inc'
 DISPATCH = dynamic
 
-# SIMD controls whether to generate support for using GNU C style
-# vector extensions (supported by both GCC and Clang). When this
-# feature is turned on, emits support for vector extensions
-# into the public hebimath.h header that is conditionally enabled
-# if the compiler is detected to support this extension. Enabling
-# this feature significantly improves performance of certain
-# operations when running on integer SIMD hardware. This flag has
-# no effect on assembly language kernels, only on C language code
-# that takes advantage of this feature. Can be set to one of the
-# following options:
-#   on      - enables compiler vector extensions
-#   off     - disables compiler vector extensions
-SIMD = on
-
 # file paths
 PREFIX = /usr/local
 

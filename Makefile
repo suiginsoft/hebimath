@@ -328,7 +328,7 @@ config.inc:
 
 hebimath.h: hebimath.h.in
 	@echo generating $@ from hebimath.h.in
-	$(Q)awk -v p='dispatch_$(DISPATCH_driver)|simd_$(SIMD)' \
+	$(Q)awk -v p='dispatch_$(DISPATCH_driver)' \
 	    '$$1==">>>"{x=$$2!~p;next;} \
 	     $$1=="<<<"{x=0;next;} \
 	     !x{print $$0}' \
@@ -455,7 +455,6 @@ options:
 	@echo "LINKAGE           = $(LINKAGE)"
 	@echo "DRIVER            = $(DRIVER_selected)"
 	@echo "DISPATCH          = $(DISPATCH_driver)"
-	@echo "SIMD              = $(SIMD)"
 	@echo "CPPFLAGS          = $(CPPFLAGS)"
 	@echo "CFLAGS            = $(CFLAGS)"
 	@echo "ASFLAGS           = $(ASFLAGS)"

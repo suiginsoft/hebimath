@@ -85,20 +85,6 @@ extern HEBI_API void (* N##_ptr__) P; \
 HEBI_INLINE void N P { (*N##_ptr__) A; }
 <<< dispatch_dynamic
 
->>> simd_on
-#if !defined __PCC__ && (defined __GNUC__ && __GNUC__ >= 4)
-#define HEBI_SIMD
-__extension__ typedef long long int hebi_v2di __attribute__((__vector_size__(16)));
-__extension__ typedef int hebi_v4si __attribute__((__vector_size__(16)));
-__extension__ typedef short hebi_v8hi __attribute__((__vector_size__(16)));
-__extension__ typedef char hebi_v16qi __attribute__((__vector_size__(16)));
-__extension__ typedef unsigned long long int hebi_v2du __attribute__((__vector_size__(16)));
-__extension__ typedef unsigned int hebi_v4su __attribute__((__vector_size__(16)));
-__extension__ typedef unsigned short hebi_v8hu __attribute__((__vector_size__(16)));
-__extension__ typedef unsigned char hebi_v16qu __attribute__((__vector_size__(16)));
-#endif
-<<< simd_on
-
 enum hebi_errdom {
 	HEBI_ERRDOM_HEBI = 0,
 	HEBI_ERRDOM_ERRNO = 1
@@ -226,18 +212,6 @@ typedef union hebi_packet {
 	HEBI_ALIGNAS(HEBI_PACKET_ALIGNMENT)
 	uint32_t hp_limbs32[HEBI_PACKET_LIMBS32];
 	uint64_t hp_limbs64[HEBI_PACKET_LIMBS64];
->>> simd_on
-#ifdef HEBI_SIMD
-	hebi_v2di hp_v2di;
-	hebi_v2du hp_v2du;
-	hebi_v4si hp_v4si;
-	hebi_v4su hp_v4su;
-	hebi_v8hi hp_v8hi;
-	hebi_v8hu hp_v8hu;
-	hebi_v16qi hp_v16qi;
-	hebi_v16qu hp_v16qu;
-#endif
-<<< simd_on
 } hebi_packet;
 
 >>> dispatch_dynamic
@@ -298,48 +272,24 @@ HEBI_INLINE
 void
 hebi_psetu(hebi_packet *r__, uint64_t a__)
 {
->>> simd_on
-#ifdef HEBI_SIMD
-	r__->hp_v2du = __extension__ (hebi_v2du){ a__, 0 };
-#else
-<<< simd_on
 	r__->hp_limbs64[0] = a__;
 	r__->hp_limbs64[1] = 0;
->>> simd_on
-#endif
-<<< simd_on
 }
 
 HEBI_INLINE
 void
 hebi_psetu2(hebi_packet *r__, uint64_t a__, uint64_t b__)
 {
->>> simd_on
-#ifdef HEBI_SIMD
-	r__->hp_v2du = __extension__ (hebi_v2du){ a__, b__ };
-#else
-<<< simd_on
 	r__->hp_limbs64[0] = a__;
 	r__->hp_limbs64[1] = b__;
->>> simd_on
-#endif
-<<< simd_on
 }
 
 HEBI_INLINE
 void
 hebi_psetzero(hebi_packet *r__)
 {
->>> simd_on
-#ifdef HEBI_SIMD
-	r__->hp_v2du = __extension__ (hebi_v2du){ 0, 0 };
-#else
-<<< simd_on
 	r__->hp_limbs64[0] = 0;
 	r__->hp_limbs64[1] = 0;
->>> simd_on
-#endif
-<<< simd_on
 }
 
 HEBI_INLINE HEBI_ALLOC HEBI_WARNUNUSED
