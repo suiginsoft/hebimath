@@ -486,7 +486,7 @@ hebi_ceillog2sz__(size_t x)
 #if __has_builtin(__builtin_clzl)
 	return ((size_t)__builtin_clzl(x | 1) ^
 		(CHAR_BIT * sizeof(size_t) - 1)) +
-		(!!(x & (x - 1)));
+		((x & (x - 1)) ? 1u : 0u);
 #else
 	size_t r = 0;
 	if (LIKELY(x))
