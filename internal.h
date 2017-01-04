@@ -372,29 +372,37 @@ struct hebi_context {
 #endif
 };
 
-/* gets a pointer to the thread-specific context */
+/* gets or creates the thread-specific context */
 #if defined USE_C11_THREAD_LOCAL
-#define hebi_context_get__() (&hebi_context__)
 EXTENSION extern HEBI_HIDDEN _Thread_local struct hebi_context hebi_context__;
 #elif defined USE_GNUC_THREAD_LOCAL
-#define hebi_context_get__() (&hebi_context__)
 EXTENSION extern HEBI_HIDDEN __thread struct hebi_context hebi_context__;
 #elif defined USE_THREADS
-#define hebi_context_get__() (hebi_context_get_or_create__(NULL, NULL))
 HEBI_HIDDEN HEBI_PURE HEBI_WARNUNUSED
 struct hebi_context *
 hebi_context_get_or_create__(hebi_errhandler, void *);
 #else
-#define hebi_context_get__() (&hebi_context__)
 extern HEBI_HIDDEN struct hebi_context hebi_context__;
 #endif
+
+/* gets a pointer to the thread-specific context */
+static inline HEBI_ALWAYSINLINE HEBI_PURE HEBI_WARNUNUSED
+struct hebi_context *
+hebi_context_get__(void)
+{
+#if defined USE_THREAD_LOCAL || !defined USE_THREADS
+	return &hebi_context__;
+#else
+	return hebi_context_get_or_create__(NULL, NULL);
+#endif
+}
 
 #ifdef USE_THREAD_LOCAL
 
 /* gets or creates the thread-specific shadow context */
 HEBI_HIDDEN HEBI_PURE HEBI_WARNUNUSED
 struct hebi_shadow_context *
-hebi_shadow_context_get_or_create__(struct hebi_context *);
+hebi_shadow_context_get_or_create__(struct hebi_context *ctx);
 
 /* gets a pointer to thread-specific shadow context */
 static inline HEBI_ALWAYSINLINE HEBI_PURE HEBI_WARNUNUSED
