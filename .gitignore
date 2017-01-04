@@ -1,3 +1,4 @@
+.sonar
 bench/libbench.a
 bench/p/padd
 bench/p/paddu
