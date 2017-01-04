@@ -32,23 +32,20 @@ DISPATCH = dynamic
 PREFIX = /usr/local
 
 # toolchain
-CC = c99
+CC = cc
 AR = ar
 RANLIB = ranlib
-AS = as
 STRIP = strip
+AS = as
 
 # toolchain flags
-ASFLAGS =
+CFLAGS = -O3 -std=c99 -pedantic -pthread -Wall -Wextra -Waggregate-return \
+	 -Wconversion -Wmissing-prototypes -Wshadow
 CPPFLAGS = -DVERSION=\"${VERSION}\" -D_POSIX_C_SOURCE=200809L
-CFLAGS = -O3 -pedantic -pthread -Wall -Wextra
+ASFLAGS =
 LDFLAGS = -s
 LDLIBS = -lc -lm
 ARFLAGS = -rc
-
-# debug toolchain flags
-#CFLAGS = -g -O0 -pedantic -pthread -Wall -Wextra -DUSE_ASSERTIONS
-#LDFLAGS =
 
 # additional flags used when building shared library
 ASFLAGS_shared = --defsym USE_PIC=1

@@ -14,16 +14,23 @@ hebi_pgetstr(
 		size_t n,
 		int base )
 {
-	char *ptr, *start, *end;
-	int bits, digit, letterbase, flags;
-	MLIMB *restrict wl, b, d, v;
-	size_t nl, rlen;
-	
-	flags = base;
-	base = base & HEBI_STR_BASEMASK;
+	const unsigned int flags = (unsigned int)base;
+	const unsigned int ubase = flags & HEBI_STR_BASEMASK;
+
+	char *start;
+	char *end;
+	char *ptr;
+	int digit;
+	int letterbase;
+	unsigned int bits;      /* leading zero bits of ubase */
+	MLIMB d;                /* ubase normalized for division */
+	MLIMB v;                /* reciprocal estimate of d */
+	MLIMB *wl;
+	size_t nl;
+	size_t rlen;
 
 	ASSERT(n <= HEBI_PACKET_MAXLEN);
-	ASSERT(2 <= base && base <= 62);
+	ASSERT(2 <= ubase && ubase <= 62);
 
 	/* setup pointers and result length */
 	ptr = str;
@@ -32,17 +39,17 @@ hebi_pgetstr(
 
 	/* write out optional radix prefix */
 	if (flags & HEBI_STR_PREFIX) {
-		if (base == 16) {
+		if (ubase == 16) {
 			if (LIKELY(ptr < end))
 				*ptr++ = '0';
 			if (LIKELY(ptr < end))
 				*ptr++ = 'x';
 			rlen += 2;
-		} else if (base == 8) {
+		} else if (ubase == 8) {
 			if (LIKELY(ptr < end))
 				*ptr++ = '0';
 			rlen++;
-		} else if (base == 2) {
+		} else if (ubase == 2) {
 			if (LIKELY(ptr < end))
 				*ptr++ = '0';
 			if (LIKELY(ptr < end))
@@ -53,7 +60,7 @@ hebi_pgetstr(
 
 	/* special case for zero-length input packet sequence */
 	if (UNLIKELY(!n)) {
-		if (LIKELY(!rlen || base != 8)) {
+		if (LIKELY(!rlen || ubase != 8)) {
 			if (LIKELY(ptr < end))
 				*ptr++ = '0';
 			rlen++;
@@ -69,9 +76,9 @@ hebi_pgetstr(
 		letterbase = 'A' - 10;
 
 	/* compute reciprocal and normalized divisor */
-	b = (MLIMB)base;
-	bits = MLIMB_CLZ(b);
-	d = b << bits;
+	d = (MLIMB)ubase;
+	bits = MLIMB_CLZ(d);
+	d = d << bits;
 	v = RECIPU_2x1(d);
 
 	/*
@@ -108,13 +115,13 @@ hebi_pgetstr(
 			digit = (int)PDIVREMRU_2x1(wl, wl, nl, bits, d, v);
 			if (digit < 10)
 				digit += '0';
-			else if (base <= 36)
+			else if (ubase <= 36)
 				digit += letterbase;
 			else if (digit < 36)
 				digit += 'A' - 10;
 			else
 				digit += 'a' - 36;
-			*ptr = digit;
+			*ptr = (char)digit;
 			n = hebi_pnorm(w, n);
 		}
 	} while (UNLIKELY(n > 0));

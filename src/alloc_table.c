@@ -273,7 +273,8 @@ hebi_alloc_add(const struct hebi_allocfnptrs *newfp)
 	unsigned short *gp;
 	struct hebi_allocfnptrs *fp;
 	unsigned int slot, genr;
-	int key, el;
+	unsigned int key;
+	int el;
 #ifdef ALLOC_TABLE_DYNAMIC
 	unsigned int page, offs;
 	int es;
@@ -282,7 +283,8 @@ hebi_alloc_add(const struct hebi_allocfnptrs *newfp)
 	TABLE_LOCK(wr, el);
 
 	if (tfreelist < tsize) {
-		slot = tfreelist;
+		ASSERT(tfreelist <= UINT_MAX);
+		slot = (unsigned int)tfreelist;
 		TABLE_INDEX(gp, fp, slot, page, offs);
 		tfreelist = (uintptr_t)fp->ha_arg;
 	} else {

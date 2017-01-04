@@ -12,8 +12,8 @@
 int
 vsnchkprintf(char *restrict s, size_t n, const char *restrict fmt, va_list ap)
 {
-	size_t f = 0, i = 0;
-	int c, j, k, ll;
+	size_t f = 0, i = 0, k;
+	int c, j, ll;
 
 	assert(s);
 	assert(fmt);
@@ -41,7 +41,7 @@ vsnchkprintf(char *restrict s, size_t n, const char *restrict fmt, va_list ap)
 			break;
 		case 'l':
 			if (++ll > 2)
-				assert(!"bad format string");
+				fail("bad format string");
 			goto restart;
 		case 'i':
 		case 'd':
@@ -64,27 +64,27 @@ vsnchkprintf(char *restrict s, size_t n, const char *restrict fmt, va_list ap)
 			j = snprintf(s+i, k, "%s", va_arg(ap, const char*));
 			break;
 		case 'z':
-			if ((ll += (sizeof(size_t) / sizeof(long))) > 2)
-				assert(!"bad format string");
+			if ((ll += (int)(sizeof(size_t) / sizeof(long))) > 2)
+				fail("bad format string");
 			goto restart;
 		case 'Z':
 			if (ll != 0)
-				assert(!"bad format string");
+				fail("bad format string");
 			j = (int)hebi_zgetstr(s+i, k, va_arg(ap, hebi_zsrcptr), 10);
 			break;
 		default:
-			assert(!"bad format string");
+			fail("bad format string");
 			break;
 		}
 		assert(j >= 0);
-		i += j;
+		i += (size_t)j;
 	}
 
 	if (i < n)
 		s[i] = '\0';
 	else if (n)
 		s[n-1] = '\0';
-	return i < INT_MAX ? i : INT_MAX;
+	return i < INT_MAX ? (int)i : INT_MAX;
 }
 
 int

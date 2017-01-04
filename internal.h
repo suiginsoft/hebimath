@@ -508,13 +508,13 @@ hebi_floorlog2sz__(size_t x)
 
 /* count leading-zeros of 32-bit unsigned integer */
 static inline HEBI_ALWAYSINLINE HEBI_CONST
-int
+unsigned int
 hebi_clz32__(uint32_t x)
 {
 #if __has_builtin(__builtin_clz)
-	return __builtin_clz(x);
+	return (unsigned int)__builtin_clz(x);
 #else
-	int r = 0;
+	unsigned int r = 0;
 	for ( ; !(x & 0x80000000u); x <<= 1, r++) ;
 	return r;
 #endif
@@ -522,13 +522,13 @@ hebi_clz32__(uint32_t x)
 
 /* count trailing-zeros of 32-bit unsigned integer */
 static inline HEBI_ALWAYSINLINE HEBI_CONST
-int
+unsigned int
 hebi_ctz32__(uint32_t x)
 {
 #if __has_builtin(__builtin_ctz)
-	return __builtin_ctz(x);
+	return (unsigned int)__builtin_ctz(x);
 #else
-	int r = 0;
+	unsigned int r = 0;
 	for ( ; !(x & 1u); x >>= 1, r++) ;
 	return r;
 #endif
@@ -536,13 +536,13 @@ hebi_ctz32__(uint32_t x)
 
 /* count leading-zeros of 64-bit unsigned integer */
 static inline HEBI_ALWAYSINLINE HEBI_CONST
-int
+unsigned int
 hebi_clz64__(uint64_t x)
 {
 #if __has_builtin(__builtin_clzll)
-	return __builtin_clzll(x);
+	return (unsigned int)__builtin_clzll(x);
 #else
-	int r = 0;
+	unsigned int r = 0;
 	for ( ; !(x & 0x8000000000000000ull); x <<= 1, r++) ;
 	return r;
 #endif
@@ -550,13 +550,13 @@ hebi_clz64__(uint64_t x)
 
 /* count trailing-zeros of 64-bit unsigned integer */
 static inline HEBI_ALWAYSINLINE HEBI_CONST
-int
+unsigned int
 hebi_ctz64__(uint64_t x)
 {
 #if __has_builtin(__builtin_ctzll)
-	return __builtin_ctzll(x);
+	return (unsigned int)__builtin_ctzll(x);
 #else
-	int r = 0;
+	unsigned int r = 0;
 	for ( ; !(x & 1u); x >>= 1, r++) ;
 	return r;
 #endif

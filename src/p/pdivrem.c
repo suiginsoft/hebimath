@@ -59,11 +59,11 @@ hebi_pdivrem(
 		MLIMB *restrict ql;
 		const MLIMB *al;
 		const MLIMB *bl;
-		int shft;
+		unsigned int shft;
 
 		m = an;
 		an = an * MLIMB_PER_PACKET;
-		shft = (int)(bits % MLIMB_BIT);
+		shft = (unsigned int)(bits % MLIMB_BIT);
 
 		ql = MLIMB_PTR(q);
 		al = MLIMB_PTR(a);
