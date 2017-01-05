@@ -53,6 +53,6 @@ CPPFLAGS_shared = -DHEBI_EXPORT_SYMBOLS
 CFLAGS_shared = -fpic -fvisibility=hidden
 LDFLAGS_shared = -shared
 
-# asflags for different FNMV modes
+# asflags for different DISPATCH modes
 ASFLAGS_dispatch_dynamic = --defsym USE_MULTI_VERSIONING=1
 ASFLAGS_dispatch_static =
