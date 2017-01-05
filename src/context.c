@@ -236,7 +236,7 @@ HEBI_DESTRUCTOR
 static void
 global_shutdown(void)
 {
-	struct hebi_context* ctx = hebi_context_get();
+	struct hebi_context* ctx = hebi_context_get__();
 	(void)hebi_realloc_scratch__(ctx, 0);
 	ASSERT(!ctx->zstackused);
 

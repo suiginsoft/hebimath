@@ -23,13 +23,20 @@ hebi_zaddmag(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 
 	au = a->hz_used;
 	bu = b->hz_used;
-	if (au < bu) {
+	if (au < bu || (au == bu && r == b)) {
 		SWAP(hebi_zsrcptr, a, b);
 		SWAP(size_t, au, bu);
 	}
 
-	rp = hebi_zgrowcopyif__(r, au + 1, r == a || r == b);
-	if ((carry = hebi_padd(rp, a->hz_packs, b->hz_packs, au, bu)))
+	if (r == a) {
+		rp = hebi_zgrowcopy__(r, au + 1);
+		carry = hebi_padda(rp, b->hz_packs, au, bu);
+	} else {
+		rp = hebi_zgrowcopyif__(r, au + 1, r == b);
+		carry = hebi_padd(rp, a->hz_packs, b->hz_packs, au, bu);
+	}
+
+	if (carry)
 		hebi_psetu(rp + au++, carry);
 
 	r->hz_used = au;

@@ -68,8 +68,8 @@ R N##__ P { return (*N##_ptr__) A; }
 extern HEBI_HIDDEN uint16_t hebi_recipu64_v0lut__[256];
 INTERNAL_MVFUNC_ATTRIB(uint64_t, hebi_recipu64_2x1, (uint64_t d), (d), HEBI_CONST)
 INTERNAL_MVFUNC_ATTRIB(uint64_t, hebi_recipu64_3x2, (uint64_t d1, uint64_t d0), (d1,d0), HEBI_CONST)
-INTERNAL_MVFUNC(uint64_t, hebi_pdivremru64_2x1, (uint64_t *q, const uint64_t *a, size_t n, int b, uint64_t d, uint64_t v), (q,a,n,b,d,v))
-INTERNAL_MVFUNC(hebi_uint128, hebi_pdivremru64_3x2, (uint64_t *q, const uint64_t *a, size_t n, int b, uint64_t d1, uint64_t d0, uint64_t v), (q,a,n,b,d1,d0,v))
+INTERNAL_MVFUNC(uint64_t, hebi_pdivremru64_2x1, (uint64_t *q, const uint64_t *a, size_t n, unsigned int b, uint64_t d, uint64_t v), (q,a,n,b,d,v))
+INTERNAL_MVFUNC(hebi_uint128, hebi_pdivremru64_3x2, (uint64_t *q, const uint64_t *a, size_t n, unsigned int b, uint64_t d1, uint64_t d0, uint64_t v), (q,a,n,b,d1,d0,v))
 INTERNAL_MVFUNC(uint64_t, hebi_pdivremr64, (hebi_packet *restrict q, hebi_packet *restrict u, const hebi_packet *restrict d, size_t m, size_t n, size_t l, uint64_t v), (q,u,d,m,n,l,v))
 
 #else /* USE_LIMB64_MULDIV */
@@ -94,8 +94,8 @@ INTERNAL_MVFUNC(uint64_t, hebi_pdivremr64, (hebi_packet *restrict q, hebi_packet
 extern HEBI_HIDDEN uint16_t hebi_recipu32_v0lut__[512];
 INTERNAL_MVFUNC_ATTRIB(uint32_t, hebi_recipu32_2x1, (uint32_t d), (d), HEBI_CONST)
 INTERNAL_MVFUNC_ATTRIB(uint32_t, hebi_recipu32_3x2, (uint32_t d1, uint32_t d0), (d1,d0), HEBI_CONST)
-INTERNAL_MVFUNC(uint32_t, hebi_pdivremru32_2x1, (uint32_t *q, const uint32_t *a, size_t n, int b, uint32_t d, uint32_t v), (q,a,n,b,d,v))
-INTERNAL_MVFUNC(uint64_t, hebi_pdivremru32_3x2, (uint32_t *q, const uint32_t *a, size_t n, int b, uint32_t d1, uint32_t d0, uint32_t v), (q,a,n,b,d1,d0,v))
+INTERNAL_MVFUNC(uint32_t, hebi_pdivremru32_2x1, (uint32_t *q, const uint32_t *a, size_t n, unsigned int b, uint32_t d, uint32_t v), (q,a,n,b,d,v))
+INTERNAL_MVFUNC(uint64_t, hebi_pdivremru32_3x2, (uint32_t *q, const uint32_t *a, size_t n, unsigned int b, uint32_t d1, uint32_t d0, uint32_t v), (q,a,n,b,d1,d0,v))
 INTERNAL_MVFUNC(uint32_t, hebi_pdivremr32, (hebi_packet *restrict q, hebi_packet *restrict u, const hebi_packet *restrict d, size_t m, size_t n, size_t l, uint32_t v), (q,u,d,m,n,l,v))
 
 #endif /* USE_LIMB64_MULDIV */

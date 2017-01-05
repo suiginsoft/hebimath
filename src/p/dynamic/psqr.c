@@ -7,4 +7,4 @@
 
 extern HEBI_API
 void
-hebi_psqr(hebi_packet *restrict, const hebi_packet *restrict, size_t);
+hebi_psqr(hebi_packet *restrict r, const hebi_packet *restrict a, size_t n);

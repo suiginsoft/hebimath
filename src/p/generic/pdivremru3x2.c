@@ -24,7 +24,7 @@ PDIVREMRU_3x2_IMPL(
 		MLIMB *q,
 		const MLIMB *a,
 		size_t n,
-		int bits,
+		unsigned int bits,
 		MLIMB d1,
 		MLIMB d0,
 		MLIMB v)
@@ -33,7 +33,7 @@ PDIVREMRU_3x2_IMPL(
 	size_t i;
 
 	ASSERT(n >= 2);
-	ASSERT(MLIMB_BIT > bits && bits >= 0);
+	ASSERT(bits < MLIMB_BIT);
 	ASSERT((d1 & MLIMB_HIGH_BIT) != 0);
 
 	a1 = a[n-1];
@@ -74,8 +74,8 @@ PDIVREMRU_3x2_IMPL(
 
 #ifdef HEBI_MULTI_VERSIONING
 #ifdef USE_LIMB64_MULDIV
-HEBI_HIDDEN DLIMB (*hebi_pdivremru64_3x2_ptr__)(MLIMB*, const MLIMB *, size_t, int, MLIMB, MLIMB, MLIMB) = hebi_pdivremru64_3x2_impl__;
+HEBI_HIDDEN DLIMB (*hebi_pdivremru64_3x2_ptr__)(MLIMB*, const MLIMB *, size_t, unsigned int, MLIMB, MLIMB, MLIMB) = hebi_pdivremru64_3x2_impl__;
 #else
-HEBI_HIDDEN DLIMB (*hebi_pdivremru32_3x2_ptr__)(MLIMB*, const MLIMB *, size_t, int, MLIMB, MLIMB, MLIMB) = hebi_pdivremru32_3x2_impl__;
+HEBI_HIDDEN DLIMB (*hebi_pdivremru32_3x2_ptr__)(MLIMB*, const MLIMB *, size_t, unsigned int, MLIMB, MLIMB, MLIMB) = hebi_pdivremru32_3x2_impl__;
 #endif
 #endif

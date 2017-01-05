@@ -21,7 +21,7 @@ checkdividebyzero(void)
 	case 0:
 		hebi_error_jmp(env, 1);
 		hebi_zdivrem(q, r, a, b);
-		assert(!"no zero divided by zero raised");
+		fail("no zero divided by zero raised");
 		break;
 	case 1:
 		c = hebi_error_last(&err);
@@ -31,7 +31,7 @@ checkdividebyzero(void)
 		hebi_error_jmp(env, 2);
 		hebi_zsetu(a, 10);
 		hebi_zdivrem(q, r, a, b);
-		assert(!"no divide by zero raised");
+		fail("no divide by zero raised");
 		break;
 	case 2:
 		c = hebi_error_last(&err);
@@ -40,7 +40,7 @@ checkdividebyzero(void)
 		assert(err.he_code == HEBI_EDIVZERO);
 		break;
 	default:
-		assert(!"unexpected value returned from setjmp");
+		fail("unexpected value returned from setjmp");
 		break;
 	}
 

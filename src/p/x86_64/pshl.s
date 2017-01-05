@@ -227,7 +227,7 @@ MVFUNC_BEGIN pshl, sse2
 4:  sub         %rcx, %rax
     shr         %rsi
     jz          5f
-    jmp         hebi_pzero_avx__
+    jmp         hebi_pzero_sse2__
 5:  ret
 
     # Shift is aligned on quadword boundary, move packets (note that
@@ -244,14 +244,14 @@ MVFUNC_BEGIN pshl, sse2
     punpckhqdq  %xmm4, %xmm7
     dec         %rdx
     jz          3b
-    call        hebi_pmove_avx__
+    call        hebi_pmove_sse2__
     jmp         3b
 
     .p2align 4,,7
 7:  movdqu      %xmm7, -16(%rdi,%r10)
     dec         %rdx
     jz          3b
-    call        hebi_pmove_avx__
+    call        hebi_pmove_sse2__
     jmp         3b
 
 MVFUNC_END

@@ -9,5 +9,5 @@ HEBI_API
 void
 hebi_free_scratch(void)
 {
-	(void)hebi_realloc_scratch__(hebi_context_get(), 0);
+	(void)hebi_realloc_scratch__(hebi_context_get__(), 0);
 }

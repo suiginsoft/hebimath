@@ -11,7 +11,7 @@ PDIVREMRU_2x1(
 		MLIMB *q,
 		const MLIMB *a,
 		size_t n,
-		int bits,
+		unsigned int bits,
 		MLIMB d,
 		MLIMB v)
 {
@@ -19,7 +19,7 @@ PDIVREMRU_2x1(
 	size_t i;
 
 	ASSERT(n > 1);
-	ASSERT(MLIMB_BIT > bits && bits >= 0);
+	ASSERT(bits < MLIMB_BIT);
 	ASSERT((d & MLIMB_HIGH_BIT) != 0);
 
 	a1 = a[n-1];

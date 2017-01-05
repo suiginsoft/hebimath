@@ -18,14 +18,19 @@ CPPFLAGS_x86_64 := -DUSE_DRIVER_X86_64
 CPPFLAGS_driver := $(CPPFLAGS_$(DRIVER_selected))
 
 PDRIVERFUNCS_x86_64 := \
+	cpuid \
+	paddac \
+	psubac \
 	paddc \
 	psubc
 
 PDRIVERFUNCS := \
 	padd \
+	padda \
 	paddu \
 	pneg \
 	psub \
+	psuba \
 	psubu \
 	recipulut \
 	$(PDRIVERFUNCS_$(DRIVER_selected))
@@ -255,9 +260,11 @@ CHECK_Z := \
 	zabs \
 	zneg \
 	zadd \
+	zaddmag \
 	zaddi \
 	zaddu \
 	zsub \
+	zsubmag \
 	zsubi \
 	zsubu \
 	zmul \
@@ -317,7 +324,7 @@ config.inc:
 
 hebimath.h: hebimath.h.in
 	@echo generating $@ from hebimath.h.in
-	$(Q)awk -v p='dispatch_$(DISPATCH_driver)|simd_$(SIMD)' \
+	$(Q)awk -v p='dispatch_$(DISPATCH_driver)' \
 	    '$$1==">>>"{x=$$2!~p;next;} \
 	     $$1=="<<<"{x=0;next;} \
 	     !x{print $$0}' \
@@ -444,7 +451,6 @@ options:
 	@echo "LINKAGE           = $(LINKAGE)"
 	@echo "DRIVER            = $(DRIVER_selected)"
 	@echo "DISPATCH          = $(DISPATCH_driver)"
-	@echo "SIMD              = $(SIMD)"
 	@echo "CPPFLAGS          = $(CPPFLAGS)"
 	@echo "CFLAGS            = $(CFLAGS)"
 	@echo "ASFLAGS           = $(ASFLAGS)"

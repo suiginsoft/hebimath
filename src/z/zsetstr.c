@@ -14,8 +14,11 @@ hebi_zsetstr(
 		char **restrict endptr,
 		int base )
 {
-	const char *restrict ptr, *startptr;
-	unsigned char digit, digit_range, letter_range;
+	const char *ptr;
+	const char *startptr;
+	unsigned int digit;
+	unsigned int digit_range;
+	unsigned int letter_range;
 	int neg;
 
 	if (UNLIKELY(base && (base < 2 || 36 < base)))
@@ -50,24 +53,24 @@ hebi_zsetstr(
 	}
 
 	/* determine allowed character ranges for base */
-	digit_range = (unsigned char)base;
+	digit_range = (unsigned int)base;
 	letter_range = 0;
 	if (base > 10) {
 		digit_range = 10;
-		letter_range = (unsigned char)(base - 10);
+		letter_range = (unsigned int)(base - 10);
 	}
 
 	/* read in the digits and accumulate result */
 	hebi_zsetzero(r);
 	for (startptr = ptr; ; ++ptr) {
-		digit = *ptr - '0';
+		digit = (unsigned int)*ptr - '0';
 		if (digit >= digit_range) {
-			digit = (*ptr & 0xDF) - 'A';
+			digit = ((unsigned int)*ptr & 0xDF) - 'A';
 			if (digit >= letter_range)
 				break;
 			digit += 10;
 		}
-		hebi_zmulu(r, r, base);
+		hebi_zmulu(r, r, (unsigned int)base);
 		hebi_zaddu(r, r, digit);
 	}
 

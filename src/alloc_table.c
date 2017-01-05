@@ -40,6 +40,7 @@ raisebadalloc(void)
 	hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADALLOCID);
 }
 
+HEBI_NORETURN
 static void *
 invalidalloc(void *arg, size_t alignment, size_t size)
 {
@@ -47,6 +48,7 @@ invalidalloc(void *arg, size_t alignment, size_t size)
 	raisebadalloc();
 }
 
+HEBI_NORETURN
 static void
 invalidfree(void *arg, void *p, size_t size)
 {
@@ -89,14 +91,15 @@ stdliballoc(void *arg, size_t alignment, size_t size)
 
 #else
 
-	size_t mask;
+	size_t algn, mask;
 	char *q;
 
-	if (UNLIKELY(alignment < sizeof(void*)))
-		alignment = sizeof(void*);
+	algn = alignment;
+	if (UNLIKELY(algn < sizeof(void*)))
+		algn = sizeof(void*);
 
-	mask = alignment - 1;
-	if (UNLIKELY((alignment & mask) || (size & mask))) {
+	mask = algn - 1;
+	if (UNLIKELY((algn & mask) || (size & mask))) {
 		errno = EINVAL;
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
 	}
@@ -130,27 +133,31 @@ stdlibfree(void *arg, void *p, size_t size)
 
 static const struct hebi_allocfnptrs stdlibfp =
 {
-	.ha_alloc = stdliballoc,
-	.ha_free = stdlibfree,
+	.ha_alloc = &stdliballoc,
+	.ha_free = &stdlibfree,
 	.ha_arg = NULL
 };
 
 #if defined USE_C11_THREADS
 
 #define TABLE_LOCK(RW, E) \
-if (UNLIKELY(!tactive)) { \
-	call_once(&tonce, inittable) \
-	if (UNLIKELY(terror)) \
-		hebi_error_raise(HEBI_ERRDOM_ERRNO, terror); \
-} \
-E = mtx_lock(&tmutex); \
-if (UNLIKELY(E != thrd_success)) \
-	hebi_error_raise(HEBI_ERRDOM_ERRNO, EINVAL);
+MULTILINEBEGIN \
+	if (UNLIKELY(!tactive)) { \
+		call_once(&tonce, inittable) \
+		if (UNLIKELY(terror)) \
+			hebi_error_raise(HEBI_ERRDOM_ERRNO, terror); \
+	} \
+	E = mtx_lock(&tmutex); \
+	if (UNLIKELY(E != thrd_success)) \
+		hebi_error_raise(HEBI_ERRDOM_ERRNO, EINVAL); \
+MULTLINEEND
 
 #define TABLE_UNLOCK(E) \
-E = mtx_unlock(&tmutex); \
-if (UNLIKELY(E != thrd_success)) \
-	hebi_error_raise(HEBI_ERRDOM_ERRNO, EINVAL);
+MULTILINEBEGIN \
+	E = mtx_unlock(&tmutex); \
+	if (UNLIKELY(E != thrd_success)) \
+		hebi_error_raise(HEBI_ERRDOM_ERRNO, EINVAL); \
+MULTILINEEND
 
 static once_flag tonce;
 static mtx_t tmutex;
@@ -172,14 +179,18 @@ inittable(void)
 #elif defined USE_POSIX_THREADS
 
 #define TABLE_LOCK(RW, E) \
-E = pthread_rwlock_ ## RW ## lock(&trwlock); \
-if (UNLIKELY(E)) \
-	hebi_error_raise(HEBI_ERRDOM_ERRNO, E);
+MULTILINEBEGIN \
+	E = pthread_rwlock_ ## RW ## lock(&trwlock); \
+	if (UNLIKELY(E)) \
+	 	hebi_error_raise(HEBI_ERRDOM_ERRNO, E); \
+MULTILINEEND
 
 #define TABLE_UNLOCK(E) \
-E = pthread_rwlock_unlock(&trwlock); \
-if (UNLIKELY(E)) \
-	hebi_error_raise(HEBI_ERRDOM_ERRNO, E);
+MULTILINEBEGIN \
+	E = pthread_rwlock_unlock(&trwlock); \
+	if (UNLIKELY(E)) \
+		hebi_error_raise(HEBI_ERRDOM_ERRNO, E); \
+MULTILINEEND
 
 static pthread_rwlock_t trwlock = PTHREAD_RWLOCK_INITIALIZER;
 
@@ -199,10 +210,10 @@ static unsigned int tused;
 #ifdef ALLOC_TABLE_DYNAMIC
 
 #define TABLE_INDEX(GP, FP, S, P, O) \
-	P = S / ALLOC_TABLE_PAGE_SIZE; \
-	O = S % ALLOC_TABLE_PAGE_SIZE; \
-	GP = &generationpages[P][O]; \
-	FP = &fnptrpages[P][O];
+P = S / ALLOC_TABLE_PAGE_SIZE; \
+O = S % ALLOC_TABLE_PAGE_SIZE; \
+GP = &generationpages[P][O]; \
+FP = &fnptrpages[P][O]
 
 static unsigned int tresv;
 static unsigned short *generationpages[ALLOC_TABLE_MAX_PAGES];
@@ -238,8 +249,8 @@ expandtable(void)
 #else /* ALLOC_TABLE_DYNAMIC */
 
 #define TABLE_INDEX(GP, FP, S, P, O) \
-	GP = &generations[S]; \
-	FP = &fnptrs[S];
+GP = &generations[S]; \
+FP = &fnptrs[S]
 
 static unsigned short generations[TABLE_CAPACITY];
 static struct hebi_allocfnptrs fnptrs[TABLE_CAPACITY];
@@ -272,17 +283,21 @@ hebi_alloc_add(const struct hebi_allocfnptrs *newfp)
 {
 	unsigned short *gp;
 	struct hebi_allocfnptrs *fp;
-	unsigned int slot, genr;
-	int key, el;
+	unsigned int slot;
+	unsigned int genr;
+	unsigned int key;
+	int el;
 #ifdef ALLOC_TABLE_DYNAMIC
-	unsigned int page, offs;
+	unsigned int page;
+	unsigned int offs;
 	int es;
 #endif
 
 	TABLE_LOCK(wr, el);
 
 	if (tfreelist < tsize) {
-		slot = tfreelist;
+		ASSERT(tfreelist <= UINT_MAX);
+		slot = (unsigned int)tfreelist;
 		TABLE_INDEX(gp, fp, slot, page, offs);
 		tfreelist = (uintptr_t)fp->ha_arg;
 	} else {
@@ -297,7 +312,8 @@ hebi_alloc_add(const struct hebi_allocfnptrs *newfp)
 			hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOSLOTS);
 		}
 #endif
-		slot = tsize++;
+		slot = tsize;
+		++tsize;
 		TABLE_INDEX(gp, fp, slot, page, offs);
 	}
 
@@ -317,9 +333,11 @@ hebi_alloc_remove(hebi_allocid id)
 {
 	unsigned short *gp;
 	struct hebi_allocfnptrs *fp;
-	unsigned int genr, slot;
+	unsigned int genr;
+	unsigned int slot;
 #ifdef ALLOC_TABLE_DYNAMIC
-	unsigned int page, offs;
+	unsigned int page;
+	unsigned int offs;
 #endif
 	int e, key;
 
@@ -342,8 +360,8 @@ hebi_alloc_remove(hebi_allocid id)
 		TABLE_INDEX(gp, fp, slot, page, offs);
 		if (*gp == genr) {
 			*gp = (genr + 1) & KEY_GENR_MASK;
-			fp->ha_alloc = invalidalloc;
-			fp->ha_free = invalidfree;
+			fp->ha_alloc = &invalidalloc;
+			fp->ha_free = &invalidfree;
 			fp->ha_arg = (void *)tfreelist;
 			tfreelist = slot;
 			--tused;
@@ -363,20 +381,26 @@ hebi_alloc_query(hebi_allocid *rid, hebi_allocid id)
 {
 	struct hebi_context *ctx = NULL;
 	const struct hebi_allocfnptrs *fp;
-	unsigned int slot, genr;
+	unsigned int slot;
+	unsigned int genr;
 #ifdef ALLOC_TABLE_DYNAMIC
-	unsigned int page, offs;
+	unsigned int page;
+	unsigned int offs;
 #endif
 #ifdef USE_ALLOC_CACHE
-	unsigned int i, used, hashcode;
+	unsigned int i;
+	unsigned int used;
+	unsigned int hashcode;
 #endif
-	int e, key;
+	int key;
+	int e;
 
 	/* fast path for predefined allocators */
 	key = (int)(intptr_t)id;
 	if (LIKELY(key <= 0)) {
-		if ((key += 2) > 0) {
-			ctx = hebi_context_get();
+		key += 2;
+		if (key > 0) {
+			ctx = hebi_context_get__();
 			id = ctx->allocids[key & 1];
 			key = (int)(intptr_t)id;
 		}
@@ -404,7 +428,7 @@ hebi_alloc_query(hebi_allocid *rid, hebi_allocid id)
 
 	/* check thread-local cache for allocator entry */
 	if (!ctx)
-		ctx = hebi_context_get();
+		ctx = hebi_context_get__();
 	used = ctx->allocused;
 	if (used) {
 		for (i = hashcode; ctx->allockeys[i] != 0; i++)
@@ -451,7 +475,8 @@ hebi_alloc_query(hebi_allocid *rid, hebi_allocid id)
 	 * quick retrieval on the next query. note that 'i' indexes
 	 * the correct location in cache to insert the new entry
 	 */
-	ctx->allocused = ++used;
+	++used;
+	ctx->allocused = used;
 	ctx->allockeys[i] = key;
 	ctx->allocvalues[i] = fp;
 

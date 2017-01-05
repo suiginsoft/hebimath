@@ -10,7 +10,7 @@ HEBI_API
 void
 hebi_error_restore(const struct hebi_errstate *state)
 {
-	struct hebi_context *ctx = hebi_context_get();
+	struct hebi_context *ctx = hebi_context_get__();
 	ctx->errhandler = state->hes_handler;
 	if (state->hes_longjmp) {
 		ctx->errarg = &ctx->errjmparg;

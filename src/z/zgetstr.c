@@ -10,7 +10,7 @@ size_t
 hebi_zgetstr(char *restrict str, size_t len, hebi_zsrcptr restrict a, int base)
 {
 	int maskedbase, s;
-	char *start, *end;
+	char *ptr, *end;
 	hebi_packet *restrict w;
 	size_t n, rlen;
 
@@ -20,38 +20,35 @@ hebi_zgetstr(char *restrict str, size_t len, hebi_zsrcptr restrict a, int base)
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
 
 	/* setup pointers and result length */
-	start = str;
+	ptr = str;
 	end = str + len - (len > 0);
 	rlen = 0;
 
 	/* write out negative sign or optional plus sign */
-	s = a->hz_sign;
-	if (s < 0) {
-		if (LIKELY(str < end))
-			*str++ = '-';
+	if ((s = a->hz_sign) < 0) {
 		rlen++;
+		if (LIKELY(ptr < end)) {
+			*ptr++ = '-';
+			len--;
+		}
 	} else if (base & HEBI_STR_SIGN) {
-		if (LIKELY(str < end))
-			*str++ = '+';
 		rlen++;
+		if (LIKELY(ptr < end)) {
+			*ptr++ = '+';
+			len--;
+		}
 	}
 
-	/* fast-path for zero */
-	if (UNLIKELY(!s)) {
-		if (LIKELY(str < end))
-			*str++ = '0';
-		if (LIKELY(len > 0))
-			*str = '\0';
-		return ++rlen;
+	/* copy integer data into scratch-pad buffer if non-zero */
+	n = 0;
+	w = NULL;
+
+	if (LIKELY(s)) {
+		n = a->hz_used;
+		w = hebi_pscratch__(n);
+		hebi_pcopy(w, a->hz_packs, n);
 	}
 
-	/* copy integer data into scratch-pad buffer */
-	n = a->hz_used;
-	w = hebi_pscratch__(n);
-	hebi_pcopy(w, a->hz_packs, n);
-
-	/* get character string from packet sequence */
-	len -= (size_t)(str - start);
-	rlen += hebi_pgetstr(str, len, w, n, base);
-	return rlen;
+	/* determine string from packet sequence */
+	return hebi_pgetstr(ptr, len, w, n, base) + rlen;
 }

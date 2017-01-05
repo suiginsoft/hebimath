@@ -7,4 +7,4 @@
 
 extern HEBI_API
 void
-hebi_pxor(hebi_packet *, const hebi_packet *, const hebi_packet *, size_t);
+hebi_pxor(hebi_packet *r, const hebi_packet *a, const hebi_packet *b, size_t n);

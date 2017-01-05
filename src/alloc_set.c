@@ -32,7 +32,7 @@ HEBI_API
 hebi_allocid
 hebi_alloc_set_default(hebi_allocid id)
 {
-	return setallocidx(hebi_context_get(), id, 0);
+	return setallocidx(hebi_context_get__(), id, 0);
 }
 
 HEBI_API
@@ -40,7 +40,7 @@ hebi_allocid
 hebi_alloc_set_scratch(hebi_allocid id)
 {
 	struct hebi_context *ctx;
-	ctx = hebi_context_get();
+	ctx = hebi_context_get__();
 	(void)hebi_realloc_scratch__(ctx, 0);
 	return setallocidx(ctx, id, 1);
 }

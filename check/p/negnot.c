@@ -12,6 +12,8 @@ main(int argc, char *argv[])
 	size_t i, n, nbits;
 	uint64_t c, d;
 
+	checkinit(argc, argv);
+
 	x = hebi_palloc(HEBI_ALLOC_DEFAULT, MAX_PACKETS);
 	y = hebi_palloc(HEBI_ALLOC_DEFAULT, MAX_PACKETS);
 	z = hebi_palloc(HEBI_ALLOC_DEFAULT, MAX_PACKETS);

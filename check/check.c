@@ -183,3 +183,11 @@ checkinit(int argc, char *argv[])
 	checkid = hebi_alloc_add(&checkfp);
 	hebi_alloc_set_default(checkid);
 }
+
+HEBI_NORETURN
+void
+fail(const char* msg)
+{
+	(void)fputs(msg, stderr);
+	abort();
+}

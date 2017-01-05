@@ -15,13 +15,13 @@ Integer Functions:
 * zgcd
 * zpowu
 * zsqrt
+* zload
+* zsave
 
 Optimize:
 
-* znot
-* ztrunc
-* pandmsk__ (get rid of this?)
 * pclz
+* ztrunc
 
 Other:
 
@@ -36,6 +36,7 @@ Other:
 * add additional random number generators
 * add a special invalid allocator id value for zinit_buffer functions
 * add support for compiler static analysis
+	* enable additional warnings and security hardening flags by default
 * add support for SEI CERT C validation and perform security audit
 * more testing on other Linux and BSD distributions
 * more testing with different C compilers and with older versions of compilers
@@ -43,6 +44,7 @@ Other:
   except for when we need to convert to/from these data types
 * code cleanup audit, remove any C++ style comments, C++ style pointer
   declarations, trailing whitespace, convert spaces to tabs, etc.
+* add support for big-endian machines
 
 Longer Term:
 
@@ -53,4 +55,3 @@ Longer Term:
 * port to Android
 * port to Mac OS X / iOS
 * port to Windows (MinGW, Ubuntu on Windows and MSVC++ w/ Clang frontend)
-* add support for big-endian machines

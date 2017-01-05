@@ -1,3 +1,8 @@
+/*
+ * hebimath - arbitrary precision arithmetic library
+ * See LICENSE file for copyright and license details
+ */
+
 #include "../check.h"
 #include <limits.h>
 #include <string.h>
@@ -10,6 +15,8 @@ int main(int argc, char *argv[])
 {
 	hebi_packet *x;
 	size_t i, j, k;
+
+	checkinit(argc, argv);
 
 	x = hebi_palloc(HEBI_ALLOC_DEFAULT, TOTAL);
 	assert(x);

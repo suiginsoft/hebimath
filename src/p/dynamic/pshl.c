@@ -7,4 +7,4 @@
 
 extern HEBI_API
 size_t
-hebi_pshl(hebi_packet *, const hebi_packet *, size_t, size_t);
+hebi_pshl(hebi_packet *r, const hebi_packet *a, size_t bits, size_t n);

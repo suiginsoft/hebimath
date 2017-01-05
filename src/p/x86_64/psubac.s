@@ -3,4 +3,4 @@
 
 .include "src/p/x86_64/paddsub.inc"
 
-PADDSUBC psubc, sbb
+PADDSUBAC psubac, sbb

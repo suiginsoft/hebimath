@@ -35,6 +35,8 @@ extern long check_scale_perm;
 extern int check_skip_error;
 extern int check_verbose;
 
+HEBI_NORETURN void fail(const char* msg);
+
 void checkinit(int argc, char *argv[]);
 long maxpermutations(long n, int p);
 

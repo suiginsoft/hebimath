@@ -7,5 +7,6 @@
 
 extern HEBI_HIDDEN
 MLIMB
-PDIVREMR(hebi_packet *restrict, hebi_packet *restrict,
-		const hebi_packet *restrict, size_t, size_t, size_t, MLIMB);
+PDIVREMR(hebi_packet *restrict q, hebi_packet *restrict u,
+		const hebi_packet *restrict d, size_t m,
+		size_t n, size_t l, MLIMB v);

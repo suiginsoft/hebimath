@@ -11,10 +11,11 @@ hebi_zsubmag(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 {
 	hebi_packet *rp;
 	size_t au, bu;
-	int d;
+	int d, s;
 
 	if (UNLIKELY(hebi_zzero(a))) {
 		hebi_zabs(r, b);
+		hebi_zneg(r, r);
 		return;
 	} else if (UNLIKELY(hebi_zzero(b))) {
 		hebi_zabs(r, a);
@@ -23,9 +24,12 @@ hebi_zsubmag(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 
 	au = a->hz_used;
 	bu = b->hz_used;
+	s = 1;
+
 	if (au < bu) {
 		SWAP(hebi_zsrcptr, a, b);
 		SWAP(size_t, au, bu);
+		s = -s;
 	}
 
 	d = 1;
@@ -40,10 +44,14 @@ hebi_zsubmag(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 		}
 	}
 
-	rp = hebi_zgrowcopyif__(r, au, r == a || r == b);
-	(void)hebi_psub(rp, a->hz_packs, b->hz_packs, au, bu);
-	au = hebi_pnorm(rp, au);
+	if (r == a) {
+		rp = r->hz_packs;
+		(void)hebi_psuba(rp, b->hz_packs, au, bu);
+	} else {
+		rp = hebi_zgrowcopyif__(r, au, r == b);
+		(void)hebi_psub(rp, a->hz_packs, b->hz_packs, au, bu);
+	}
 
-	r->hz_used = au;
-	r->hz_sign = d;
+	r->hz_used = hebi_pnorm(rp, au);
+	r->hz_sign = d * s;
 }

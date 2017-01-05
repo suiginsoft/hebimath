@@ -150,7 +150,6 @@
 #endif
 
 #ifdef USE_INT128
-EXTENSION typedef signed __int128 hebi_int128;
 EXTENSION typedef unsigned __int128 hebi_uint128;
 #endif
 
@@ -168,12 +167,14 @@ EXTENSION typedef unsigned __int128 hebi_uint128;
 #endif
 #endif
 
-#ifdef USE_LIMB64_ARITHMETIC
+#if defined USE_LIMB64_ARITHMETIC && defined USE_LIMB32_ARITHMETIC
 #undef USE_LIMB32_ARITHMETIC
 #endif
 
 /* detect limb type for full multiplication and division operations */
+#ifdef USE_LIMB64_MULDIV
 #undef USE_LIMB64_MULDIV
+#endif
 #ifndef USE_LIMB32_MULDIV
 #if defined USE_LIMB64_ARITHMETIC && defined USE_INT128
 #define USE_LIMB64_MULDIV
@@ -182,7 +183,7 @@ EXTENSION typedef unsigned __int128 hebi_uint128;
 #endif
 #endif
 
-#ifdef USE_LIMB64_MULDIV
+#if defined USE_LIMB64_MULDIV && defined USE_LIMB32_MULDIV
 #undef USE_LIMB32_MULDIV
 #endif
 
@@ -205,7 +206,7 @@ EXTENSION typedef unsigned __int128 hebi_uint128;
 
 /* internal-use attributes */
 #if __has_attribute(always_inline)
-#if __has_attribute(hidden)
+#if __has_attribute(visibility) && defined(__clang__)
 #define HEBI_ALWAYSINLINE __attribute__((__always_inline__,__visibility__("hidden")))
 #else
 #define HEBI_ALWAYSINLINE __attribute__((__always_inline__))
@@ -227,12 +228,13 @@ EXTENSION typedef unsigned __int128 hebi_uint128;
 #endif
 
 /* common macros */
-#define ALIGNAS(A) HEBI_ALIGNAS(A)
 #define ABS(A) ((A)<0?-(A):(A))
-#define MIN(A,B) ((A)<(B)?(A):(B))
-#define MAX(A,B) ((A)>(B)?(A):(B))
-#define SWAP(T,A,B) { T T_ = A; A = B; B = T_; }
+#define ALIGNAS(A) HEBI_ALIGNAS(A)
 #define COUNTOF(A) (sizeof(A) / sizeof(A[0]))
+#define MAX(A,B) ((A)>(B)?(A):(B))
+#define MIN(A,B) ((A)<(B)?(A):(B))
+#define MULTILINEBEGIN do {
+#define MULTILINEEND } while(0)
 #define LIKELY(E) HEBI_LIKELY(E)
 #define UNLIKELY(E) HEBI_UNLIKELY(E)
 #define CONCAT__(A,B) A##B
@@ -240,15 +242,20 @@ EXTENSION typedef unsigned __int128 hebi_uint128;
 #define CONCAT(A,B) CONCAT_(A,B)
 #define STRINGIZE_(A) #A
 #define STRINGIZE(A) STRINGIZE_(A)
-#define MULTILINEBEGIN do {
-#define MULTILINEEND } while(0)
+#define SWAP(T,A,B) MULTILINEBEGIN { T T_ = A; A = B; B = T_; } MULTILINEEND
 
 /* ignore unused arguments or variables */
-int hebi_ignore__(int, ...);
+HEBI_HIDDEN
+int
+hebi_ignore__(int x, ...);
+
 #define IGNORE(...) ((void)sizeof(hebi_ignore__(0, __VA_ARGS__)))
 
 /* runtime and static assertions */
-HEBI_NORETURN void hebi_error_assert__(const char *, const char *, const char *, long);
+HEBI_HIDDEN HEBI_NORETURN
+void
+hebi_error_assert__(const char *expr, const char *func, const char *file, long line);
+
 #ifdef USE_ASSERTIONS
 #define ASSERT(E) \
 	MULTILINEBEGIN \
@@ -265,17 +272,6 @@ HEBI_NORETURN void hebi_error_assert__(const char *, const char *, const char *,
 #define STATIC_ASSERT(E,S) typedef char CONCAT(static_assert_on_line_, __LINE__)[(!!(E))*2-1]
 #endif
 
-/* vector shuffle/swizzle */
-#ifdef HEBI_SIMD
-#if defined __clang__
-#define SHUFFLE2(A,B,X,Y) __builtin_shufflevector((A),(B),(X),(Y))
-#define SHUFFLE4(A,B,X,Y,Z,W) __builtin_shufflevector((A),(B),(X),(Y),(Z),(W))
-#elif defined __GNUC__
-#define SHUFFLE2(A,B,X,Y) __builtin_shuffle((A),(B), EXTENSION (hebi_v2di){(X),(Y)})
-#define SHUFFLE4(A,B,X,Y,Z,W) __builtin_shuffle((A),(B), EXTENSION (hebi_v4si){(X),(Y),(Z),(W)})
-#endif
-#endif
-
 /* hebi_errstate field names */
 #define hes_handler hebi_handler__
 #define hes_arg hebi_arg__
@@ -287,10 +283,10 @@ HEBI_NORETURN void hebi_error_assert__(const char *, const char *, const char *,
 #define hk_xorshift hebi_xorshift__
 #define hk_congruential hebi_congruential__
 #define hk_carry hebi_carry__
+#define hk_index hebi_index__
 #define hk_length hebi_length__
-#define hk_single hebi_data__.hebi_single__
-#define hk_multi hebi_data__.hebi_multi__.hebi_values__
-#define hk_multi_index hebi_data__.hebi_multi__.hebi_index__
+#define hk_single hebi_single__
+#define hk_multi hebi_multi__
 
 /* hebi_integer field names */
 #define hz_packs hebi_packs__
@@ -372,29 +368,37 @@ struct hebi_context {
 #endif
 };
 
-/* gets a pointer to the thread-specific context */
+/* gets or creates the thread-specific context */
 #if defined USE_C11_THREAD_LOCAL
-#define hebi_context_get() (&hebi_context__)
 EXTENSION extern HEBI_HIDDEN _Thread_local struct hebi_context hebi_context__;
 #elif defined USE_GNUC_THREAD_LOCAL
-#define hebi_context_get() (&hebi_context__)
 EXTENSION extern HEBI_HIDDEN __thread struct hebi_context hebi_context__;
 #elif defined USE_THREADS
-#define hebi_context_get() (hebi_context_get_or_create__(NULL, NULL))
 HEBI_HIDDEN HEBI_PURE HEBI_WARNUNUSED
 struct hebi_context *
-hebi_context_get_or_create__(hebi_errhandler, void *);
+hebi_context_get_or_create__(hebi_errhandler handler, void *arg);
 #else
-#define hebi_context_get() (&hebi_context__)
 extern HEBI_HIDDEN struct hebi_context hebi_context__;
 #endif
+
+/* gets a pointer to the thread-specific context */
+static inline HEBI_ALWAYSINLINE HEBI_PURE HEBI_WARNUNUSED
+struct hebi_context *
+hebi_context_get__(void)
+{
+#if defined USE_THREAD_LOCAL || !defined USE_THREADS
+	return &hebi_context__;
+#else
+	return hebi_context_get_or_create__(NULL, NULL);
+#endif
+}
 
 #ifdef USE_THREAD_LOCAL
 
 /* gets or creates the thread-specific shadow context */
 HEBI_HIDDEN HEBI_PURE HEBI_WARNUNUSED
 struct hebi_shadow_context *
-hebi_shadow_context_get_or_create__(struct hebi_context *);
+hebi_shadow_context_get_or_create__(struct hebi_context *ctx);
 
 /* gets a pointer to thread-specific shadow context */
 static inline HEBI_ALWAYSINLINE HEBI_PURE HEBI_WARNUNUSED
@@ -478,7 +482,7 @@ hebi_ceillog2sz__(size_t x)
 #if __has_builtin(__builtin_clzl)
 	return ((size_t)__builtin_clzl(x | 1) ^
 		(CHAR_BIT * sizeof(size_t) - 1)) +
-		(!!(x & (x - 1)));
+		((x & (x - 1)) ? 1u : 0u);
 #else
 	size_t r = 0;
 	if (LIKELY(x))
@@ -504,13 +508,13 @@ hebi_floorlog2sz__(size_t x)
 
 /* count leading-zeros of 32-bit unsigned integer */
 static inline HEBI_ALWAYSINLINE HEBI_CONST
-int
+unsigned int
 hebi_clz32__(uint32_t x)
 {
 #if __has_builtin(__builtin_clz)
-	return __builtin_clz(x);
+	return (unsigned int)__builtin_clz(x);
 #else
-	int r = 0;
+	unsigned int r = 0;
 	for ( ; !(x & 0x80000000u); x <<= 1, r++) ;
 	return r;
 #endif
@@ -518,13 +522,13 @@ hebi_clz32__(uint32_t x)
 
 /* count trailing-zeros of 32-bit unsigned integer */
 static inline HEBI_ALWAYSINLINE HEBI_CONST
-int
+unsigned int
 hebi_ctz32__(uint32_t x)
 {
 #if __has_builtin(__builtin_ctz)
-	return __builtin_ctz(x);
+	return (unsigned int)__builtin_ctz(x);
 #else
-	int r = 0;
+	unsigned int r = 0;
 	for ( ; !(x & 1u); x >>= 1, r++) ;
 	return r;
 #endif
@@ -532,13 +536,13 @@ hebi_ctz32__(uint32_t x)
 
 /* count leading-zeros of 64-bit unsigned integer */
 static inline HEBI_ALWAYSINLINE HEBI_CONST
-int
+unsigned int
 hebi_clz64__(uint64_t x)
 {
 #if __has_builtin(__builtin_clzll)
-	return __builtin_clzll(x);
+	return (unsigned int)__builtin_clzll(x);
 #else
-	int r = 0;
+	unsigned int r = 0;
 	for ( ; !(x & 0x8000000000000000ull); x <<= 1, r++) ;
 	return r;
 #endif
@@ -546,13 +550,13 @@ hebi_clz64__(uint64_t x)
 
 /* count trailing-zeros of 64-bit unsigned integer */
 static inline HEBI_ALWAYSINLINE HEBI_CONST
-int
+unsigned int
 hebi_ctz64__(uint64_t x)
 {
 #if __has_builtin(__builtin_ctzll)
-	return __builtin_ctzll(x);
+	return (unsigned int)__builtin_ctzll(x);
 #else
-	int r = 0;
+	unsigned int r = 0;
 	for ( ; !(x & 1u); x >>= 1, r++) ;
 	return r;
 #endif
@@ -572,16 +576,15 @@ hebi_umul128__(
 	*hi = (uint64_t)(p >> 64);
 	*lo = (uint64_t)(p & UINT64_MAX);
 #else
-	uint64_t a, b, c, d, ac, ad, bc, bd, mid34;
-	a = x >> 32;
-	b = x & UINT32_MAX;
-	c = y >> 32;
-	d = y & UINT32_MAX;
-	ac = a * c;
-	bc = b * c;
-	ad = a * d;
-	bd = b * d;
-	mid34 = (bd >> 32) + (bc & UINT32_MAX) + (ad & UINT32_MAX);
+	uint64_t a = x >> 32;
+	uint64_t b = x & UINT32_MAX;
+	uint64_t c = y >> 32;
+	uint64_t d = y & UINT32_MAX;
+	uint64_t ac = a * c;
+	uint64_t bc = b * c;
+	uint64_t ad = a * d;
+	uint64_t bd = b * d;
+	uint64_t mid34 = (bd >> 32) + (bc & UINT32_MAX) + (ad & UINT32_MAX);
 	*hi = ac + (bc >> 32) + (ad >> 32) + (mid34 >> 32);
 	*lo = (mid34 << 32) | (bd & UINT32_MAX);
 #endif
@@ -608,32 +611,10 @@ hebi_umad128__(
 #endif
 }
 
-static inline HEBI_ALWAYSINLINE
-void
-hebi_pandmsk__(hebi_packet *a, int bits)
-{
-	int b, i;
-
-	ASSERT(0 < bits && bits < HEBI_PACKET_BIT);
-
-	if (LIKELY(bits)) {
-		b = HEBI_PACKET_BIT - bits;
-		i = 1;
-		if (b >= 64) {
-			b -= 64;
-			a->hp_limbs64[i--] = 0;
-		}
-		a->hp_limbs64[i] &= (UINT64_C(1) << (64 - b)) - 1;
-	} else {
-		a->hp_limbs64[0] = 0;
-		a->hp_limbs64[1] = 1;
-	}
-}
-
 /* reallocates the internal thread-specific scratchpad buffer */
 HEBI_HIDDEN HEBI_ALLOC
 void *
-hebi_realloc_scratch__(struct hebi_context *, size_t);
+hebi_realloc_scratch__(struct hebi_context *ctx, size_t n);
 
 /*
  * gets a pointer to the scratchpad buffer, resizing it to the specified
@@ -643,7 +624,7 @@ static inline HEBI_ALWAYSINLINE HEBI_ALLOC
 void *
 hebi_scratch__(size_t n)
 {
-	struct hebi_context *ctx = hebi_context_get();
+	struct hebi_context *ctx = hebi_context_get__();
 	if (ctx->scratchsize >= n)
 		return ctx->scratch;
 	return hebi_realloc_scratch__(ctx, n);
@@ -670,7 +651,7 @@ static inline HEBI_ALWAYSINLINE
 void
 hebi_zinit_push__(hebi_zptr r, hebi_allocid id)
 {
-	struct hebi_context *ctx = hebi_context_get();
+	struct hebi_context *ctx = hebi_context_get__();
 	if (UNLIKELY(ctx->zstackused >= ZSTACK_MAX_SIZE))
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOSLOTS);
 #if defined USE_ASSERTIONS && defined USE_THREAD_LOCAL
@@ -690,7 +671,7 @@ static inline HEBI_ALWAYSINLINE
 void
 hebi_zdestroy_pop__(hebi_zptr r)
 {
-	struct hebi_context *ctx = hebi_context_get();
+	struct hebi_context *ctx = hebi_context_get__();
 	ASSERT(ctx->zstackused > 0 && ctx->zstack[ctx->zstackused - 1] == r);
 	ctx->zstack[--ctx->zstackused] = NULL;
 #if defined USE_ASSERTIONS && defined USE_THREAD_LOCAL
@@ -709,15 +690,15 @@ hebi_zdestroy_pop__(hebi_zptr r)
 
 HEBI_HIDDEN
 hebi_packet *
-hebi_zexpand__(hebi_zptr, size_t, size_t);
+hebi_zexpand__(hebi_zptr r, size_t n, size_t oldn);
 
 HEBI_HIDDEN
 hebi_packet *
-hebi_zexpandcopy__(hebi_zptr, size_t, size_t);
+hebi_zexpandcopy__(hebi_zptr r, size_t n, size_t oldn);
 
 HEBI_HIDDEN
 hebi_packet *
-hebi_zexpandcopyif__(hebi_zptr, size_t, size_t, int);
+hebi_zexpandcopyif__(hebi_zptr r, size_t n, size_t oldn, int c);
 
 static inline HEBI_ALWAYSINLINE
 hebi_packet *

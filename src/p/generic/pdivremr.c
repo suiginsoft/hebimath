@@ -55,7 +55,7 @@ PDIVREMR_IMPL(
 	 */
 	if (UNLIKELY((u1 > dl[n+1] || (u1 == dl[n+1] && u0 >= dl[n])) &&
 			hebi_pcmp(u+un, d, dn) >= 0)) {
-		(void)hebi_psub(u+un, u+un, d, dn, dn);
+		(void)hebi_psuba(u+un, d, dn, dn);
 		u1 = ul[m+n+1];
 		u0 = ul[m+n];
 		qh = 1;

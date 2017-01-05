@@ -15,7 +15,7 @@ checkdividebyzero(void)
 	if (!(v = setjmp(env))) {
 		hebi_error_jmp(env, 1);
 		(void)hebi_zremu(a, 0);
-		assert(!"no zero divided by zero raised");
+		fail("no zero divided by zero raised");
 	} else if (v == 1) {
 		c = hebi_error_last(&err);
 		assert(c == -1);
@@ -24,9 +24,9 @@ checkdividebyzero(void)
 		hebi_error_jmp(env, 2);
 		hebi_zsetu(a, 10);
 		(void)hebi_zremu(a, 0);
-		assert(!"no divide by zero raised");
+		fail("no divide by zero raised");
 	} else if (v != 2) {
-		assert(!"unexpected value returned from setjmp");
+		fail("unexpected value returned from setjmp");
 	}
 
 	c = hebi_error_last(&err);
