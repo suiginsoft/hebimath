@@ -16,7 +16,7 @@ addons:
       name: "suiginsoft/hebimath"
       description: "Build submitted via Travis CI"
     notification_email: suigin@national.shitposting.agency
-    build_command_prepend: bmake clean CONFIG=config-coverity.mk
-    build_command: bmake check CONFIG=config-coverity.mk
+    build_command_prepend: make clean CONFIG=config-coverity.mk
+    build_command: make check CONFIG=config-coverity.mk
     branch_pattern: coverity_scan
-script: bmake check CONFIG=config-coverity.mk
+script: make check CONFIG=config-coverity.mk
