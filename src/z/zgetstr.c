@@ -10,7 +10,7 @@ size_t
 hebi_zgetstr(char *restrict str, size_t len, hebi_zsrcptr restrict a, int base)
 {
 	const unsigned int flags = (unsigned int)base;
-	const unsigned int ubase = flags & HEBI_STR_BASEMASK
+	const unsigned int ubase = flags & HEBI_STR_BASEMASK;
 
 	char *ptr;
 	char *end;
