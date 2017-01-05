@@ -11,16 +11,17 @@ HEBI_API HEBI_CONST
 size_t
 hebi_psqr_karatsuba_space(size_t n)
 {
-	size_t a0, a1, k0, k1, t0, t1;
+	size_t x;
+	size_t y;
 
 	if (n <= KARATSUBA_SQR_CUTOFF)
 		return 0;
 
-	k0 = hebi_ceillog2sz__(KARATSUBA_SQR_CUTOFF - 2);
-	k1 = hebi_ceillog2sz__(KARATSUBA_SQR_CUTOFF - 3);
-	a0 = 2 * k0 + (((size_t)1) << (k0 - 1));
-	a1 = 3 * k1 + (((size_t)1) << (k1 - 1));
-	t0 = 2 * (n - a0 + 2 * hebi_ceillog2sz__(n - 2));
-	t1 = 2 * (n - a1 + 3 * hebi_floorlog2sz__(n - 3));
-	return MAX(t0, t1);
+	x = hebi_ceillog2sz__(KARATSUBA_SQR_CUTOFF - 2);
+	y = hebi_ceillog2sz__(KARATSUBA_SQR_CUTOFF - 3);
+	x = 2 * x + (((size_t)1) << (x - 1));
+	y = 3 * y + (((size_t)1) << (y - 1));
+	x = 2 * (n - x + 2 * hebi_ceillog2sz__(n - 2));
+	y = 2 * (n - y + 3 * hebi_floorlog2sz__(n - 3));
+	return MAX(x, y);
 }
