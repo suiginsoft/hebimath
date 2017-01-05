@@ -16,7 +16,8 @@ hebi_ztrunc(hebi_zptr r, hebi_zsrcptr a, size_t bits)
 	size_t u;
 	int s;
 
-	if (UNLIKELY(!(s = a->hz_sign) || !bits)) {
+	s = a->hz_sign;
+	if (UNLIKELY(!s || !bits)) {
 		r->hz_sign = 0;
 		return;
 	}
@@ -34,9 +35,12 @@ hebi_ztrunc(hebi_zptr r, hebi_zsrcptr a, size_t bits)
 		r->hz_sign = s;
 	}
 
-	if (LIKELY(u >= n && (b = (unsigned int)(bits % HEBI_PACKET_BIT)))) {
-		rp += u - 1;
+	STATIC_ASSERT(HEBI_PACKET_LIMBS64 == 2, "limbs-per-packet must be 2");
+
+	if (LIKELY(u >= n)) {
+		b = (unsigned int)(bits % HEBI_PACKET_BIT);
 		if (LIKELY(b)) {
+			rp += u - 1;
 			b = HEBI_PACKET_BIT - b;
 			i = 1;
 			if (b >= 64) {
@@ -45,9 +49,6 @@ hebi_ztrunc(hebi_zptr r, hebi_zsrcptr a, size_t bits)
 				i--;
 			}
 			rp->hp_limbs64[i] &= (UINT64_C(1) << (64 - b)) - 1;
-		} else {
-			rp->hp_limbs64[0] = 0;
-			rp->hp_limbs64[1] = 1;
 		}
 	}
 }
