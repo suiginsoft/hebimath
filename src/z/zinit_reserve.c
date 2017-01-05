@@ -22,5 +22,5 @@ hebi_zinit_reserve(hebi_zptr restrict r, size_t n, hebi_allocid id)
 	r->hz_resv = n;
 	r->hz_used = 0;
 	r->hz_sign = 0;
-	r->hz_allocid = (int)(intptr_t)id;
+	r->hz_allocid = id;
 }

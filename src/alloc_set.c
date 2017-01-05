@@ -8,24 +8,26 @@
 static hebi_allocid
 setallocidx(struct hebi_context *ctx, hebi_allocid id, int index)
 {
-	hebi_allocid rid;
-	int key;
+	hebi_allocid retid;
+	hebi_allocid newid;
+	unsigned int key;
 	
-	key = (int)(intptr_t)id;
-	if (UNLIKELY(key < -2))
+	if (UNLIKELY(id < -2))
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADALLOCID);
 
-	rid = ctx->allocids[index];
-	if ((intptr_t)rid <= 0)
-		rid = HEBI_ALLOC_STDLIB;
+	retid = ctx->allocids[index];
+	if (retid <= 0)
+		retid = HEBI_ALLOC_STDLIB;
 
-	if ((key += 2) > 0)
-		id = ctx->allocids[key & 1];
+	newid = id;
+	key = (unsigned int)(id + 2);
+	if (key > 0)
+		newid = ctx->allocids[key & 1];
 	else if (!key)
-		id = 0;
+		newid = 0;
 
-	ctx->allocids[index] = id;
-	return rid;
+	ctx->allocids[index] = newid;
+	return retid;
 }
 
 HEBI_API

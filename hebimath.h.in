@@ -137,12 +137,14 @@ struct hebi_allocfnptrs {
 	void *ha_arg;
 };
 
-typedef struct hebi_alloctag *hebi_allocid;
+typedef int hebi_allocid;
 
-#define HEBI_ALLOC_DEFAULT ((hebi_allocid)((intptr_t)0))
-#define HEBI_ALLOC_SCRATCH ((hebi_allocid)((intptr_t)-1))
-#define HEBI_ALLOC_STDLIB ((hebi_allocid)((intptr_t)-2))
-#define HEBI_ALLOC_INVALID ((hebi_allocid)((intptr_t)-3))
+enum {
+	HEBI_ALLOC_DEFAULT = 0,
+	HEBI_ALLOC_SCRATCH = -1,
+	HEBI_ALLOC_STDLIB = -2,
+	HEBI_ALLOC_INVALID = -3
+};
 
 HEBI_API HEBI_NOTHROW int hebi_alloc_valid(hebi_allocid i__);
 HEBI_API const struct hebi_allocfnptrs *hebi_alloc_query(hebi_allocid *p__, hebi_allocid i__);
@@ -344,7 +346,7 @@ typedef struct hebi_integer hebi_z[1];
 typedef struct hebi_integer *hebi_zptr;
 typedef const struct hebi_integer *hebi_zsrcptr;
 
-#define HEBI_Z_INIT {{NULL,0,0,0,((int)(intptr_t)HEBI_ALLOC_DEFAULT)}}
+#define HEBI_Z_INIT {{NULL,0,0,0,HEBI_ALLOC_DEFAULT}}
 
 HEBI_API void hebi_zinit_buffer(hebi_zptr HEBI_RESTRICT r__, void *HEBI_RESTRICT p__, size_t n__);
 HEBI_API void hebi_zinit_reserve(hebi_zptr r__, size_t n__, hebi_allocid i__);
@@ -396,7 +398,7 @@ hebi_zinit_allocator(hebi_zptr r__, hebi_allocid i__)
 	r__->hebi_capacity__ = 0;
 	r__->hebi_used__ = 0;
 	r__->hebi_sign__ = 0;
-	r__->hebi_allocator__ = (int)(intptr_t)i__;
+	r__->hebi_allocator__ = i__;
 }
 
 HEBI_INLINE
@@ -456,7 +458,7 @@ HEBI_INLINE
 hebi_allocid
 hebi_zallocator(hebi_zsrcptr a__)
 {
-	return (hebi_allocid)(intptr_t)a__->hebi_allocator__;
+	return a__->hebi_allocator__;
 }
 
 HEBI_INLINE

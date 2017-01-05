@@ -27,5 +27,5 @@ hebi_zinit_copy(hebi_zptr restrict r, hebi_zsrcptr restrict a)
 	r->hz_resv = n;
 	r->hz_used = n;
 	r->hz_sign = a->hz_sign;
-	r->hz_allocid = (int)(intptr_t)id;
+	r->hz_allocid = id;
 }

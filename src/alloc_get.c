@@ -9,13 +9,11 @@ static hebi_allocid
 getallocidx(int index)
 {
 	struct hebi_context *ctx;
-	hebi_allocid rid;
+	hebi_allocid id;
 	
 	ctx = hebi_context_get__();
-	rid = ctx->allocids[index];
-	if ((intptr_t)rid <= 0)
-		rid = HEBI_ALLOC_STDLIB;
-	return rid;
+	id = ctx->allocids[index];
+	return id > 0 ? id : HEBI_ALLOC_STDLIB;
 }
 
 HEBI_API

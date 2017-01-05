@@ -324,7 +324,7 @@ hebi_alloc_add(const struct hebi_allocfnptrs *newfp)
 	TABLE_UNLOCK(el);
 
 	key = (genr << KEY_GENR_SHFT) | (slot + 1);
-	return (hebi_allocid)(intptr_t)key;
+	return (hebi_allocid)key;
 }
 
 HEBI_API
@@ -339,16 +339,15 @@ hebi_alloc_remove(hebi_allocid id)
 	unsigned int page;
 	unsigned int offs;
 #endif
-	int e, key;
+	int e;
 
 	/* can't remove predefined allocator ids */
-	key = (int)(intptr_t)id;
-	if (UNLIKELY(key <= 0))
+	if (UNLIKELY(id <= 0))
 		raisebadalloc();
 
 	/* extract allocator slot & generation */
-	slot = (unsigned int)key & KEY_SLOT_MASK;
-	genr = (unsigned int)key >> KEY_GENR_SHFT;
+	slot = (unsigned int)id & KEY_SLOT_MASK;
+	genr = (unsigned int)id >> KEY_GENR_SHFT;
 	if (UNLIKELY(!slot--))
 		raisebadalloc();
 
@@ -392,24 +391,22 @@ hebi_alloc_query(hebi_allocid *rid, hebi_allocid id)
 	unsigned int used;
 	unsigned int hashcode;
 #endif
-	int key;
 	int e;
+	int key;
 
 	/* fast path for predefined allocators */
-	key = (int)(intptr_t)id;
+	key = id;
 	if (LIKELY(key <= 0)) {
 		key += 2;
 		if (key > 0) {
 			ctx = hebi_context_get__();
-			id = ctx->allocids[key & 1];
-			key = (int)(intptr_t)id;
+			key = ctx->allocids[(unsigned int)key & 1];
 		}
 		if (!key) {
 			if (rid)
 				*rid = HEBI_ALLOC_STDLIB;
 			return &stdlibfp;
-		}
-		else if (UNLIKELY(key < 0)) {
+		} else if (UNLIKELY(key < 0)) {
 			raisebadalloc();
 		}
 	}
@@ -491,20 +488,22 @@ HEBI_API
 int
 hebi_alloc_valid(hebi_allocid id)
 {
-	int e, key, ret;
-	unsigned int slot, genr;
+	int e;
+	int ret;
+	unsigned int slot;
+	unsigned int genr;
 #ifdef ALLOC_TABLE_DYNAMIC
-	unsigned int page, offs;
+	unsigned int page;
+	unsigned int offs;
 #endif
 
 	/* fast path for predefined allocators */
-	key = (int)(intptr_t)id;
-	if (LIKELY(key <= 0))
-		return key >= -2;
+	if (LIKELY(id <= 0))
+		return id >= HEBI_ALLOC_STDLIB;
 
 	/* extract allocator slot & generation */
-	slot = (unsigned int)key & KEY_SLOT_MASK;
-	genr = (unsigned int)key >> KEY_GENR_SHFT;
+	slot = (unsigned int)id & KEY_SLOT_MASK;
+	genr = (unsigned int)id >> KEY_GENR_SHFT;
 	if (UNLIKELY(!slot--))
 		return 0;
 

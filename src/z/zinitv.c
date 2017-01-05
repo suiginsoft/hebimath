@@ -19,6 +19,6 @@ hebi_zinitv(size_t count, const hebi_zptr r[count])
 		r[i]->hz_resv = 0;
 		r[i]->hz_used = 0;
 		r[i]->hz_sign = 0;
-		r[i]->hz_allocid = (int)(intptr_t)id;
+		r[i]->hz_allocid = id;
 	}
 }

@@ -19,5 +19,5 @@ hebi_zinit_buffer(hebi_zptr restrict r, void *restrict buffer, size_t n)
 	r->hz_resv = n;
 	r->hz_used = 0;
 	r->hz_sign = 0;
-	r->hz_allocid = (int)(intptr_t)HEBI_ALLOC_INVALID;
+	r->hz_allocid = HEBI_ALLOC_INVALID;
 }

@@ -34,5 +34,5 @@ hebi_zinit_copy_reserve(
 	r->hz_resv = n;
 	r->hz_used = u;
 	r->hz_sign = a->hz_sign;
-	r->hz_allocid = (int)(intptr_t)id;
+	r->hz_allocid = id;
 }

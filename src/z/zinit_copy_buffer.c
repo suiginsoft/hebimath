@@ -30,5 +30,5 @@ hebi_zinit_copy_buffer(
 	r->hz_resv = n;
 	r->hz_used = u;
 	r->hz_sign = a->hz_sign;
-	r->hz_allocid = (int)(intptr_t)HEBI_ALLOC_INVALID;
+	r->hz_allocid = HEBI_ALLOC_INVALID;
 }

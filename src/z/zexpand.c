@@ -22,15 +22,12 @@ hebi_zexpand__(hebi_zptr r, size_t n, size_t oldn)
 	ASSERT(oldn < n);
 
 	fp = hebi_alloc_query(&id, hebi_zallocator(r));
-	
 	p = hebi_pallocfp(fp, n);
 	oldp = r->hz_packs;
 	hebi_pfreefp(fp, oldp, oldn);
-
 	r->hz_packs = p;
 	r->hz_resv = n;
-	r->hz_allocid = (int)(intptr_t)id;
-
+	r->hz_allocid = id;
 	return p;
 }
 
@@ -46,16 +43,13 @@ hebi_zexpandcopy__(hebi_zptr r, size_t n, size_t oldn)
 	ASSERT(oldn < n);
 
 	fp = hebi_alloc_query(&id, hebi_zallocator(r));
-
 	p = hebi_pallocfp(fp, n);
 	oldp = r->hz_packs;
 	hebi_pcopy(p, oldp, r->hz_used);
 	hebi_pfreefp(fp, oldp, oldn);
-
 	r->hz_packs = p;
 	r->hz_resv = n;
-	r->hz_allocid = (int)(intptr_t)id;
-
+	r->hz_allocid = id;
 	return p;
 }
 
@@ -71,16 +65,13 @@ hebi_zexpandcopyif__(hebi_zptr r, size_t n, size_t oldn, int c)
 	ASSERT(oldn < n);
 
 	fp = hebi_alloc_query(&id, hebi_zallocator(r));
-
 	p = hebi_pallocfp(fp, n);
 	oldp = r->hz_packs;
 	if (c)
 		hebi_pcopy(p, oldp, r->hz_used);
 	hebi_pfreefp(fp, oldp, oldn);
-
 	r->hz_packs = p;
 	r->hz_resv = n;
-	r->hz_allocid = (int)(intptr_t)id;
-
+	r->hz_allocid = id;
 	return p;
 }
