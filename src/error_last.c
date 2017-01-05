@@ -7,8 +7,7 @@
 
 #if !defined USE_THREAD_LOCAL && defined USE_THREADS
 
-struct lastarg
-{
+struct lastarg {
 	struct hebi_error *err;
 	jmp_buf env;
 };
@@ -34,10 +33,9 @@ hebi_error_last(struct hebi_error *err)
 #if !defined USE_THREAD_LOCAL && defined USE_THREADS
 	struct lastarg larg;
 	larg.err = err;
-
 	if (UNLIKELY(setjmp(larg.env)))
 		return -1;
-	ctx = hebi_context_get__(lasthandler, &larg);
+	ctx = hebi_context_get__(&lasthandler, &larg);
 #else
 	ctx = &hebi_context__;
 #endif
