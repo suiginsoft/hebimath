@@ -9,14 +9,18 @@ HEBI_API
 size_t
 hebi_zgetstr(char *restrict str, size_t len, hebi_zsrcptr restrict a, int base)
 {
-	int maskedbase, s;
-	char *ptr, *end;
-	hebi_packet *restrict w;
-	size_t n, rlen;
+	const unsigned int flags = (unsigned int)base;
+	const unsigned int ubase = flags & HEBI_STR_BASEMASK
+
+	char *ptr;
+	char *end;
+	hebi_packet *w;
+	size_t n;
+	size_t rlen;
+	int s;
 
 	/* validate base */
-	maskedbase = base & HEBI_STR_BASEMASK;
-	if (UNLIKELY(maskedbase < 2 || 36 < maskedbase))
+	if (UNLIKELY(ubase < 2 || 36 < ubase))
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
 
 	/* setup pointers and result length */
@@ -25,16 +29,19 @@ hebi_zgetstr(char *restrict str, size_t len, hebi_zsrcptr restrict a, int base)
 	rlen = 0;
 
 	/* write out negative sign or optional plus sign */
-	if ((s = a->hz_sign) < 0) {
+	s = a->hz_sign;
+	if (s < 0) {
 		rlen++;
 		if (LIKELY(ptr < end)) {
-			*ptr++ = '-';
+			*ptr = '-';
+			ptr++;
 			len--;
 		}
-	} else if (base & HEBI_STR_SIGN) {
+	} else if (flags & HEBI_STR_SIGN) {
 		rlen++;
 		if (LIKELY(ptr < end)) {
-			*ptr++ = '+';
+			*ptr = '+';
+			ptr++;
 			len--;
 		}
 	}
