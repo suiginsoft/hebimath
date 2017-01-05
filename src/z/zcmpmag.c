@@ -9,10 +9,11 @@ HEBI_API
 int
 hebi_zcmpmag(hebi_zsrcptr a, hebi_zsrcptr b)
 {
-	size_t m, n;
+	size_t m;
+	size_t n;
 
 	if (UNLIKELY(!a->hz_sign))
-		return -!!b->hz_sign;
+		return b->hz_sign ? -1 : 0;
 	else if (UNLIKELY(!b->hz_sign))
 		return 1;
 
