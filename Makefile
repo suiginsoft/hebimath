@@ -22,14 +22,7 @@ CPPFLAGS_generic := -DUSE_DRIVER_GENERIC
 CPPFLAGS_x86_64 := -DUSE_DRIVER_X86_64
 CPPFLAGS_driver := $(CPPFLAGS_$(DRIVER_selected))
 
-PDRIVERFUNCS_x86_64 := \
-	cpuid \
-	paddac \
-	psubac \
-	paddc \
-	psubc
-
-PDRIVERFUNCS := \
+PDRIVERFUNCS_common := \
 	padd \
 	padda \
 	paddu \
@@ -37,10 +30,20 @@ PDRIVERFUNCS := \
 	psub \
 	psuba \
 	psubu \
-	recipulut \
-	$(PDRIVERFUNCS_$(DRIVER_selected))
+	recipulut
 
-PDRIVERMVFUNCS := \
+PDRIVERFUNCS_generic := \
+	$(PDRIVERFUNCS_common)
+
+PDRIVERFUNCS_x86_64 := \
+	cpuid \
+	paddac \
+	psubac \
+	paddc \
+	psubc \
+	$(PDRIVERFUNCS_common)
+
+PDRIVERMVFUNCS_common := \
 	pand \
 	pclz \
 	pcmp \
@@ -64,7 +67,12 @@ PDRIVERMVFUNCS := \
 	recipu2x1 \
 	recipu3x2
 
-PMVFUNCWRAPPERS_dynamic := $(PDRIVERMVFUNCS:%=dynamic/%)
+PDRIVERMVFUNCS_dynamic := \
+	$(PDRIVERMVFUNCS_common:%=$(DRIVER_selected)/%) \
+	$(PDRIVERMVFUNCS_common:%=dynamic/%)
+
+PDRIVERMVFUNCS_static := \
+	$(PDRIVERMVFUNCS_common:%=$(DRIVER_selected)/%)
 
 PFUNCTIONS := \
 	palloc \
@@ -82,9 +90,8 @@ PFUNCTIONS := \
 	psetzero \
 	psqr_karatsuba \
 	psqr_karatsuba_space \
-	$(PDRIVERFUNCS:%=$(DRIVER_selected)/%) \
-	$(PDRIVERMVFUNCS:%=$(DRIVER_selected)/%) \
-	$(PMVFUNCWRAPPERS_$(DISPATCH_driver))
+	$(PDRIVERFUNCS_$(DRIVER_selected):%=$(DRIVER_selected)/%) \
+	$(PDRIVERMVFUNCS_$(DISPATCH_driver))
 
 ZFUNCTIONS := \
 	zinit \
@@ -181,14 +188,20 @@ FUNCTIONS := \
 	free_scratch \
 	realloc_scratch
 
-MODULES_dynamic := hwcaps
-
-MODULES := \
+MODULES_common := \
 	alloc_get \
 	alloc_set \
 	alloc_table \
-	context \
-	$(MODULES_$(DISPATCH_driver))
+	context
+
+MODULES_dynamic := \
+	hwcaps \
+	$(MODULES_common)
+
+MODULES_static := \
+	$(MODULES_common)
+
+MODULES := $(MODULES_$(DISPATCH_driver))
 
 SRC := $(FUNCTIONS) $(MODULES)
 
