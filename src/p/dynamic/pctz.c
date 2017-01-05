@@ -7,4 +7,4 @@
 
 extern HEBI_API
 size_t
-hebi_pctz(const hebi_packet *, size_t);
+hebi_pctz(const hebi_packet *a, size_t n);

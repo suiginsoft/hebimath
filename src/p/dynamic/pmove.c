@@ -7,4 +7,4 @@
 
 extern HEBI_API
 void
-hebi_pmove(hebi_packet *, const hebi_packet *, size_t);
+hebi_pmove(hebi_packet *r, const hebi_packet *a, size_t n);

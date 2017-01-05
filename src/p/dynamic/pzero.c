@@ -7,4 +7,4 @@
 
 extern HEBI_API
 void
-hebi_pzero(hebi_packet *, size_t);
+hebi_pzero(hebi_packet *r, size_t n);

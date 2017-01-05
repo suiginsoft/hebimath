@@ -7,5 +7,5 @@
 
 extern HEBI_HIDDEN
 DLIMB
-PDIVREMRU_3x2(MLIMB *restrict, const MLIMB *restrict,
-		size_t, unsigned int, MLIMB, MLIMB, MLIMB);
+PDIVREMRU_3x2(MLIMB *restrict q, const MLIMB *restrict a, size_t n,
+		unsigned int bits, MLIMB d0, MLIMB d1, MLIMB v);
