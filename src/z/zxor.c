@@ -12,45 +12,54 @@ hebi_zxor(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 	hebi_packet *rp;
 	const hebi_packet *ap;
 	const hebi_packet *bp;
-	size_t m, n;
-	int as, bs;
+	size_t an;
+	size_t bn;
+	int as;
+	int bs;
 
 	if (UNLIKELY(a == b)) {
 		hebi_zsetzero(r);
 		return;
-	} else if (UNLIKELY(!(as = a->hz_sign))) {
+	}
+
+	as = a->hz_sign;
+	if (UNLIKELY(!as)) {
 		hebi_zset(r, b);
 		return;
-	} else if (UNLIKELY(!(bs = b->hz_sign))) {
+	}
+
+	bs = b->hz_sign;
+	if (UNLIKELY(!bs)) {
 		hebi_zset(r, a);
 		return;
 	}
 
-	m = a->hz_used;
-	n = b->hz_used;
+	an = a->hz_used;
+	bn = b->hz_used;
 
-	if (m < n) {
+	if (an < bn) {
 		SWAP(hebi_zsrcptr, a, b);
-		SWAP(size_t, m, n);
+		SWAP(size_t, an, bn);
 	}
 
-	if (r != a && r->hz_resv < m)
-		rp = hebi_zexpandcopyif__(r, m, r->hz_resv, r == b);
+	if (r != a && r->hz_resv < an)
+		rp = hebi_zexpandcopyif__(r, an, r->hz_resv, r == b);
 	else
 		rp = r->hz_packs;
 
 	ap = a->hz_packs;
 	bp = b->hz_packs;
 
-	hebi_pxor(rp, ap, bp, n);
-	if (n < m)
-		hebi_pcopy(rp+n, ap+n, m-n);
-	else
-		m = hebi_pnorm(rp, m);
+	hebi_pxor(rp, ap, bp, bn);
 
-	if (LIKELY(m)) {
-		r->hz_used = m;
-		r->hz_sign = (as ^ bs) < 0 ? -1 : 1;
+	if (bn < an)
+		hebi_pcopy(rp+bn, ap+bn, an-bn);
+	else
+		an = hebi_pnorm(rp, an);
+
+	if (LIKELY(an)) {
+		r->hz_used = an;
+		r->hz_sign = SIGNXOR(as, bs) < 0 ? -1 : 1;
 	} else {
 		r->hz_sign = 0;
 	}
