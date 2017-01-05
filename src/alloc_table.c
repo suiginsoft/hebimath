@@ -73,17 +73,19 @@ stdliballoc(void *arg, size_t alignment, size_t size)
 
 #elif defined USE_POSIX_MEMALIGN
 
+	size_t align;
 	int e;
 
-	if (UNLIKELY(alignment < sizeof(void*)))
-		alignment = sizeof(void*);
+	align = alignment;
+	if (UNLIKELY(align < sizeof(void*)))
+		align = sizeof(void*);
 
-	if (UNLIKELY(size & (alignment - 1))) {
+	if (UNLIKELY(size & (align - 1))) {
 		errno = EINVAL;
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
 	}
 
-	e = posix_memalign(&p, alignment, size);
+	e = posix_memalign(&p, align, size);
 	if (UNLIKELY(e)) {
 		errno = e;
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
@@ -91,15 +93,15 @@ stdliballoc(void *arg, size_t alignment, size_t size)
 
 #else
 
-	size_t algn, mask;
+	size_t align, mask;
 	char *q;
 
-	algn = alignment;
-	if (UNLIKELY(algn < sizeof(void*)))
-		algn = sizeof(void*);
+	align = alignment;
+	if (UNLIKELY(align < sizeof(void*)))
+		align = sizeof(void*);
 
-	mask = algn - 1;
-	if (UNLIKELY((algn & mask) || (size & mask))) {
+	mask = align - 1;
+	if (UNLIKELY((align & mask) || (size & mask))) {
 		errno = EINVAL;
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
 	}
@@ -421,7 +423,7 @@ hebi_alloc_query(hebi_allocid *rid, hebi_allocid id)
 
 	/* compute hashcode */
 	hashcode = (slot * 23131) + (slot >> 5);
-	hashcode &= (ALLOC_CACHE_MAX_SIZE - 1);
+	hashcode &= (unsigned int)(ALLOC_CACHE_MAX_SIZE - 1);
 
 	/* check thread-local cache for allocator entry */
 	if (!ctx)
