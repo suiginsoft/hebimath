@@ -12,12 +12,13 @@ hebi_zgetstr(char *restrict str, size_t len, hebi_zsrcptr restrict a, int base)
 	const unsigned int flags = (unsigned int)base;
 	const unsigned int ubase = flags & HEBI_STR_BASEMASK;
 
-	char *ptr;
-	char *end;
-	hebi_packet *w;
-	size_t n;
-	size_t rlen;
-	int s;
+	char *ptr;              /* pointer to after sign character in output */
+	char *end;              /* pointer to null-terminator of output */
+	size_t rlen;            /* result length of string */
+	size_t slen;            /* capacity of str after writing sign */
+	hebi_packet *w;         /* scratchpad copy of 'a' packets */
+	size_t n;               /* number of packets in 'a' */
+	int s;                  /* sign flag of 'a' */
 
 	/* validate base */
 	if (UNLIKELY(ubase < 2 || 36 < ubase))
@@ -27,6 +28,7 @@ hebi_zgetstr(char *restrict str, size_t len, hebi_zsrcptr restrict a, int base)
 	ptr = str;
 	end = str + len - (len > 0);
 	rlen = 0;
+	slen = len;
 
 	/* write out negative sign or optional plus sign */
 	s = a->hz_sign;
@@ -35,14 +37,14 @@ hebi_zgetstr(char *restrict str, size_t len, hebi_zsrcptr restrict a, int base)
 		if (LIKELY(ptr < end)) {
 			*ptr = '-';
 			ptr++;
-			len--;
+			slen--;
 		}
 	} else if (flags & HEBI_STR_SIGN) {
 		rlen++;
 		if (LIKELY(ptr < end)) {
 			*ptr = '+';
 			ptr++;
-			len--;
+			slen--;
 		}
 	}
 
@@ -57,5 +59,5 @@ hebi_zgetstr(char *restrict str, size_t len, hebi_zsrcptr restrict a, int base)
 	}
 
 	/* determine string from packet sequence */
-	return hebi_pgetstr(ptr, len, w, n, base) + rlen;
+	return hebi_pgetstr(ptr, slen, w, n, base) + rlen;
 }
