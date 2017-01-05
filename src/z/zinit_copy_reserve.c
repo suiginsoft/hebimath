@@ -14,25 +14,27 @@ hebi_zinit_copy_reserve(
 		hebi_allocid id )
 {
 	const struct hebi_allocfnptrs *fp;
-	hebi_packet *p;
-	size_t u;
+	hebi_packet *rp;
+	size_t rn;
+	size_t ru;
 
 	fp = hebi_alloc_query(&id, id);
 
-	u = hebi_zused(a);
-	if (n < u)
-		n = u;
+	rn = n;
+	ru = hebi_zused(a);
+	if (rn < ru)
+		rn = ru;
 
-	p = NULL;
-	if (LIKELY(n)) {
-		p = hebi_pallocfp(fp, n);
-		if (LIKELY(u))
-			hebi_pcopy(p, a->hz_packs, u);
+	rp = NULL;
+	if (LIKELY(rn)) {
+		rp = hebi_pallocfp(fp, rn);
+		if (LIKELY(ru))
+			hebi_pcopy(p, a->hz_packs, ru);
 	}
 
-	r->hz_packs = p;
-	r->hz_resv = n;
-	r->hz_used = u;
+	r->hz_packs = rp;
+	r->hz_resv = rn;
+	r->hz_used = ru;
 	r->hz_sign = a->hz_sign;
 	r->hz_allocid = id;
 }

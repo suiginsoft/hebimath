@@ -5,20 +5,23 @@
 
 #include "../../internal.h"
 
+#define SIGNXOR64(X,Y) \
+((int64_t)(((uint64_t)((int64_t)X))^((uint64_t)((int64_t)Y))))
+
 HEBI_API
 int64_t
 hebi_zdivremi(hebi_zptr q, hebi_zsrcptr a, int64_t b)
 {
 	hebi_packet *p;
-	uint64_t bu, ru;
-	int64_t r;
+	uint64_t bu;
+	uint64_t ru;
 	size_t n;
-	int e, s;
+	int s;
 
 	s = a->hz_sign;
 	if (UNLIKELY(!b)) {
-		e = s ? HEBI_EDIVZERO : HEBI_EZERODIVZERO;
-		hebi_error_raise(HEBI_ERRDOM_HEBI, e);
+		hebi_error_raise(HEBI_ERRDOM_HEBI,
+			s ? HEBI_EDIVZERO : HEBI_EZERODIVZERO);
 	}
 
 	if (UNLIKELY(!s)) {
@@ -33,13 +36,17 @@ hebi_zdivremi(hebi_zptr q, hebi_zsrcptr a, int64_t b)
 	if (q) {
 		p = hebi_zgrow__(q, n);
 		ru = hebi_pdivremu(p, a->hz_packs, bu, n);
-		q->hz_used = hebi_pnorm(p, n);
-		q->hz_sign = q->hz_used ? ((((int64_t)s ^ b) >= 0) ? 1 : -1) : 0;
+		n = hebi_pnorm(p, n);
+		if (n) {
+			q->hz_used = n;
+			q->hz_sign = SIGNXOR64(s, b) < 0 ? -1 : 1;
+		} else {
+			q->hz_sign = 0;
+		}
 	} else {
 		p = hebi_pscratch__(n);
 		ru = hebi_pdivremu(p, a->hz_packs, bu, n);
 	}
 
-	r = s < 0 ? -(int64_t)ru : (int64_t)ru;
-	return r;
+	return s < 0 ? -(int64_t)ru : (int64_t)ru;
 }

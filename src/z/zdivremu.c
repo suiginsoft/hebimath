@@ -12,12 +12,12 @@ hebi_zdivremu(hebi_zptr q, hebi_zsrcptr a, uint64_t b)
 	hebi_packet *p;
 	uint64_t r;
 	size_t n;
-	int e, s;
+	int s;
 
 	s = a->hz_sign;
 	if (UNLIKELY(!b)) {
-		e = s ? HEBI_EDIVZERO : HEBI_EZERODIVZERO;
-		hebi_error_raise(HEBI_ERRDOM_HEBI, e);
+		hebi_error_raise(HEBI_ERRDOM_HEBI,
+				s ? HEBI_EDIVZERO : HEBI_EZERODIVZERO);
 	}
 
 	if (UNLIKELY(!s)) {
@@ -31,8 +31,13 @@ hebi_zdivremu(hebi_zptr q, hebi_zsrcptr a, uint64_t b)
 	if (q) {
 		p = hebi_zgrow__(q, n);
 		r = hebi_pdivremu(p, a->hz_packs, b, n);
-		q->hz_used = hebi_pnorm(p, n);
-		q->hz_sign = q->hz_used ? s : 0;
+		n = hebi_pnorm(p, n);
+		if (n) {
+			q->hz_used = n;
+			q->hz_sign = s;
+		} else {
+			q->hz_sign = 0;
+		}
 	} else {
 		p = hebi_pscratch__(n);
 		r = hebi_pdivremu(p, a->hz_packs, b, n);
