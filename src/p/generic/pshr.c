@@ -10,7 +10,7 @@ HEBI_API
 size_t
 hebi_pshr(hebi_packet *r, const hebi_packet *a, size_t b, size_t n)
 {
-	int bits;
+	unsigned int bits;
 	size_t i, j, m, limbs;
 	LIMB *rl, q, s;
 	const LIMB *al;
@@ -19,7 +19,7 @@ hebi_pshr(hebi_packet *r, const hebi_packet *a, size_t b, size_t n)
 	if (UNLIKELY(n * LIMB_PER_PACKET <= limbs))
 		return 0;
 
-	bits = (int)(b % LIMB_BIT);
+	bits = (unsigned int)(b % LIMB_BIT);
 	m = n * LIMB_PER_PACKET - limbs;
 
 	rl = LIMB_PTR(r);

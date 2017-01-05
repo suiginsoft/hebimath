@@ -10,7 +10,7 @@ HEBI_API
 size_t
 hebi_pshl(hebi_packet *r, const hebi_packet *a, size_t b, size_t n)
 {
-	int bits;
+	unsigned int bits;
 	size_t i, j, rn, limbs, offset;
 	LIMB *rl, q, s;
 	const LIMB *al;
@@ -18,7 +18,7 @@ hebi_pshl(hebi_packet *r, const hebi_packet *a, size_t b, size_t n)
 	if (UNLIKELY(!n))
 		return 0;
 
-	bits = (int)(b % LIMB_BIT);
+	bits = (unsigned int)(b % LIMB_BIT);
 	limbs = b / LIMB_BIT;
 	offset = limbs % LIMB_PER_PACKET;
 
