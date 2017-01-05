@@ -12,27 +12,6 @@
 #include <pthread.h>
 #endif
 
-#ifdef __PCC__
-
-/* TODO: Implement CPUID for PCC */
-#if defined __i386__ || defined __x86_64__
-#define __get_cpuid_max(X, Y) 0
-#define __cpuid(X, A, B, C, D)
-#endif
-
-#elif defined __GNUC__
-
-#if defined __i386__ || defined __x86_64__
-#include <cpuid.h>
-#endif
-
-#endif
-
-struct name_hwcaps {
-	const char *name;
-	unsigned long caps;
-};
-
 static unsigned long hwcaps = 0;
 
 #if defined USE_C11_THREADS
@@ -43,11 +22,16 @@ static pthread_once_t hwcaps_once = PTHREAD_ONCE_INIT;
 static int hwcaps_once = 0;
 #endif
 
+struct name_hwcaps {
+	const char *name;
+	unsigned long caps;
+};
+
 #if defined __i386__ || defined __x86_64__
 
 #define HAS_HWCAPS 1
 
-static const struct name_hwcaps hwcapsbyname[] =
+static const struct name_hwcaps hwcaps_byname[] =
 {
 	{          "sse",          hebi_hwcap_sse },
 	{         "sse2",         hebi_hwcap_sse2 },
@@ -91,82 +75,66 @@ static const struct name_hwcaps hwcapsbyname[] =
 	{   "avx512vbmi",   hebi_hwcap_avx512vbmi }
 };
 
-static inline unsigned long
-gethwcapbyname(const char *name)
-{
-	size_t i;
+struct hebi_cpuidregs {
+	uint32_t eax;
+	uint32_t ebx;
+	uint32_t ecx;
+	uint32_t edx;
+};
 
-	for (i = 0; i < COUNTOF(hwcapsbyname); ++i)
-		if (!strcmp(hwcapsbyname[i].name, name))
-			return hwcapsbyname[i].caps;
-
-	return 0;
-}
+HEBI_HIDDEN
+int
+hebi_cpuid__(struct hebi_cpuidregs *out, uint32_t leaf, uint32_t subleaf);
 
 static inline void
-sethwcap(unsigned long *c, unsigned int reg, unsigned int mask,
-		unsigned long hwcap)
+setcap(unsigned long *out, unsigned long caps, uint32_t reg, uint32_t mask)
 {
 	if ((reg & mask) == mask)
-		*c |= hwcap;
+		*out |= caps;
 }
 
 static unsigned long
-nativehwcaps()
+nativecaps(void)
 {
-	unsigned int maxlevel;
-	unsigned int maxextlevel;
-	unsigned int eax = 0;
-	unsigned int ebx = 0;
-	unsigned int ecx = 0;
-	unsigned int edx = 0;
-	unsigned long c = 0;
+	struct hebi_cpuidregs r;
+	unsigned long c;
 
-	maxlevel = (unsigned int)__get_cpuid_max(0, NULL);
-	if (UNLIKELY(maxlevel < 1))
-		return c;
+	if (UNLIKELY(!hebi_cpuid__(&r, 0x00000001U, 0)))
+		return 0;
 
-	__cpuid(0x00000001U, eax, ebx, ecx, edx);
+	c = 0;
+	setcap(&c, hebi_hwcap_sse,    r.edx, 1U << 25);
+	setcap(&c, hebi_hwcap_sse2,   r.edx, 1U << 26);
+	setcap(&c, hebi_hwcap_sse3,   r.ecx, 1U <<  0);
+	setcap(&c, hebi_hwcap_ssse3,  r.ecx, 1U <<  9);
+	setcap(&c, hebi_hwcap_sse4_1, r.ecx, 1U << 19);
+	setcap(&c, hebi_hwcap_sse4_2, r.ecx, 1U << 20);
+	setcap(&c, hebi_hwcap_aesni,  r.ecx, 1U << 25);
+	setcap(&c, hebi_hwcap_clmul,  r.ecx, 1U <<  1);
+	setcap(&c, hebi_hwcap_popcnt, r.ecx, 1U << 23);
+	setcap(&c, hebi_hwcap_f16c,   r.ecx, 1U << 29);
+	setcap(&c, hebi_hwcap_fma,    r.ecx, 1U << 12);
+	setcap(&c, hebi_hwcap_avx,    r.ecx, (1U << 27) | (1U << 28));
 
-	sethwcap(&c, edx, 1U << 25, hebi_hwcap_sse);
-	sethwcap(&c, edx, 1U << 26, hebi_hwcap_sse2);
-	sethwcap(&c, ecx, 1U <<  0, hebi_hwcap_sse3);
-	sethwcap(&c, ecx, 1U <<  9, hebi_hwcap_ssse3);
-	sethwcap(&c, ecx, 1U << 19, hebi_hwcap_sse4_1);
-	sethwcap(&c, ecx, 1U << 20, hebi_hwcap_sse4_2);
-	sethwcap(&c, ecx, 1U << 25, hebi_hwcap_aesni);
-	sethwcap(&c, ecx, 1U <<  1, hebi_hwcap_clmul);
-	sethwcap(&c, ecx, 1U << 23, hebi_hwcap_popcnt);
-	sethwcap(&c, ecx, 1U << 29, hebi_hwcap_f16c);
-	sethwcap(&c, ecx, 1U << 12, hebi_hwcap_fma);
-	sethwcap(&c, ecx, (1U << 27) | (1U << 28), hebi_hwcap_avx);
+	if (hebi_cpuid__(&r, 0x80000001U, 0))
+		setcap(&c, hebi_hwcap_popcnt | hebi_hwcap_lzcnt, r.ecx, 1U << 5);
 
-	maxextlevel = (unsigned int)__get_cpuid_max(0x80000000U, NULL);
-
-	if (maxextlevel > 0x80000000U) {
-		__cpuid(0x80000001U, eax, ebx, ecx, edx);
-		sethwcap(&c, ecx, 1U << 5, hebi_hwcap_popcnt | hebi_hwcap_lzcnt);
-	}
-
-	if (maxlevel > 6) {
-		__cpuid(0x00000007U, eax, ebx, ecx, edx);
-
-		sethwcap(&c, ebx, 1U <<  3, hebi_hwcap_bmi);
-		sethwcap(&c, ebx, 1U <<  8, hebi_hwcap_bmi2);
-		sethwcap(&c, ebx, 1U <<  9, hebi_hwcap_ermsb);
-		sethwcap(&c, ebx, 1U << 19, hebi_hwcap_adx);
-		sethwcap(&c, ebx, 1U << 29, hebi_hwcap_sha);
-
+	if (hebi_cpuid__(&r, 0x00000007U, 0)) {
+		setcap(&c, hebi_hwcap_bmi,   r.ebx, 1U <<  3);
+		setcap(&c, hebi_hwcap_bmi2,  r.ebx, 1U <<  8);
+		setcap(&c, hebi_hwcap_ermsb, r.ebx, 1U <<  9);
+		setcap(&c, hebi_hwcap_adx,   r.ebx, 1U << 19);
+		setcap(&c, hebi_hwcap_sha,   r.ebx, 1U << 29);
 		if (c & hebi_hwcap_avx) {
-			sethwcap(&c, ebx, 1U <<  5, hebi_hwcap_avx2);
-			sethwcap(&c, ebx, 1U << 16, hebi_hwcap_avx512f);
-			sethwcap(&c, ebx, 1U << 30, hebi_hwcap_avx512bw);
-			sethwcap(&c, ebx, 1U << 28, hebi_hwcap_avx512cd);
-			sethwcap(&c, ebx, 1U << 17, hebi_hwcap_avx512dq);
-			sethwcap(&c, ebx, 1U << 27, hebi_hwcap_avx512er);
-			sethwcap(&c, ebx, 1U << 31, hebi_hwcap_avx512vl);
-			sethwcap(&c, ebx, 1U << 21, hebi_hwcap_avx512ifma);
-			sethwcap(&c, ecx, 1U << 21, hebi_hwcap_avx512vbmi);
+			setcap(&c, hebi_hwcap_avx2,       r.ebx, 1U <<  5);
+			setcap(&c, hebi_hwcap_avx512f,    r.ebx, 1U << 16);
+			setcap(&c, hebi_hwcap_avx512bw,   r.ebx, 1U << 30);
+			setcap(&c, hebi_hwcap_avx512cd,   r.ebx, 1U << 28);
+			setcap(&c, hebi_hwcap_avx512dq,   r.ebx, 1U << 17);
+			setcap(&c, hebi_hwcap_avx512er,   r.ebx, 1U << 27);
+			setcap(&c, hebi_hwcap_avx512vl,   r.ebx, 1U << 31);
+			setcap(&c, hebi_hwcap_avx512ifma, r.ebx, 1U << 21);
+			setcap(&c, hebi_hwcap_avx512vbmi, r.ecx, 1U << 21);
 		}
 	}
 
@@ -179,57 +147,74 @@ nativehwcaps()
 
 #endif
 
-static void
-inithwcaps(void)
-{
 #if HAS_HWCAPS
 
-	unsigned long caps = nativehwcaps();
-	unsigned long mask = 0;
+static inline unsigned long
+findcapbyname(const char *name)
+{
+
+	size_t i;
+
+	for (i = 0; i < COUNTOF(hwcaps_byname); ++i)
+		if (!strcmp(hwcaps_byname[i].name, name))
+			return hwcaps_byname[i].caps;
+
+	return 0;
+}
+
+static void
+initcaps(void)
+{
+	unsigned long mask;
 	char *p;
 	char *s;
 	char *t;
 	char *v;
 
+	hwcaps = nativecaps();
+
 	v = getenv("HEBI_HWCAPS");
-	if (!v) {
-		hwcaps = caps;
+	if (!v)
 		return;
-	}
 
 	s = strdup(v);
-	if (!s) {
-		hwcaps = caps;
+	if (!s)
 		return;
-	}
 
 	t = strtok_r(s, " \t\v\r\n", &p);
+	mask = 0;
+
 	while (t) {
-		mask |= gethwcapbyname(t);
+		mask |= findcapbyname(t);
 		t = strtok_r(NULL, " \t\v\r\n", &p);
 	}
 
 	free(s);
-	hwcaps = caps & mask;
 
-#else
-
-	hwcaps = 0;
-
-#endif
+	hwcaps &= mask;
 }
+
+#else /* HAS_HWCAPS */
+
+static void
+initcaps(void)
+{
+	hwcaps = 0;
+}
+
+#endif /* HAS_HWCAPS */
 
 HEBI_HIDDEN HEBI_PURE
 unsigned long
 hebi_hwcaps__(void)
 {
 #if defined USE_C11_THREADS
-	call_once(&hwcaps_once, inithwcaps);
+	call_once(&hwcaps_once, &initcaps);
 #elif defined USE_POSIX_THREADS
-	(void)pthread_once(&hwcaps_once, inithwcaps);
+	(void)pthread_once(&hwcaps_once, &initcaps);
 #else
 	if (!hwcaps_once) {
-		init_hwcaps();
+		initcaps();
 		hwcaps_once = 1;
 	}
 #endif

@@ -23,6 +23,7 @@ CPPFLAGS_x86_64 := -DUSE_DRIVER_X86_64
 CPPFLAGS_driver := $(CPPFLAGS_$(DRIVER_selected))
 
 PDRIVERFUNCS_x86_64 := \
+	cpuid \
 	paddac \
 	psubac \
 	paddc \
