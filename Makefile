@@ -7,7 +7,12 @@ include $(CONFIG)
 DRIVER_generic := generic
 DRIVER_x86_64 := x86_64
 
-DRIVER_selected := $(DRIVER)
+DRIVER_auto != sh -c 'uname -m 2>/dev/null || echo generic | \
+	sed -e ''s/i.86$$/i386/'''
+
+DRIVER_selected != sh -c 'test -n "$(DRIVER_$(DRIVER))" -a \
+	-d src/p/$(DRIVER_$(DRIVER)) && \
+	echo $(DRIVER_$(DRIVER)) || echo generic'
 
 DISPATCH_generic := static
 DISPATCH_x86_64 := $(DISPATCH)
