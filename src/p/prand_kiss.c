@@ -13,44 +13,49 @@ hebi_prand_kiss(
 		size_t bits,
 		struct hebi_kiss *restrict k )
 {
-	uint64_t *restrict p;
-	uint64_t *restrict q;
-	uint64_t m, x, c, cng, xs;
-	size_t i, j, l, limbs;
+	size_t index;           /* mwc data sample index */
+	size_t length;          /* mwc data sample length */
+	uint64_t *data;         /* mwc data samples */
+	uint64_t carry;         /* mwc carry value */
+	uint64_t mwc;           /* multiply-with-carry result */
+	uint64_t cng;           /* linear congruential result */
+	uint64_t xs;            /* xor-shift result */
+	uint64_t *limbs;
+	size_t nlimbs;
+	size_t i;
 
-	if (UNLIKELY(!n))
-		return;
+	ASSERT(n > 0);
 
 	/* determine number of 64-bit limbs to randomly generate */
-	if (UNLIKELY(!(limbs = (bits + 63) / 64))) {
+	nlimbs = (bits + 63) / 64;
+	if (UNLIKELY(!nlimbs)) {
 		hebi_pzero(r, n);
 		return;
 	}
+	limbs = r->hp_limbs64;
 
 	/* load PRNG state */
 	xs = k->hk_xorshift;
 	cng = k->hk_congruential;
-	c = k->hk_carry;
-	l = k->hk_length;
-	if (l > 1) {
-		q = k->hk_multi;
-		j = k->hk_multi_index;
+	carry = k->hk_carry;
+	length = k->hk_length;
+	if (length > 1) {
+		data = k->hk_multi;
+		index = k->hk_index;
 	} else {
-		q = &k->hk_single;
-		j = 0;
-		l = 1;
+		data = k->hk_single;
+		index = 0;
+		length = 1;
 	}
 
 	/* generate random limbs */
-	p = r->hp_limbs64;
-	for (i = 0; i < limbs; i++) {
+	for (i = 0; i < nlimbs; i++) {
 		/* multiply-with-carry generator */
-		j = (j + 1) & (l - 1);
-		x = q[j];
-		m = (x << 28) + c;
-		c = (x >> 36) - (m < x);
-		m -= x;
-		q[j] = m;
+		index = (index + 1) & (length - 1);
+		mwc = (data[index] << 28) + carry;
+		carry = (data[index] >> 36) - (mwc < data[index]);
+		mwc -= data[index];
+		data[index] = mwc;
 
 		/* linear congruential generator */
 		cng *= UINT64_C(6906969069);
@@ -61,26 +66,26 @@ hebi_prand_kiss(
 		xs ^= xs << 17;
 		xs ^= xs << 43;
 
-		p[i] = m + cng + xs;
+		limbs[i] = mwc + cng + xs;
 	}
 
 	/* save PRNG state */
 	k->hk_xorshift = xs;
 	k->hk_congruential = cng;
-	k->hk_carry = c;
-	if (l > 1)
-		k->hk_multi_index = j;
+	k->hk_carry = carry;
+	k->hk_index = index;
 
 	/* mask off bits of last limb */
 	if (LIKELY(bits %= 64))
-		p[i-1] &= (UINT64_C(1) << bits) - 1;
+		limbs[i-1] &= (UINT64_C(1) << bits) - 1;
 
 	/* zero remaining limbs of last packet */
-	if (LIKELY(limbs %= HEBI_PACKET_LIMBS64))
-		for ( ; limbs < HEBI_PACKET_LIMBS64; limbs++, i++)
-			p[i] = 0;
+	STATIC_ASSERT(HEBI_PACKET_LIMBS64 == 2, "limbs-per-packet must be 2");
+	if ((i % HEBI_PACKET_LIMBS64) != 0)
+		limbs[i] = 0;
 
 	/* zero remaining packets */
-	if (UNLIKELY((i /= HEBI_PACKET_LIMBS64) < n))
+	i = (i + HEBI_PACKET_LIMBS64 - 1) / HEBI_PACKET_LIMBS64;
+	if (i < n)
 		hebi_pzero(r + i, n - i);
 }

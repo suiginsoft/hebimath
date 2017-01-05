@@ -180,20 +180,17 @@ struct hebi_kiss {
 	uint64_t hebi_xorshift__;
 	uint64_t hebi_congruential__;
 	uint64_t hebi_carry__;
+	uint64_t hebi_single__[1];
+	size_t hebi_index__;
 	size_t hebi_length__;
-	union {
-		uint64_t hebi_single__;
-		struct {
-			uint64_t *hebi_values__;
-			size_t hebi_index__;
-		} hebi_multi__;
-	} hebi_data__;
+	uint64_t *hebi_multi__;
 };
 
 #define HEBI_KISS_INIT { \
 	UINT64_C(362436069362436069), \
 	UINT64_C(123456789987654321), \
-	0, 1, { UINT64_C(4261283300534326642) } }
+	0, { UINT64_C(4261283300534326642) }, \
+	0, 1, NULL }
 
 enum {
 	HEBI_STR_BASEMASK = 63,

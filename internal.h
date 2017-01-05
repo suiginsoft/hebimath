@@ -283,10 +283,10 @@ hebi_error_assert__(const char *expr, const char *func, const char *file, long l
 #define hk_xorshift hebi_xorshift__
 #define hk_congruential hebi_congruential__
 #define hk_carry hebi_carry__
+#define hk_index hebi_index__
 #define hk_length hebi_length__
-#define hk_single hebi_data__.hebi_single__
-#define hk_multi hebi_data__.hebi_multi__.hebi_values__
-#define hk_multi_index hebi_data__.hebi_multi__.hebi_index__
+#define hk_single hebi_single__
+#define hk_multi hebi_multi__
 
 /* hebi_integer field names */
 #define hz_packs hebi_packs__
