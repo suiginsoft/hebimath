@@ -29,7 +29,7 @@ hebi_zinit_copy_reserve(
 	if (LIKELY(rn)) {
 		rp = hebi_pallocfp(fp, rn);
 		if (LIKELY(ru))
-			hebi_pcopy(p, a->hz_packs, ru);
+			hebi_pcopy(rp, a->hz_packs, ru);
 	}
 
 	r->hz_packs = rp;
