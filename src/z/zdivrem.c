@@ -9,17 +9,26 @@ HEBI_API
 void
 hebi_zdivrem(hebi_zptr q, hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 {
-	hebi_z qtmp, rtmp;
-	hebi_packet *restrict qp, *restrict rp, *restrict wp;
-	size_t qn, rn, wn, an, bn, *restrict rpn;
-	int e, qs, rs;
+	hebi_z qtmp;
+	hebi_z rtmp;
+	hebi_packet *qp;
+	hebi_packet *rp;
+	hebi_packet *wp;
+	size_t *rpn;
+	size_t qn;
+	size_t rn;
+	size_t wn;
+	size_t an;
+	size_t bn;
+	int qs;
+	int rs;
 
-	qs = b->hz_sign;
 	rs = a->hz_sign;
+	qs = b->hz_sign;
 
 	if (UNLIKELY(!qs)) {
-		e = rs ? HEBI_EDIVZERO : HEBI_EZERODIVZERO;
-		hebi_error_raise(HEBI_ERRDOM_HEBI, e);
+		hebi_error_raise(HEBI_ERRDOM_HEBI,
+				rs ? HEBI_EDIVZERO : HEBI_EZERODIVZERO);
 	} else if (UNLIKELY(!rs)) {
 		if (r)
 			hebi_zsetzero(r);
@@ -39,11 +48,11 @@ hebi_zdivrem(hebi_zptr q, hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 		return;
 	}
 
-	qs = (qs ^ rs) < 0 ? -1 : 1;
+	qs = SIGNXOR(qs, rs) < 0 ? -1 : 1;
 	qn = an - bn + 1;
 	rn = bn;
 	wn = an + bn + 2;
-	wp = hebi_pscratch__(wn + (q ? 0 : qn));
+	wp = hebi_pscratch__(wn + (!q ? qn : 0));
 
 	if (q) {
 		hebi_zinit_push__(qtmp, hebi_zallocator(q));
