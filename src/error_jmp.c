@@ -25,12 +25,12 @@ hebi_error_jmp(jmp_buf env, int val)
 	struct hebi_longjmparg ljarg;
 	memcpy(ljarg.env, env, sizeof(jmp_buf));
 	ljarg.val = val;
-	ctx = hebi_context_get__(longjmphandler, &ljarg);
+	ctx = hebi_context_get__(&longjmphandler, &ljarg);
 #else
 	ctx = &hebi_context__;
 #endif
 
-	ctx->errhandler = longjmphandler;
+	ctx->errhandler = &longjmphandler;
 	ctx->errarg = &ctx->errjmparg;
 	memcpy(ctx->errjmparg.env, env, sizeof(jmp_buf));
 	ctx->errjmparg.val = val;
