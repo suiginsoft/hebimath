@@ -94,7 +94,7 @@ setcap(unsigned long *out, unsigned long caps, uint32_t reg, uint32_t mask)
 }
 
 static unsigned long
-nativecaps(void)
+getnativecaps(void)
 {
 	struct hebi_cpuidregs r;
 	unsigned long c;
@@ -152,8 +152,9 @@ nativecaps(void)
 static inline unsigned long
 findcapbyname(const char *name)
 {
-
 	size_t i;
+
+	ASSERT(name != NULL);
 
 	for (i = 0; i < COUNTOF(hwcaps_byname); ++i)
 		if (!strcmp(hwcaps_byname[i].name, name))
@@ -162,36 +163,42 @@ findcapbyname(const char *name)
 	return 0;
 }
 
+static unsigned long
+overridecaps(unsigned long caps, const char *list)
+{
+	unsigned long mask;
+	char *listcopy;
+	char *momento;
+	char *name;
+
+	ASSERT(list != NULL);
+
+	listcopy = strdup(list);
+	if (listcopy == NULL)
+		return caps;
+
+	mask = 0;
+	name = strtok_r(listcopy, " \t\v\r\n", &momento);
+
+	while (name != NULL) {
+		mask |= findcapbyname(name);
+		name = strtok_r(NULL, " \t\v\r\n", &momento);
+	}
+
+	free(listcopy);
+	return caps & mask;
+}
+
 static void
 initcaps(void)
 {
-	unsigned long mask;
-	char *p;
-	char *s;
-	char *t;
-	char *v;
+	const char *capslist;
 
-	hwcaps = nativecaps();
+	hwcaps = getnativecaps();
 
-	v = getenv("HEBI_HWCAPS");
-	if (!v)
-		return;
-
-	s = strdup(v);
-	if (!s)
-		return;
-
-	t = strtok_r(s, " \t\v\r\n", &p);
-	mask = 0;
-
-	while (t) {
-		mask |= findcapbyname(t);
-		t = strtok_r(NULL, " \t\v\r\n", &p);
-	}
-
-	free(s);
-
-	hwcaps &= mask;
+	capslist = getenv("HEBI_HWCAPS");
+	if (capslist != NULL)
+		hwcaps = overridecaps(hwcaps, capslist);
 }
 
 #else /* HAS_HWCAPS */
