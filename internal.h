@@ -233,6 +233,7 @@ EXTENSION typedef unsigned __int128 hebi_uint128;
 #define COUNTOF(A) (sizeof(A) / sizeof(A[0]))
 #define MAX(A,B) ((A)>(B)?(A):(B))
 #define MIN(A,B) ((A)<(B)?(A):(B))
+#define SIGNXOR(A,B) ((int)(((unsigned int)(A))^((unsigned int)(B))))
 #define MULTILINEBEGIN do {
 #define MULTILINEEND } while(0)
 #define LIKELY(E) HEBI_LIKELY(E)

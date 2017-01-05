@@ -10,12 +10,18 @@ void
 hebi_zmul(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 {
 	hebi_z rtmp;
-	hebi_zptr restrict rz;
-	hebi_packet *restrict rp, *restrict wp;
-	size_t rn, an, bn;
-	int as, bs;
+	hebi_zptr rz;
+	hebi_packet *rp;
+	hebi_packet *wp;
+	size_t rn;
+	size_t an;
+	size_t bn;
+	int as;
+	int bs;
 
-	if (UNLIKELY(!(as = a->hz_sign) || !(bs = b->hz_sign))) {
+	as = a->hz_sign;
+	bs = b->hz_sign;
+	if (UNLIKELY(!as || !bs)) {
 		hebi_zsetzero(r);
 		return;
 	}
@@ -32,8 +38,10 @@ hebi_zmul(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADLENGTH);
 
 	rz = r;
-	if (rz == a || rz == b)
-		hebi_zinit_push__((rz = rtmp), hebi_zallocator(r));
+	if (rz == a || rz == b) {
+		rz = rtmp;
+		hebi_zinit_push__(rz, hebi_zallocator(r));
+	}
 
 	if (an > KARATSUBA_MUL_CUTOFF) {
 		wp = hebi_pscratch__(hebi_pmul_karatsuba_space(an, bn));
@@ -41,12 +49,13 @@ hebi_zmul(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 		hebi_pzero(rp, rn);
 		hebi_pmul_karatsuba(rp, wp, a->hz_packs, b->hz_packs, an, bn);
 	} else {
-		rp = hebi_zgrow__(rz, --rn);
+		rn--;
+		rp = hebi_zgrow__(rz, rn);
 		hebi_pmul(rp, a->hz_packs, b->hz_packs, an, bn);
 	}
 
 	rz->hz_used = hebi_pnorm(rp, rn);
-	rz->hz_sign = (as ^ bs) < 0 ? -1 : 1;
+	rz->hz_sign = SIGNXOR(as, bs) < 0 ? -1 : 1;
 
 	if (rz != r) {
 		hebi_zswap(rz, r);

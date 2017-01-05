@@ -31,7 +31,7 @@ hebi_zsub(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 		SWAP(int, as, bs);
 	}
 
-	if ((as ^ bs) >= 0) {
+	if (SIGNXOR(as, bs) >= 0) {
 		if (r == a) {
 			rp = hebi_zgrowcopy__(r, au + 1);
 			carry = hebi_padda(rp, b->hz_packs, au, bu);
