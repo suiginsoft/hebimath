@@ -1,6 +1,11 @@
+Planned for Version 0.6
+================================================================================
+
 Low-level Functions:
 
-* add/sub variants for inplace operations and same-sized inputs
+* add/sub variants for inplace operations and same-sized input
+	* change adda/suba to only use a single operand?
+	* create addua/subua to add in carry for larger ops?
 * port remainder of division implementation to x86-64 assembly
 * optimize pclz, almost always called on normalized input
 * move most of zsetstr into psetstr backend?
@@ -13,6 +18,7 @@ Integer Functions:
 * zscan1
 * zsetbit
 * zgcd
+* zpow
 * zpowu
 * zsqrt
 * zload
@@ -38,6 +44,21 @@ Other:
 * add support for compiler static analysis
 	* enable additional warnings and security hardening flags by default
 * add support for SEI CERT C validation and perform security audit
+	* audit all uses of LIKELY/UNLIKELY for assignment/mutation
+	* fix security problem with HEBI_HWCAPS, all dispatcher stubs
+	  should use SSE2 as default
+	* rewrite generic kernels to just use 64-bit limbs, change
+	  hebi_packet to a struct instead of a union, would also let the
+	  library support big-endian machines as a consequence
+	* add configuration macro to enable error-checking mutex/rwlocks
+	* add configuration macro for strict MISRA compliance? need to figure
+	  out a way to work around lack of abort/setjmp/longjmp error handling.
+	  maybe just use hebi_error_last in the same way glGetError is
+	  used in OpenGL?
+	* add assertion checks for NULL pointers and audit how we compare to
+	  NULL to make sure we are consistent throughout the code base
+* either get rid of the error domain, or add a C11 threads error domain, need
+  to investigate what's best after implementing random functions
 * more testing on other Linux and BSD distributions
 * more testing with different C compilers and with older versions of compilers
 * perform an audit on floating-point values, make sure we aren't using any
@@ -46,7 +67,8 @@ Other:
   declarations, trailing whitespace, convert spaces to tabs, etc.
 * add support for big-endian machines
 
-Longer Term:
+Future Versions
+================================================================================
 
 * add arbitrary precision rationals and floating-point numbers
 * add GNU MP style API wrapper header
