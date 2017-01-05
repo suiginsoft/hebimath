@@ -1,31 +1,7 @@
-# customize below to fit your system
-
-# VERSION sets the hebimath release version
+# see config.mk for documentation
 VERSION = 0.6
-
-# LINKAGE controls the type of libraries to build
-#   both    - builds both shared and static libraries
-#   shared  - only build the shared library
-#   static  - only build the static library
 LINKAGE = static
-
-# DRIVER controls which low-level functions backend to compile
-# and use and can be set to one of the following options:
-#   auto    - auto-detect best backend for host system
-#   generic - generic portable backend
-#   x86_64  - optimized for x86-64 processors
 DRIVER = generic
-
-# DISPATCH controls function multi-versioning for the backend
-# and can be set to either dynamic or static:
-#   dynamic - will enable dynamic runtime dispatching based
-#             on CPUID, devtmpfs/syfs/procfs file systems,
-#             and/or the environment. flags in 'config.inc'
-#             are used to enable/disable which kernel
-#             versions are included in the library
-#   static  - will determine which kernel version to use at
-#             build time, using the best version matching
-#             flags in 'config.inc'
 DISPATCH = static
 
 # file paths
@@ -50,6 +26,6 @@ CPPFLAGS_shared = -DHEBI_EXPORT_SYMBOLS
 CFLAGS_shared = -fpic -fvisibility=hidden
 LDFLAGS_shared = -shared
 
-# asflags for different FNMV modes
+# asflags for different DISPATCH modes
 ASFLAGS_dispatch_dynamic = --defsym USE_MULTI_VERSIONING=1
 ASFLAGS_dispatch_static =
