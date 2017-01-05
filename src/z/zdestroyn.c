@@ -7,17 +7,19 @@
 
 HEBI_API
 void
-hebi_zdestroyn(hebi_zptr r, size_t n)
+hebi_zdestroyn(size_t count, struct hebi_integer r[count])
 {
 	hebi_allocid id;
+	size_t i;
 
-	for ( ; n; n--, r++) {
-		if (LIKELY((id = hebi_zallocator(r)) != HEBI_ALLOC_INVALID))
-			hebi_free(id, r->hz_packs, r->hz_resv * sizeof(hebi_packet));
-		r->hz_packs = NULL;
-		r->hz_resv = 0;
-		r->hz_used = 0;
-		r->hz_sign = 0;
-		r->hz_allocid = (int)(intptr_t)HEBI_ALLOC_INVALID;
+	for (i = 0; i < count; i++) {
+		id = hebi_zallocator(&r[i]);
+		if (LIKELY(id != HEBI_ALLOC_INVALID))
+			hebi_pfree(id, r[i].hz_packs, r[i].hz_resv);
+		r[i].hz_packs = NULL;
+		r[i].hz_resv = 0;
+		r[i].hz_used = 0;
+		r[i].hz_sign = 0;
+		r[i].hz_allocid = (int)(intptr_t)HEBI_ALLOC_INVALID;
 	}
 }

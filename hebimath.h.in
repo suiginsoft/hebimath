@@ -57,6 +57,12 @@ extern "C" {
 #define HEBI_NORETURN
 #endif
 
+#if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
+#define HEBI_VLAARG(T,X,N) T X[N]
+#else
+#define HEBI_VLAARG(T,X,N) T *X
+#endif
+
 #if defined __GNUC__
 #define HEBI_CONST __attribute__((__const__))
 #define HEBI_ALLOC __attribute__((__malloc__))
@@ -340,16 +346,16 @@ typedef const struct hebi_integer *hebi_zsrcptr;
 
 #define HEBI_Z_INIT {{NULL,0,0,0,((int)(intptr_t)HEBI_ALLOC_DEFAULT)}}
 
-HEBI_API void hebi_zinits(hebi_zptr r__, ...);
-HEBI_API void hebi_zinitn(hebi_zptr r__, size_t count__);
 HEBI_API void hebi_zinit_buffer(hebi_zptr HEBI_RESTRICT r__, void *HEBI_RESTRICT p__, size_t n__);
 HEBI_API void hebi_zinit_reserve(hebi_zptr r__, size_t n__, hebi_allocid i__);
 HEBI_API void hebi_zinit_copy(hebi_zptr HEBI_RESTRICT r__, hebi_zsrcptr HEBI_RESTRICT a__);
 HEBI_API void hebi_zinit_copy_buffer(hebi_zptr HEBI_RESTRICT r__, hebi_zsrcptr HEBI_RESTRICT a__, void *HEBI_RESTRICT p__, size_t n__);
 HEBI_API void hebi_zinit_copy_reserve(hebi_zptr HEBI_RESTRICT r__, hebi_zsrcptr HEBI_RESTRICT a__, size_t n__, hebi_allocid i__);
+HEBI_API void hebi_zinitn(size_t count__, HEBI_VLAARG(struct hebi_integer, r__, count__));
+HEBI_API void hebi_zinitv(size_t count__, HEBI_VLAARG(const hebi_zptr, r__, count__));
 HEBI_API void hebi_zdestroy(hebi_zptr r__);
-HEBI_API void hebi_zdestroys(hebi_zptr r__, ...);
-HEBI_API void hebi_zdestroyn(hebi_zptr r__, size_t n__);
+HEBI_API void hebi_zdestroyn(size_t count__, HEBI_VLAARG(struct hebi_integer, r__, count__));
+HEBI_API void hebi_zdestroyv(size_t count__, HEBI_VLAARG(const hebi_zptr, r__, count__));
 HEBI_API void hebi_zrealloc(hebi_zptr r__, size_t n__);
 HEBI_API void hebi_zrealloczero(hebi_zptr r__, size_t n__);
 HEBI_API size_t hebi_zsetstr(hebi_zptr HEBI_RESTRICT r__, const char *HEBI_RESTRICT str__, char **HEBI_RESTRICT strptr__, int base__);

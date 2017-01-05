@@ -95,8 +95,8 @@ PFUNCTIONS := \
 
 ZFUNCTIONS := \
 	zinit \
-	zinits \
 	zinitn \
+	zinitv \
 	zinit_allocator \
 	zinit_buffer \
 	zinit_reserve \
@@ -105,8 +105,8 @@ ZFUNCTIONS := \
 	zinit_copy_reserve \
 	zinit_move \
 	zdestroy \
-	zdestroys \
 	zdestroyn \
+	zdestroyv \
 	zexpand \
 	zrealloc \
 	zrealloczero \

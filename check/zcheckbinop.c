@@ -12,9 +12,10 @@ zcheckbinop(
 		const char* opfmt,
 		int flags )
 {
+	hebi_z r, a, b;
+	hebi_zptr v[3] = { r, a, b };
 	char *expected = NULL;
 	char *operation = NULL;
-	hebi_z r, a, b;
 	int x;
 
 	assert(f);
@@ -22,7 +23,7 @@ zcheckbinop(
 	assert(check_first_iter >= 0);
 	assert(check_max_perm >= 0);
 
-	hebi_zinits(r, a, b, NULL);
+	hebi_zinitv(3, v);
 
 	check_iter = check_first_iter;
 	check_max_iter = check_max_perm * check_max_perm;
@@ -65,5 +66,5 @@ zcheckbinop(
 		free(operation);
 	}
 
-	hebi_zdestroys(r, a, b, NULL);
+	hebi_zdestroyv(3, v);
 }

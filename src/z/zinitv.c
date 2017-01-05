@@ -7,16 +7,18 @@
 
 HEBI_API
 void
-hebi_zinitn(size_t count, struct hebi_integer r[count])
+hebi_zinitv(size_t count, const hebi_zptr r[count])
 {
 	const hebi_allocid id = hebi_alloc_get_default();
 	size_t i;
 
 	for (i = 0; i < count; i++) {
-		r[i].hz_packs = NULL;
-		r[i].hz_resv = 0;
-		r[i].hz_used = 0;
-		r[i].hz_sign = 0;
-		r[i].hz_allocid = (int)(intptr_t)id;
+		if (!r[i])
+			continue;
+		r[i]->hz_packs = NULL;
+		r[i]->hz_resv = 0;
+		r[i]->hz_used = 0;
+		r[i]->hz_sign = 0;
+		r[i]->hz_allocid = (int)(intptr_t)id;
 	}
 }

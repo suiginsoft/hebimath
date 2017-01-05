@@ -8,14 +8,15 @@
 int
 main(int argc, char *argv[])
 {
-	hebi_z q, r, a;
 	size_t b, l, n;
+	hebi_z q, r, a;
+	const hebi_zptr v[3] = { q, r, a };
 
 	check_max_perm = 64;
 	check_scale_perm = 4;
 	checkinit(argc, argv);
 
-	hebi_zinits(q, r, a, NULL);
+	hebi_zinitv(3, v);
 
 	check_iter = check_first_iter;
 	check_max_iter = check_max_perm;
@@ -57,6 +58,7 @@ main(int argc, char *argv[])
 		}
 	}
 
-	hebi_zdestroys(q, r, a, NULL);
+	hebi_zdestroyv(3, v);
+
 	return 0;
 }

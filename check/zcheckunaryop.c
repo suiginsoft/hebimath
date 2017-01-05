@@ -12,9 +12,9 @@ zcheckunaryop(
 		const char* opfmt,
 		int flags )
 {
+	hebi_z r, a;
 	char *expected = NULL;
 	char *operation = NULL;
-	hebi_z r, a;
 	int x;
 
 	assert(f);
@@ -22,7 +22,8 @@ zcheckunaryop(
 	assert(check_first_iter >= 0);
 	assert(check_max_perm >= 0);
 
-	hebi_zinits(r, a, NULL);
+	hebi_zinit(r);
+	hebi_zinit(a);
 
 	check_iter = check_first_iter;
 	check_max_iter = check_max_perm;
@@ -56,5 +57,6 @@ zcheckunaryop(
 		free(operation);
 	}
 
-	hebi_zdestroys(r, a, NULL);
+	hebi_zdestroy(r);
+	hebi_zdestroy(a);
 }

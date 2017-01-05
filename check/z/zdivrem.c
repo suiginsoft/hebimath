@@ -11,10 +11,16 @@ checkdividebyzero(void)
 	struct hebi_errstate es;
 	struct hebi_error err;
 	jmp_buf env;
-	hebi_z q, r, a, b;
 	int c;
 
-	hebi_zinits(q, r, a, b, NULL);
+	hebi_z q;
+	hebi_z r;
+	hebi_z a;
+	hebi_z b;
+
+	const hebi_zptr v[4] = { q, r, a, b };
+	hebi_zinitv(4, v);
+
 	hebi_error_save(&es);
 	
 	switch (setjmp(env)) {
@@ -45,7 +51,7 @@ checkdividebyzero(void)
 	}
 
 	hebi_error_restore(&es);
-	hebi_zdestroys(q, r, a, b, NULL);
+	hebi_zdestroyv(4, v);
 }
 
 static void
@@ -53,7 +59,8 @@ checkedgecases(void)
 {
 	hebi_z q, r, a, b;
 
-	hebi_zinits(q, r, a, b, NULL);
+	const hebi_zptr v[4] = { q, r, a, b };
+	hebi_zinitv(4, v);
 
 	/*
 	 * cases where the top of normalized dividend is larger or equal to
@@ -90,7 +97,7 @@ checkedgecases(void)
 
 	/* TODO */
 
-	hebi_zdestroys(q, r, a, b, NULL);
+	hebi_zdestroyv(4, v);
 }
 
 int
