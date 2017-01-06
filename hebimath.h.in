@@ -189,16 +189,17 @@ struct hebi_kiss {
 	uint64_t hebi_congruential__;
 	uint64_t hebi_carry__;
 	uint64_t hebi_single__[1];
-	size_t hebi_index__;
-	size_t hebi_length__;
 	uint64_t *hebi_multi__;
+	size_t hebi_length__;
+	size_t hebi_index__;
+	hebi_allocid hebi_allocator__;
 };
 
 #define HEBI_KISS_INIT { \
 	UINT64_C(362436069362436069), \
 	UINT64_C(123456789987654321), \
 	0, { UINT64_C(4261283300534326642) }, \
-	0, 1, NULL }
+	NULL, 1, 0, HEBI_ALLOC_INVALID }
 
 enum {
 	HEBI_STR_BASEMASK = 63,

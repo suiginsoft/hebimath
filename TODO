@@ -44,6 +44,7 @@ Other:
 * add support for compiler static analysis
 	* enable additional warnings and security hardening flags by default
 * add support for SEI CERT C validation and perform security audit
+	* try out clang-tidy
 	* audit all uses of LIKELY/UNLIKELY for assignment/mutation
 	* fix security problem with HEBI_HWCAPS, all dispatcher stubs
 	  should use SSE2 as default
@@ -66,6 +67,8 @@ Other:
 * code cleanup audit, remove any C++ style comments, C++ style pointer
   declarations, trailing whitespace, convert spaces to tabs, etc.
 * add support for big-endian machines
+* need to add a function to copy or swap, depending on destination allocator,
+  for functions like zmul/zdivrem
 
 Future Versions
 ================================================================================
