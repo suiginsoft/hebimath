@@ -6,6 +6,24 @@
 #include "pcommon.h"
 
 static inline
+char
+digtochar(int digit, int lettering, unsigned int base)
+{
+	int c;
+
+	if (digit < 10)
+		c = digit + '0';
+	else if (base <= 36)
+		c = digit + lettering;
+	else if (digit < 36)
+		c = digit + 'A' - 10;
+	else
+		c = digit + 'a' - 36;
+
+	return (char)c;
+}
+
+static inline
 int
 divrem(hebi_packet *w, size_t *n, unsigned int bits, MLIMB d, MLIMB v)
 {
@@ -63,8 +81,6 @@ hebi_pgetstr(
 	const unsigned int flags = (unsigned int)base;
 	const unsigned int ubase = flags & HEBI_STR_BASEMASK;
 
-	int digit;
-	int letterbase;
 	unsigned int bits;      /* leading zero bits of ubase */
 	MLIMB d;                /* ubase normalized for division */
 	MLIMB v;                /* reciprocal estimate of d */
@@ -73,6 +89,8 @@ hebi_pgetstr(
 	size_t start;
 	size_t end;
 	size_t cur;
+	int digit;
+	int lettering;
 
 	ASSERT(n <= HEBI_PACKET_MAXLEN);
 	ASSERT(2 <= ubase && ubase <= 62);
@@ -109,10 +127,10 @@ hebi_pgetstr(
 		return rlen;
 	}
 
-	/* determine lowercase or uppercase */
-	letterbase = 'a' - 10;
+	/* determine lowercase or uppercase letters */
+	lettering = 'a' - 10;
 	if (flags & HEBI_STR_UPPER)
-		letterbase = 'A' - 10;
+		lettering = 'A' - 10;
 
 	/* compute reciprocal and normalized divisor */
 	d = (MLIMB)ubase;
@@ -142,22 +160,14 @@ hebi_pgetstr(
 	/*
 	 * otherwise, compute and write character digits to string. wrap
 	 * around in ring-buffer fashion if we run out of room: when the
-	 * digits are reversed, the truncated string will then have the
-	 * correct sequence of truncated digits
+	 * digits are reversed, the truncated string will then contain
+	 * the correct sequence
 	 */
 	start = cur;
 	do {
 		for (cur = start; cur < end && wn > 0; cur++) {
 			digit = divrem(w, &wn, bits, d, v);
-			if (digit < 10)
-				digit += '0';
-			else if (ubase <= 36)
-				digit += letterbase;
-			else if (digit < 36)
-				digit += 'A' - 10;
-			else
-				digit += 'a' - 36;
-			str[cur] = (char)digit;
+			str[cur] = digtochar(digit, lettering, ubase);
 			rlen++;
 		}
 	} while (UNLIKELY(wn > 0));
