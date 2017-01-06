@@ -13,12 +13,12 @@ hebi_zinitv(size_t count, const hebi_zptr r[count])
 	size_t i;
 
 	for (i = 0; i < count; i++) {
-		if (!r[i])
-			continue;
-		r[i]->hz_packs = NULL;
-		r[i]->hz_resv = 0;
-		r[i]->hz_used = 0;
-		r[i]->hz_sign = 0;
-		r[i]->hz_allocid = id;
+		if (LIKELY(r[i])) {
+			r[i]->hz_packs = NULL;
+			r[i]->hz_resv = 0;
+			r[i]->hz_used = 0;
+			r[i]->hz_sign = 0;
+			r[i]->hz_allocid = id;
+		}
 	}
 }

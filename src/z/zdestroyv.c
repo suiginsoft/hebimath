@@ -13,15 +13,15 @@ hebi_zdestroyv(size_t count, const hebi_zptr r[count])
 	size_t i;
 
 	for (i = 0; i < count; i++) {
-		if (!r[i])
-			continue;
-		id = hebi_zallocator(r[i]);
-		if (LIKELY(id != HEBI_ALLOC_INVALID))
-			hebi_pfree(id, r[i]->hz_packs, r[i]->hz_resv);
-		r[i]->hz_packs = NULL;
-		r[i]->hz_resv = 0;
-		r[i]->hz_used = 0;
-		r[i]->hz_sign = 0;
-		r[i]->hz_allocid = HEBI_ALLOC_INVALID;
+		if (LIKELY(r[i])) {
+			id = hebi_zallocator(r[i]);
+			if (LIKELY(id != HEBI_ALLOC_INVALID))
+				hebi_pfree(id, r[i]->hz_packs, r[i]->hz_resv);
+			r[i]->hz_packs = NULL;
+			r[i]->hz_resv = 0;
+			r[i]->hz_used = 0;
+			r[i]->hz_sign = 0;
+			r[i]->hz_allocid = HEBI_ALLOC_INVALID;
+		}
 	}
 }
