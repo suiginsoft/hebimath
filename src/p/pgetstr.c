@@ -144,16 +144,12 @@ hebi_pgetstr(
 	 * digits in order to compute final result length
 	 */
 	if (UNLIKELY(cur >= end)) {
-		/* null-terminate output */
 		if (len > 0)
 			str[cur] = '\0';
-
-		/* consume digits */
 		while (wn > 0) {
 			(void)divrem(w, &wn, bits, d, v);
 			rlen++;
 		}
-
 		return rlen;
 	}
 
