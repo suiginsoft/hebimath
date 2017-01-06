@@ -19,7 +19,8 @@ hebi_realloc_scratch__(struct hebi_context *ctx, size_t newsize)
 
 	ASSERT(ctx);
 
-	if ((p = ctx->scratch)) {
+	p = ctx->scratch;
+	if (p) {
 		fp = ctx->scratchfp;
 		n = ctx->scratchsize;
 		ASSERT(fp);
@@ -29,7 +30,8 @@ hebi_realloc_scratch__(struct hebi_context *ctx, size_t newsize)
 		ctx->scratchsize = 0;
 
 #ifdef USE_THREAD_LOCAL
-		if ((shadow = ctx->shadow)) {
+		shadow = ctx->shadow;
+		if (shadow) {
 			shadow->scratchfp = NULL;
 			shadow->scratch = NULL;
 			shadow->scratchsize = 0;

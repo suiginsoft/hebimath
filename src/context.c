@@ -88,7 +88,8 @@ ctxshut(void *arg)
 	size_t n;
 
 	if (ctx) {
-		if ((p = ctx->scratch)) {
+		p = ctx->scratch;
+		if (p) {
 			fp = ctx->scratchfp;
 			n = ctx->scratchsize;
 			ASSERT(fp);

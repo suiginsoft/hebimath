@@ -7,4 +7,4 @@
 
 extern HEBI_API
 void
-hebi_freefp(const struct hebi_allocfnptrs *, void *, size_t);
+hebi_freefp(const struct hebi_allocfnptrs *fp, void *ptr, size_t size);

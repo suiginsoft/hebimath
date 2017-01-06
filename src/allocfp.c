@@ -7,4 +7,4 @@
 
 extern HEBI_API HEBI_ALLOC HEBI_WARNUNUSED
 void *
-hebi_allocfp(const struct hebi_allocfnptrs *, size_t, size_t);
+hebi_allocfp(const struct hebi_allocfnptrs *fp, size_t alignment, size_t size);

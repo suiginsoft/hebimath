@@ -8,7 +8,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define ESTR(E) case E: estr = #E; break;
+#define ESTR(E) \
+	case E: \
+		estr = STRINGIZE(E); \
+		break;
 
 HEBI_API HEBI_NORETURN
 void
@@ -26,9 +29,9 @@ hebi_error_raise(enum hebi_errdom domain, int code)
 		ctx->scratchsize = 0;
 	}
 
-	for (i = ctx->zstackused; i--; ) {
-		hebi_zdestroy(ctx->zstack[i]);
-		ctx->zstack[i] = NULL;
+	for (i = ctx->zstackused; i > 0; i--) {
+		hebi_zdestroy(ctx->zstack[i - 1]);
+		ctx->zstack[i - 1] = NULL;
 	}
 	ctx->zstackused = 0;
 
@@ -50,7 +53,9 @@ hebi_error_raise(enum hebi_errdom domain, int code)
 			ESTR(HEBI_ENOMEM)
 			ESTR(HEBI_ENOSLOTS)
 			ESTR(HEBI_EASSERTION)
-			default: estr = "unknown"; break;
+			default:
+				estr = "unknown";
+				break;
 		}
 		fprintf(stderr, "hebimath error: %s\n", estr);
 	} else {

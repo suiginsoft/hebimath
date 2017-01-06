@@ -182,7 +182,7 @@ inittable(void)
 
 #define TABLE_LOCK(RW, E) \
 MULTILINEBEGIN \
-	E = pthread_rwlock_ ## RW ## lock(&trwlock); \
+	E = CONCAT(CONCAT(pthread_rwlock_,RW),lock)(&trwlock); \
 	if (UNLIKELY(E)) \
 	 	hebi_error_raise(HEBI_ERRDOM_ERRNO, E); \
 MULTILINEEND

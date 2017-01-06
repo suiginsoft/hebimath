@@ -6,4 +6,5 @@
 #include "../internal.h"
 
 extern HEBI_API HEBI_ALLOC HEBI_WARNUNUSED
-void *hebi_alloc(hebi_allocid, size_t, size_t);
+void *
+hebi_alloc(hebi_allocid id, size_t alignment, size_t size);
