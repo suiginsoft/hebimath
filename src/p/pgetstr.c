@@ -5,7 +5,27 @@
 
 #include "pcommon.h"
 
-static
+static inline
+int
+divrem(hebi_packet *w, size_t *n, unsigned int bits, MLIMB d, MLIMB v)
+{
+	MLIMB *wl;
+	size_t wn;
+	size_t wln;
+	int rem;
+
+	wl = MLIMB_PTR(w);
+	wn = *n;
+	wln = wn * MLIMB_PER_PACKET;
+
+	rem = (int)PDIVREMRU_2x1(wl, wl, wln, bits, d, v);
+	wn = hebi_pnorm(w, wn);
+
+	*n = wn;
+	return rem;
+}
+
+static inline
 void
 reverse(char *str, size_t first, size_t last)
 {
@@ -48,8 +68,7 @@ hebi_pgetstr(
 	unsigned int bits;      /* leading zero bits of ubase */
 	MLIMB d;                /* ubase normalized for division */
 	MLIMB v;                /* reciprocal estimate of d */
-	MLIMB *wl;
-	size_t wln;
+	size_t wn;
 	size_t rlen;
 	size_t start;
 	size_t end;
@@ -100,10 +119,7 @@ hebi_pgetstr(
 	bits = MLIMB_CLZ(d);
 	d = d << bits;
 	v = RECIPU_2x1(d);
-
-	/* setup input limb pointer/counter */
-	wl = MLIMB_PTR(w);
-	wln = n;
+	wn = n;
 
 	/*
 	 * if we have no more space in output string, just consume
@@ -115,11 +131,9 @@ hebi_pgetstr(
 			str[cur] = '\0';
 
 		/* consume digits */
-		while (wln > 0) {
-			wln *= MLIMB_PER_PACKET;
-			(void)PDIVREMRU_2x1(wl, wl, wln, bits, d, v);
+		while (wn > 0) {
+			(void)divrem(w, &wn, bits, d, v);
 			rlen++;
-			wln = hebi_pnorm(w, wln / MLIMB_PER_PACKET);
 		}
 
 		return rlen;
@@ -133,9 +147,8 @@ hebi_pgetstr(
 	 */
 	start = cur;
 	do {
-		for (cur = start; cur < end && wln > 0; cur++) {
-			wln *= MLIMB_PER_PACKET;
-			digit = (int)PDIVREMRU_2x1(wl, wl, wln, bits, d, v);
+		for (cur = start; cur < end && wn > 0; cur++) {
+			digit = divrem(w, &wn, bits, d, v);
 			if (digit < 10)
 				digit += '0';
 			else if (ubase <= 36)
@@ -146,9 +159,8 @@ hebi_pgetstr(
 				digit += 'a' - 36;
 			str[cur] = (char)digit;
 			rlen++;
-			wln = hebi_pnorm(w, wln / MLIMB_PER_PACKET);
 		}
-	} while (UNLIKELY(wln > 0));
+	} while (UNLIKELY(wn > 0));
 
 	/*
 	 * reverse the digits to arrive at a right-to-left ordered sequence
