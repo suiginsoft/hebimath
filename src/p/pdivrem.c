@@ -54,7 +54,7 @@ hebi_pdivrem(
 		d1 = dl[1];
 		d0 = dl[0];
 
-		v = RECIPU_3x2(d1, d0);
+		v = RECIPU_3X2(d1, d0);
 		qh = PDIVREMR(q, u, d, m, n, limbs, v);
 		if (UNLIKELY(qh)) {
 			hebi_psetu(q+m, qh);
@@ -86,8 +86,8 @@ hebi_pdivrem(
 				d0 = d0 << lbits;
 			}
 
-			v = RECIPU_3x2(d1, d0);
-			u = PDIVREMRU_3x2(ql, al, aln, lbits, d1, d0, v);
+			v = RECIPU_3X2(d1, d0);
+			u = PDIVREMRU_3X2(ql, al, aln, lbits, d1, d0, v);
 
 			/* unpack and store remainder */
 #ifdef USE_LIMB64_MULDIV
@@ -104,8 +104,8 @@ hebi_pdivrem(
 		} else {
 			/* 2x1 division by normalized reciprocal */
 			d0 = d0 << lbits;
-			v = RECIPU_2x1(d0);
-			d0 = PDIVREMRU_2x1(ql, al, aln, lbits, d0, v);
+			v = RECIPU_2X1(d0);
+			d0 = PDIVREMRU_2X1(ql, al, aln, lbits, d0, v);
 
 			/* store remainder */
 			n = d0 != 0;

@@ -7,7 +7,7 @@
 
 static inline HEBI_ALWAYSINLINE
 void
-DIVREMRU_2x1(MLIMB *restrict q, MLIMB *restrict u1, MLIMB u0, MLIMB d, MLIMB v)
+DIVREMRU_2X1(MLIMB *restrict q, MLIMB *restrict u1, MLIMB u0, MLIMB d, MLIMB v)
 {
 	DLIMB p;
 	MLIMB q1, q0, r;
@@ -34,7 +34,7 @@ DIVREMRU_2x1(MLIMB *restrict q, MLIMB *restrict u1, MLIMB u0, MLIMB d, MLIMB v)
 
 static inline HEBI_ALWAYSINLINE
 void
-DIVREMRU_3x2(
+DIVREMRU_3X2(
 		MLIMB *restrict q,
 		MLIMB *restrict u2,
 		MLIMB *restrict u1,

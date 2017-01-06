@@ -9,18 +9,18 @@
 #ifdef HEBI_MULTI_VERSIONING
 #define STATIC static
 #ifdef USE_LIMB64_MULDIV
-#define PDIVREMRU_3x2_IMPL hebi_pdivremru64_3x2_impl__
+#define PDIVREMRU_3X2_IMPL hebi_pdivremru64_3x2_impl__
 #else
-#define PDIVREMRU_3x2_IMPL hebi_pdivremru32_3x2_impl__
+#define PDIVREMRU_3X2_IMPL hebi_pdivremru32_3x2_impl__
 #endif
 #else
 #define STATIC HEBI_HIDDEN
-#define PDIVREMRU_3x2_IMPL PDIVREMRU_3x2
+#define PDIVREMRU_3X2_IMPL PDIVREMRU_3X2
 #endif
 
 STATIC
 DLIMB
-PDIVREMRU_3x2_IMPL(
+PDIVREMRU_3X2_IMPL(
 		MLIMB *q,
 		const MLIMB *a,
 		size_t n,
@@ -48,10 +48,10 @@ PDIVREMRU_3x2_IMPL(
 			a0 = a[i];
 			u0 = (a1 << bits) | (a0 >> (MLIMB_BIT - bits));
 			a1 = a0;
-			DIVREMRU_3x2(q+i+1, &u2, &u1, u0, d1, d0, v);
+			DIVREMRU_3X2(q+i+1, &u2, &u1, u0, d1, d0, v);
 		}
 		u0 = a1 << bits;
-		DIVREMRU_3x2(q, &u2, &u1, u0, d1, d0, v);
+		DIVREMRU_3X2(q, &u2, &u1, u0, d1, d0, v);
 	} else {
 		u2 = a1;
 		u1 = a0;
@@ -65,7 +65,7 @@ PDIVREMRU_3x2_IMPL(
 		q[n-2] = u0;
 		for (i = n-2; i--; ) {
 			u0 = a[i];
-			DIVREMRU_3x2(q+i, &u2, &u1, u0, d1, d0, v);
+			DIVREMRU_3X2(q+i, &u2, &u1, u0, d1, d0, v);
 		}
 	}
 

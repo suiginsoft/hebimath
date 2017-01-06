@@ -36,7 +36,7 @@ divrem(hebi_packet *w, size_t *n, unsigned int bits, MLIMB d, MLIMB v)
 	wn = *n;
 	wln = wn * MLIMB_PER_PACKET;
 
-	rem = (int)PDIVREMRU_2x1(wl, wl, wln, bits, d, v);
+	rem = (int)PDIVREMRU_2X1(wl, wl, wln, bits, d, v);
 	wn = hebi_pnorm(w, wn);
 
 	*n = wn;
@@ -136,7 +136,7 @@ hebi_pgetstr(
 	d = (MLIMB)ubase;
 	bits = MLIMB_CLZ(d);
 	d = d << bits;
-	v = RECIPU_2x1(d);
+	v = RECIPU_2X1(d);
 	wn = n;
 
 	/*

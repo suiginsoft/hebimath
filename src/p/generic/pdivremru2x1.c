@@ -7,7 +7,7 @@
 
 HEBI_HIDDEN
 MLIMB
-PDIVREMRU_2x1(
+PDIVREMRU_2X1(
 		MLIMB *q,
 		const MLIMB *a,
 		size_t n,
@@ -38,10 +38,10 @@ PDIVREMRU_2x1(
 			a0 = a[i];
 			u0 = (a1 << bits) | (a0 >> (MLIMB_BIT - bits));
 			a1 = a0;
-			DIVREMRU_2x1(q+i+1, &u1, u0, d, v);
+			DIVREMRU_2X1(q+i+1, &u1, u0, d, v);
 		}
 		u0 = a1 << bits;
-		DIVREMRU_2x1(q, &u1, u0, d, v);
+		DIVREMRU_2X1(q, &u1, u0, d, v);
 	} else {
 		u0 = 0;
 		u1 = a1;
@@ -52,7 +52,7 @@ PDIVREMRU_2x1(
 		q[n-1] = u0;
 		for (i = n-1; i--; ) {
 			u0 = a[i];
-			DIVREMRU_2x1(q+i, &u1, u0, d, v);
+			DIVREMRU_2X1(q+i, &u1, u0, d, v);
 		}
 	}
 

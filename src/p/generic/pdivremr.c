@@ -65,7 +65,7 @@ PDIVREMR_IMPL(
 	while (m--) {
 		/* estimate quotient limb */
 		if (LIKELY(u1 < dl[n+1] || u0 < dl[n])) {
-			DIVREMRU_3x2(&qhat, &u1, &u0, ul[m+n], dl[n+1], dl[n], v);
+			DIVREMRU_3X2(&qhat, &u1, &u0, ul[m+n], dl[n+1], dl[n], v);
 		} else {
 			u0 = u0 + dl[n];
 			c0 = dl[n] > u0;

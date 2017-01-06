@@ -66,12 +66,12 @@ HEBI_HIDDEN X R CONCAT(N,__) P;
 #define MLIMB_CLZ(X) hebi_clz64__(X)
 #define MLIMB_PTR(X) (X)->hp_limbs64
 
-#define RECIPU_2x1 hebi_recipu64_2x1__
-#define RECIPU_3x2 hebi_recipu64_3x2__
-#define DIVREMRU_2x1 hebi_divremru64_2x1__
-#define DIVREMRU_3x2 hebi_divremru64_3x2__
-#define PDIVREMRU_2x1 hebi_pdivremru64_2x1__
-#define PDIVREMRU_3x2 hebi_pdivremru64_3x2__
+#define RECIPU_2X1 hebi_recipu64_2x1__
+#define RECIPU_3X2 hebi_recipu64_3x2__
+#define DIVREMRU_2X1 hebi_divremru64_2x1__
+#define DIVREMRU_3X2 hebi_divremru64_3x2__
+#define PDIVREMRU_2X1 hebi_pdivremru64_2x1__
+#define PDIVREMRU_3X2 hebi_pdivremru64_3x2__
 #define PDIVREMR hebi_pdivremr64__
 
 extern HEBI_HIDDEN uint16_t hebi_recipu64_v0lut__[256];
@@ -92,12 +92,12 @@ INTERNAL_MVFUNC(uint64_t, hebi_pdivremr64, (hebi_packet *restrict q, hebi_packet
 #define MLIMB_CLZ(X) hebi_clz32__(X)
 #define MLIMB_PTR(X) (X)->hp_limbs32
 
-#define RECIPU_2x1 hebi_recipu32_2x1__
-#define RECIPU_3x2 hebi_recipu32_3x2__
-#define DIVREMRU_2x1 hebi_divremru32_2x1__
-#define DIVREMRU_3x2 hebi_divremru32_3x2__
-#define PDIVREMRU_2x1 hebi_pdivremru32_2x1__
-#define PDIVREMRU_3x2 hebi_pdivremru32_3x2__
+#define RECIPU_2X1 hebi_recipu32_2x1__
+#define RECIPU_3X2 hebi_recipu32_3x2__
+#define DIVREMRU_2X1 hebi_divremru32_2x1__
+#define DIVREMRU_3X2 hebi_divremru32_3x2__
+#define PDIVREMRU_2X1 hebi_pdivremru32_2x1__
+#define PDIVREMRU_3X2 hebi_pdivremru32_3x2__
 #define PDIVREMR hebi_pdivremr32__
 
 extern HEBI_HIDDEN uint16_t hebi_recipu32_v0lut__[512];

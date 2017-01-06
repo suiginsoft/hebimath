@@ -7,12 +7,12 @@
 
 HEBI_HIDDEN HEBI_CONST
 MLIMB
-RECIPU_3x2(MLIMB d1, MLIMB d0)
+RECIPU_3X2(MLIMB d1, MLIMB d0)
 {
 	MLIMB v, p, t1, t0;
 	DLIMB t;
 
-	v = RECIPU_2x1(d1);
+	v = RECIPU_2X1(d1);
 	p = v * d1 + d0;
 
 	if (p < d0) {
