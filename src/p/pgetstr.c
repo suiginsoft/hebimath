@@ -5,6 +5,32 @@
 
 #include "pcommon.h"
 
+static
+void
+reverse(char *str, size_t first, size_t last)
+{
+	size_t i = first;
+	size_t j = last;
+
+	while (i < j) {
+		SWAP(char, str[i], str[j]);
+		i++;
+		j--;
+	}
+}
+
+static inline
+size_t
+write(char *str, size_t cur, size_t end, char c)
+{
+	if (LIKELY(cur < end)) {
+		str[cur] = c;
+		return cur + 1;
+	}
+
+	return cur;
+}
+
 HEBI_API
 size_t
 hebi_pgetstr(
@@ -17,43 +43,38 @@ hebi_pgetstr(
 	const unsigned int flags = (unsigned int)base;
 	const unsigned int ubase = flags & HEBI_STR_BASEMASK;
 
-	char *start;
-	char *end;
-	char *ptr;
 	int digit;
 	int letterbase;
 	unsigned int bits;      /* leading zero bits of ubase */
 	MLIMB d;                /* ubase normalized for division */
 	MLIMB v;                /* reciprocal estimate of d */
 	MLIMB *wl;
-	size_t nl;
+	size_t wln;
 	size_t rlen;
+	size_t start;
+	size_t end;
+	size_t cur;
 
 	ASSERT(n <= HEBI_PACKET_MAXLEN);
 	ASSERT(2 <= ubase && ubase <= 62);
 
-	/* setup pointers and result length */
-	ptr = str;
-	end = str + len - (len > 0);
+	/* setup result length and indices */
 	rlen = 0;
+	cur = 0;
+	end = len - (len > 0);
 
 	/* write out optional radix prefix */
 	if (flags & HEBI_STR_PREFIX) {
 		if (ubase == 16) {
-			if (LIKELY(ptr < end))
-				*ptr++ = '0';
-			if (LIKELY(ptr < end))
-				*ptr++ = 'x';
+			cur = write(str, cur, end, '0');
+			cur = write(str, cur, end, 'x');
 			rlen += 2;
 		} else if (ubase == 8) {
-			if (LIKELY(ptr < end))
-				*ptr++ = '0';
+			cur = write(str, cur, end, '0');
 			rlen++;
 		} else if (ubase == 2) {
-			if (LIKELY(ptr < end))
-				*ptr++ = '0';
-			if (LIKELY(ptr < end))
-				*ptr++ = 'b';
+			cur = write(str, cur, end, '0');
+			cur = write(str, cur, end, 'b');
 			rlen += 2;
 		}
 	}
@@ -61,12 +82,11 @@ hebi_pgetstr(
 	/* special case for zero-length input packet sequence */
 	if (UNLIKELY(!n)) {
 		if (LIKELY(!rlen || ubase != 8)) {
-			if (LIKELY(ptr < end))
-				*ptr++ = '0';
+			cur = write(str, cur, end, '0');
 			rlen++;
 		}
 		if (LIKELY(len > 0))
-			*ptr = '\0';
+			str[cur] = '\0';
 		return rlen;
 	}
 
@@ -81,21 +101,25 @@ hebi_pgetstr(
 	d = d << bits;
 	v = RECIPU_2x1(d);
 
+	/* setup input limb pointer/counter */
+	wl = MLIMB_PTR(w);
+	wln = n;
+
 	/*
 	 * if we have no more space in output string, just consume
 	 * digits in order to compute final result length
 	 */
-	if (UNLIKELY(ptr >= end)) {
+	if (UNLIKELY(cur >= end)) {
 		/* null-terminate output */
 		if (len > 0)
-			*ptr = '\0';
+			str[cur] = '\0';
 
 		/* consume digits */
-		for ( ; n > 0; rlen++) {
-			wl = MLIMB_PTR(w);
-			nl = n * MLIMB_PER_PACKET;
-			(void)PDIVREMRU_2x1(wl, wl, nl, bits, d, v);
-			n = hebi_pnorm(w, n);
+		while (wln > 0) {
+			wln *= MLIMB_PER_PACKET;
+			(void)PDIVREMRU_2x1(wl, wl, wln, bits, d, v);
+			rlen++;
+			wln = hebi_pnorm(w, wln / MLIMB_PER_PACKET);
 		}
 
 		return rlen;
@@ -107,12 +131,11 @@ hebi_pgetstr(
 	 * digits are reversed, the truncated string will then have the
 	 * correct sequence of truncated digits
 	 */
-	start = ptr;
+	start = cur;
 	do {
-		for (ptr = start; ptr < end && n > 0; ptr++, rlen++) {
-			wl = MLIMB_PTR(w);
-			nl = n * MLIMB_PER_PACKET;
-			digit = (int)PDIVREMRU_2x1(wl, wl, nl, bits, d, v);
+		for (cur = start; cur < end && wln > 0; cur++) {
+			wln *= MLIMB_PER_PACKET;
+			digit = (int)PDIVREMRU_2x1(wl, wl, wln, bits, d, v);
 			if (digit < 10)
 				digit += '0';
 			else if (ubase <= 36)
@@ -121,22 +144,23 @@ hebi_pgetstr(
 				digit += 'A' - 10;
 			else
 				digit += 'a' - 36;
-			*ptr = (char)digit;
-			n = hebi_pnorm(w, n);
+			str[cur] = (char)digit;
+			rlen++;
+			wln = hebi_pnorm(w, wln / MLIMB_PER_PACKET);
 		}
-	} while (UNLIKELY(n > 0));
+	} while (UNLIKELY(wln > 0));
 
-	/* reverse the digits to arrive at a right-to-left ordered sequence */
+	/*
+	 * reverse the digits to arrive at a right-to-left ordered sequence
+	 * and null-terminate the output string
+	 */
 	if (UNLIKELY(rlen >= len)) {
-		for (end = ptr - 1; start < end; start++, end--)
-			SWAP(char, *start, *end);
-		start = ptr;
-		ptr = str + len - 1;
+		reverse(str, start, cur - 1);
+		start = cur;
+		cur = len - 1;
 	}
 
-	*ptr = '\0';
-	for (end = ptr - 1; start < end; start++, end--)
-		SWAP(char, *start, *end);
-
+	str[cur] = '\0';
+	reverse(str, start, cur - 1);
 	return rlen;
 }
