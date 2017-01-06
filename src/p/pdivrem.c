@@ -17,8 +17,13 @@ hebi_pdivrem(
 		size_t an,
 		size_t bn )
 {
-	size_t bits, limbs, m, n;
-	MLIMB d1, d0, v;
+	size_t bits;
+	size_t limbs;
+	size_t m;
+	size_t n;
+	MLIMB d1;
+	MLIMB d0;
+	MLIMB v;
 
 	ASSERT(an >= bn);
 	ASSERT(bn > 0);
@@ -27,17 +32,20 @@ hebi_pdivrem(
 	bits = hebi_pclz(b, bn) % HEBI_PACKET_BIT;
 	limbs = bits / MLIMB_BIT;
 	n = bn * MLIMB_PER_PACKET - limbs;
-
 	ASSERT(n != 0);
 
 	if (n > 2) {
 		/* division with large divisor */
-		hebi_packet *restrict u, *restrict d;
-		const MLIMB *restrict dl;
+		hebi_packet *u;
+		hebi_packet *d;
+		const MLIMB *dl;
 		MLIMB qh;
 
-		m = hebi_pshl((u = w), a, bits, an);
-		n = hebi_pshl((d = w + m), b, bits, bn);
+		u = w;
+		m = hebi_pshl(u, a, bits, an);
+
+		d = w + m;
+		n = hebi_pshl(d, b, bits, bn);
 
 		ASSERT(m >= n);
 		m -= n;
@@ -47,8 +55,11 @@ hebi_pdivrem(
 		d0 = dl[0];
 
 		v = RECIPU_3x2(d1, d0);
-		if (UNLIKELY((qh = PDIVREMR(q, u, d, m, n, limbs, v))))
-			hebi_psetu(q+m++, qh);
+		qh = PDIVREMR(q, u, d, m, n, limbs, v);
+		if (UNLIKELY(qh)) {
+			hebi_psetu(q+m, qh);
+			m++;
+		}
 
 		if (r || rn) {
 			n = hebi_pnorm(u, n);
@@ -56,18 +67,13 @@ hebi_pdivrem(
 		}
 	} else {
 		/* division with small divisor */
-		MLIMB *restrict ql;
-		const MLIMB *al;
-		const MLIMB *bl;
-		unsigned int shft;
+		const unsigned int lbits = (unsigned int)(bits % MLIMB_BIT);
+		const size_t aln = an * MLIMB_PER_PACKET;
+		const MLIMB *al = MLIMB_PTR(a);
+		const MLIMB *bl = MLIMB_PTR(b);
+		MLIMB *ql = MLIMB_PTR(q);
 
 		m = an;
-		an = an * MLIMB_PER_PACKET;
-		shft = (unsigned int)(bits % MLIMB_BIT);
-
-		ql = MLIMB_PTR(q);
-		al = MLIMB_PTR(a);
-		bl = MLIMB_PTR(b);
 		d0 = bl[0];
 
 		if (n == 2) {
@@ -75,35 +81,37 @@ hebi_pdivrem(
 			DLIMB u;
 
 			d1 = bl[1];
-			if (shft) {
-				d1 = (d1 << shft) | (d0 >> (MLIMB_BIT - shft));
-				d0 = d0 << shft;
+			if (lbits) {
+				d1 = (d1 << lbits) | (d0 >> (MLIMB_BIT - lbits));
+				d0 = d0 << lbits;
 			}
 
 			v = RECIPU_3x2(d1, d0);
-			u = PDIVREMRU_3x2(ql, al, an, shft, d1, d0, v);
+			u = PDIVREMRU_3x2(ql, al, aln, lbits, d1, d0, v);
 
 			/* unpack and store remainder */
 #ifdef USE_LIMB64_MULDIV
 			d0 = (MLIMB)(u & MLIMB_MAX);
 			d1 = (MLIMB)(u >> MLIMB_BIT);
-			if ((n = (d0 || d1)) && r)
+			n = d0 || d1;
+			if (n && r)
 				hebi_psetu2(r, d0, d1);
 #else
-			if ((n = (u != 0)) && r)
+			n = u != 0;
+			if (n && r)
 				hebi_psetu(r, u);
 #endif
 		} else {
 			/* 2x1 division by normalized reciprocal */
-			d0 = d0 << shft;
+			d0 = d0 << lbits;
 			v = RECIPU_2x1(d0);
-			d0 = PDIVREMRU_2x1(ql, al, an, shft, d0, v);
+			d0 = PDIVREMRU_2x1(ql, al, aln, lbits, d0, v);
 
 			/* store remainder */
-			if ((n = (d0 != 0)) && r)
+			n = d0 != 0;
+			if (n && r)
 				hebi_psetu(r, d0);
 		}
-
 	}
 
 	/* store length of remainder and normalize length of quotient */
