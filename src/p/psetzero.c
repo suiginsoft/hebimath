@@ -7,4 +7,4 @@
 
 extern HEBI_API
 void
-hebi_psetzero(hebi_packet *);
+hebi_psetzero(hebi_packet *r);

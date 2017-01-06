@@ -6,4 +6,5 @@
 #include "pcommon.h"
 
 extern HEBI_API
-void hebi_pfree(hebi_allocid, hebi_packet *, size_t);
+void
+hebi_pfree(hebi_allocid id, hebi_packet *p, size_t n);

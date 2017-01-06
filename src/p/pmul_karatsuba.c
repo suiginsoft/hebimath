@@ -17,8 +17,11 @@ hebi_pmul_karatsuba(
 		size_t an,
 		size_t bn )
 {
-	size_t j, k, l, m;
 	uint64_t c;
+	size_t j;
+	size_t k;
+	size_t l;
+	size_t m;
 
 	/* ensure |a| >= |b| > ⌈|a|/2⌉ */
 	if (UNLIKELY(an < bn)) {
@@ -39,19 +42,25 @@ hebi_pmul_karatsuba(
 		hebi_pmul_karatsuba(r, w, a, b, m, bn);
 		hebi_pzero(w, an-m+bn+1);
 		hebi_pmul_karatsuba(w, w+an-m+bn+1, a+m, b, an-m, bn);
-		hebi_padda(r+m, w, an-m+bn, an-m+bn);
+		(void)hebi_padda(r+m, w, an-m+bn, an-m+bn);
 		return;
 	}
 
 	/* compute a0+a1 */
 	j = m;
-	if (UNLIKELY(c = hebi_padd(w, a, a+m, m, an-m)))
-		hebi_psetu(w+j++, c);
+	c = hebi_padd(w, a, a+m, m, an-m);
+	if (UNLIKELY(c)) {
+		hebi_psetu(w+j, c);
+		j++;
+	}
 
 	/* compute b0+b1 */
 	k = m;
-	if (UNLIKELY(c = hebi_padd(w+j, b, b+m, m, bn-m)))
-		hebi_psetu(w+j+k++, c);
+	c = hebi_padd(w+j, b, b+m, m, bn-m);
+	if (UNLIKELY(c)) {
+		hebi_psetu(w+j+k, c);
+		k++;
+	}
 
 	/* accumulate (a0+a1)(b0+b1)*B^m */
 	hebi_pmul_karatsuba(r+m, w+j+k, w, w+j, j, k);
@@ -66,14 +75,14 @@ hebi_pmul_karatsuba(
 	hebi_pmul_karatsuba(w, w+k+1, a+m, b+m, an-m, bn-m);
 
 	/* accumulate a1b1*B^(2m) - a1b1*B^m */
-	hebi_padda(r+j, w, l-j, k);
-	hebi_psuba(r+m, w, l-m, k);
+	(void)hebi_padda(r+j, w, l-j, k);
+	(void)hebi_psuba(r+m, w, l-m, k);
 
 	/* compute a0b0 */
 	hebi_pzero(w, j+1);
 	hebi_pmul_karatsuba(w, w+j+1, a, b, m, m);
 
 	/* accumulate a0b0 - a0b0*B^m */
-	hebi_padda(r, w, l, j);
-	hebi_psuba(r+m, w, l-m, j);
+	(void)hebi_padda(r, w, l, j);
+	(void)hebi_psuba(r+m, w, l-m, j);
 }

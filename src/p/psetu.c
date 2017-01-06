@@ -7,4 +7,4 @@
 
 extern HEBI_API
 void
-hebi_psetu(hebi_packet *, uint64_t);
+hebi_psetu(hebi_packet *r, uint64_t a);

@@ -7,4 +7,4 @@
 
 extern HEBI_API HEBI_ALLOC HEBI_WARNUNUSED
 hebi_packet *
-hebi_pallocfp(const struct hebi_allocfnptrs *, size_t);
+hebi_pallocfp(const struct hebi_allocfnptrs *fp, size_t n);

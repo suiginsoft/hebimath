@@ -15,8 +15,11 @@ hebi_psqr_karatsuba(
 		const hebi_packet *restrict a,
 		size_t n )
 {
-	size_t j, k, l, m;
 	uint64_t c;
+	size_t j;
+	size_t k;
+	size_t l;
+	size_t m;
 
 	/* base case: use long multiplication if less or equal to cutoff */
 	if (LIKELY(n <= KARATSUBA_SQR_CUTOFF)) {
@@ -30,8 +33,11 @@ hebi_psqr_karatsuba(
 
 	/* compute a0+a1  */
 	j = m;
-	if (UNLIKELY(c = hebi_padd(w, a, a+m, m, n-m)))
-		hebi_psetu(w+j++, c);
+	c = hebi_padd(w, a, a+m, m, n-m);
+	if (UNLIKELY(c)) {
+		hebi_psetu(w+j, c);
+		j++;
+	}
 
 	/* accumulate (a0+a1)(a0+a1)*B^m */
 	hebi_psqr_karatsuba(r+m, w+j, w, j);
@@ -46,14 +52,14 @@ hebi_psqr_karatsuba(
 	hebi_psqr_karatsuba(w, w+j+1, a+m, n-m);
 
 	/* accumulate a1a1*B^(m*2) - a1a1*B^m */
-	hebi_padda(r+k, w, l-k, j);
-	hebi_psuba(r+m, w, l-m, j);
+	(void)hebi_padda(r+k, w, l-k, j);
+	(void)hebi_psuba(r+m, w, l-m, j);
 
 	/* compute a0a0 */
 	hebi_pzero(w, k+1);
 	hebi_psqr_karatsuba(w, w+k+1, a, m);
 
 	/* accumulate a0b0 - a0b0*B^m */
-	hebi_padda(r, w, l, k);
-	hebi_psuba(r+m, w, l-m, k);
+	(void)hebi_padda(r, w, l, k);
+	(void)hebi_psuba(r+m, w, l-m, k);
 }
