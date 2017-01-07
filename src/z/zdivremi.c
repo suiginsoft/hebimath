@@ -5,9 +5,6 @@
 
 #include "../../internal.h"
 
-#define SIGNXOR64(X,Y) \
-((int64_t)(((uint64_t)((int64_t)X))^((uint64_t)((int64_t)Y))))
-
 HEBI_API
 int64_t
 hebi_zdivremi(hebi_zptr q, hebi_zsrcptr a, int64_t b)

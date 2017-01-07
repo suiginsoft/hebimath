@@ -228,14 +228,8 @@ EXTENSION typedef unsigned __int128 hebi_uint128;
 #endif
 
 /* common macros */
-#define ABS(A) ((A)<0?-(A):(A))
 #define ALIGNAS(A) HEBI_ALIGNAS(A)
-#define COUNTOF(A) (sizeof(A) / sizeof(A[0]))
-#define MAX(A,B) ((A)>(B)?(A):(B))
-#define MIN(A,B) ((A)<(B)?(A):(B))
-#define SIGNXOR(A,B) ((int)(((unsigned int)(A))^((unsigned int)(B))))
-#define MULTILINEBEGIN do {
-#define MULTILINEEND } while(0)
+#define COUNTOF(A) (sizeof((A))/sizeof((A)[0]))
 #define LIKELY(E) HEBI_LIKELY(E)
 #define UNLIKELY(E) HEBI_UNLIKELY(E)
 #define CONCAT__(A,B) A##B
@@ -243,7 +237,23 @@ EXTENSION typedef unsigned __int128 hebi_uint128;
 #define CONCAT(A,B) CONCAT_(A,B)
 #define STRINGIZE_(A) #A
 #define STRINGIZE(A) STRINGIZE_(A)
-#define SWAP(T,A,B) MULTILINEBEGIN { T T_ = A; A = B; B = T_; } MULTILINEEND
+#define MULTILINEBEGIN do {
+#define MULTILINEEND } while(0)
+#define ABS(A) ((A)<0?-(A):(A))
+#define MAX(A,B) ((A)>(B)?(A):(B))
+#define MIN(A,B) ((A)<(B)?(A):(B))
+
+/* swap two values of type T */
+#define SWAP(T,A,B) \
+	MULTILINEBEGIN \
+		T t__ = (A); \
+		(A) = (B); \
+		(B) = t__; \
+	MULTILINEEND
+
+/* perform exclusive-or on sign flags */
+#define SIGNXOR(A,B) ((int)(((unsigned int)(A))^((unsigned int)(B))))
+#define SIGNXOR64(X,Y) ((int64_t)(((uint64_t)((int64_t)(X)))^((uint64_t)((int64_t)(Y)))))
 
 /* ignore unused arguments or variables */
 HEBI_HIDDEN
