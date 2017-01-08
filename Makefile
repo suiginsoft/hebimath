@@ -98,10 +98,10 @@ ZFUNCTIONS := \
 	zinitn \
 	zinitv \
 	zinit_allocator \
-	zinit_buffer \
+	zinit_fixed \
 	zinit_reserve \
 	zinit_copy \
-	zinit_copy_buffer \
+	zinit_copy_fixed \
 	zinit_copy_reserve \
 	zinit_move \
 	zdestroy \
