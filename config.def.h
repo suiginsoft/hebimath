@@ -77,7 +77,7 @@
 #define USE_GNUC_THREAD_LOCAL
 
 /*
- * Enables the use of error-checking or recursive mutex/rwlocks depending
+ * Enables the use of error-checking or recursive mutexes depending
  * on the selected threading library in accordance with SEI CERT C
  * recommendation REC.50.POS04-C to avoid normal mutexes. Commenting
  * this out will use normal/plain mutexes yielding a small performance
