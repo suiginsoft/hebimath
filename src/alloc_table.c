@@ -144,19 +144,19 @@ invalidfree(void *arg, void *ptr, size_t size)
 MULTILINEBEGIN \
 	if (UNLIKELY(!tactive)) { \
 		call_once(&tonce, inittable) \
-		if (UNLIKELY(terror)) \
-			hebi_error_raise(HEBI_ERRDOM_ERRNO, terror); \
+		if (UNLIKELY(terror != thrd_success)) \
+			hebi_error_raise(HEBI_ERRDOM_THRD, terror); \
 	} \
 	E = mtx_lock(&tmutex); \
 	if (UNLIKELY(E != thrd_success)) \
-		hebi_error_raise(HEBI_ERRDOM_ERRNO, EINVAL); \
+		hebi_error_raise(HEBI_ERRDOM_THRD, E); \
 MULTLINEEND
 
 #define TABLE_UNLOCK(E) \
 MULTILINEBEGIN \
 	E = mtx_unlock(&tmutex); \
 	if (UNLIKELY(E != thrd_success)) \
-		hebi_error_raise(HEBI_ERRDOM_ERRNO, EINVAL); \
+		hebi_error_raise(HEBI_ERRDOM_THRD, E); \
 MULTILINEEND
 
 static once_flag tonce;
@@ -167,13 +167,8 @@ static volatile int terror;
 static void
 inittable(void)
 {
-	if (LIKLEY(mtx_init(&tmutex, mtx_plain) == thrd_success)) {
-		tactive = 1;
-		terror = 0;
-	} else {
-		tactive = 0;
-		terror = EINVAL;
-	}
+	terror = mtx_init(&tmutex, mtx_plain);
+	tactive = terror == thrd_success;
 }
 
 #elif defined USE_POSIX_THREADS

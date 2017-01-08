@@ -30,24 +30,27 @@ static pthread_once_t ctxonce = PTHREAD_ONCE_INIT;
 static pthread_key_t ctxkey;
 #endif
 
+static struct hebi_error ctxkeyerr = { HEBI_ERRDOM_HEBI, HEBI_ENONE };
 static int ctxkeyactive;
-static int ctxkeyerr;
 
 static void *
-ctxinit(void)
+ctxinit(struct hebi_error *err)
 {
+#ifdef USE_THREAD_LOCAL
+	const size_t size = sizeof(struct hebi_shadow_context);
+#else
+	const size_t size = sizeof(struct hebi_context);
+#endif
 	void *p;
 	int e;
 
-#ifdef USE_THREAD_LOCAL
-	p = calloc(1, sizeof(struct hebi_shadow_context));
-#else
-	p = calloc(1, sizeof(struct hebi_context));
-#endif
-
+	errno = 0;
+	p = calloc(1, size);
 	if (UNLIKELY(!p)) {
-		if (UNLIKELY(!errno))
-			errno = ENOMEM;
+		err->he_domain = HEBI_ERRDOM_ERRNO;
+		err->he_code = errno;
+		if (UNLIKELY(!err->he_code))
+			err->he_code = ENOMEM;
 		return NULL;
 	}
 
@@ -56,7 +59,8 @@ ctxinit(void)
 	e = tss_set(ctxkey, p);
 	if (UNLIKELY(e != thrd_success)) {
 		free(p);
-		errno = EINVAL;
+		err->he_domain = HEBI_ERRDOM_THRD;
+		err->he_code = e;
 		return NULL;
 	}
 
@@ -65,7 +69,8 @@ ctxinit(void)
 	e = pthread_setspecific(ctxkey, p);
 	if (UNLIKELY(e)) {
 		free(p);
-		errno = e;
+		err->he_domain = HEBI_ERRDOM_ERRNO;
+		err->he_code = e;
 		return NULL;
 	}
 
@@ -90,8 +95,8 @@ ctxshut(void *arg)
 	if (ctx) {
 		p = ctx->scratch;
 		if (p) {
-			fp = ctx->scratchfp;
 			n = ctx->scratchsize;
+			fp = ctx->scratchfp;
 			ASSERT(fp);
 
 			ctx->scratchfp = NULL;
@@ -118,9 +123,9 @@ ctxkeyinit(void)
 
 	e = tss_create(&ctxkey, ctxshut);
 	if (UNLIKELY(e != thrd_success)) {
-		ctxkeyerr = errno;
-		if (!ctxkeyerr)
-			ctxkeyerr = EINVAL;
+		ctxkeyerr.he_domain = HEBI_ERRDOM_THRD;
+		ctxkeyerr.he_code = e;
+		ctxkeyactive = 0;
 		return;
 	}
 
@@ -128,30 +133,25 @@ ctxkeyinit(void)
 
 	e = pthread_key_create(&ctxkey, ctxshut);
 	if (UNLIKELY(e)) {
-		ctxkeyerr = e;
+		ctxkeyerr.he_domain = HEBI_ERRDOM_ERRNO;
+		ctxkeyerr.he_code = e;
+		ctxkeyactive = 0;
 		return;
 	}
 
 #endif
 
+	ctxkeyerr.he_domain = HEBI_ERRDOM_HEBI;
+	ctxkeyerr.he_code = HEBI_ENONE;
 	ctxkeyactive = 1;
-	ctxkeyerr = 0;
 }
 
 HEBI_NORETURN
 static void
-ctxraise(hebi_errhandler handler, void *arg, int e)
+ctxraise(hebi_errhandler handler, void *arg, struct hebi_error *err)
 {
-	struct hebi_error err;
-
-	if (handler) {
-		err.he_domain = HEBI_ERRDOM_ERRNO;
-		err.he_code = e;
-		handler(arg, &err);
-	}
-
-	errno = e;
-	perror("hebimath");
+	if (handler)
+		handler(arg, err);
 	abort();
 }
 
@@ -159,32 +159,36 @@ HEBI_PURE HEBI_WARNUNUSED
 static void *
 ctxgetorcreate(hebi_errhandler handler, void *arg)
 {
+	struct hebi_error err;
 	void *ctx;
 
 #if defined USE_C11_THREADS
 
-	call_once(&ctxonce, ctxkeyinit);
-	if (UNLIKELY(ctxkeyerr))
-		ctxraise(handler, arg, ctxkeyerr);
+	call_once(&ctxonce, &ctxkeyinit);
+	if (UNLIKELY(!ctxkeyactive))
+		ctxraise(handler, arg, &ctxkeyerr);
 	ctx = tss_get(ctxkey);
 
 #elif defined USE_POSIX_THREADS
 
 	int e;
 
-	e = pthread_once(&ctxonce, ctxkeyinit);
-	if (UNLIKELY(e))
-		ctxraise(handler, arg, e);
-	if (UNLIKELY(ctxkeyerr))
-		ctxraise(handler, arg, ctxkeyerr);
+	e = pthread_once(&ctxonce, &ctxkeyinit);
+	if (UNLIKELY(e)) {
+		err.he_domain = HEBI_ERRDOM_ERRNO;
+		err.he_code = e;
+		ctxraise(handler, arg, &err);
+	}
+	if (UNLIKELY(!ctxkeyactive))
+		ctxraise(handler, arg, &ctxkeyerr);
 	ctx = pthread_getspecific(ctxkey);
 
 #endif
 
 	if (UNLIKELY(!ctx)) {
-		ctx = ctxinit();
+		ctx = ctxinit(&err);
 		if (UNLIKELY(!ctx))
-			ctxraise(handler, arg, errno);
+			ctxraise(handler, arg, &err);
 	}
 
 	return ctx;
@@ -245,7 +249,8 @@ global_shutdown(void)
 
 	if (ctxkeyactive) {
 		ctxkeyactive = 0;
-		ctxkeyerr = EFAULT;
+		ctxkeyerr.he_domain = HEBI_ERRDOM_HEBI;
+		ctxkeyerr.he_code = HEBI_EBADSTATE;
 #if defined USE_C11_THREADS
 		tss_delete(ctxkey);
 #elif defined USE_POSIX_THREADS

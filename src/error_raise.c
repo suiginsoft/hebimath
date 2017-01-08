@@ -30,7 +30,7 @@ hebi_error_raise(enum hebi_errdom domain, int code)
 	unsigned int i;
 
 	ctx = hebi_context_get__();
-	hebi_realloc_scratch__(ctx, 0);
+	(void)hebi_realloc_scratch__(ctx, 0);
 
 	for (i = ctx->zstackused; i > 0; i--) {
 		hebi_zdestroy(ctx->zstack[i - 1]);

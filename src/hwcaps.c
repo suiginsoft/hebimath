@@ -154,7 +154,7 @@ findcapbyname(const char *name)
 {
 	size_t i;
 
-	ASSERT(name != NULL);
+	ASSERT(name);
 
 	for (i = 0; i < COUNTOF(hwcaps_byname); ++i)
 		if (!strcmp(hwcaps_byname[i].name, name))
@@ -171,16 +171,16 @@ overridecaps(unsigned long caps, const char *list)
 	char *momento;
 	char *name;
 
-	ASSERT(list != NULL);
+	ASSERT(list);
 
 	listcopy = strdup(list);
-	if (listcopy == NULL)
+	if (!listcopy)
 		return caps;
 
 	mask = 0;
 	name = strtok_r(listcopy, " \t\v\r\n", &momento);
 
-	while (name != NULL) {
+	while (name) {
 		mask |= findcapbyname(name);
 		name = strtok_r(NULL, " \t\v\r\n", &momento);
 	}
@@ -197,7 +197,7 @@ initcaps(void)
 	hwcaps = getnativecaps();
 
 	capslist = getenv("HEBI_HWCAPS");
-	if (capslist != NULL)
+	if (capslist)
 		hwcaps = overridecaps(hwcaps, capslist);
 }
 
@@ -218,7 +218,9 @@ hebi_hwcaps__(void)
 #if defined USE_C11_THREADS
 	call_once(&hwcaps_once, &initcaps);
 #elif defined USE_POSIX_THREADS
-	(void)pthread_once(&hwcaps_once, &initcaps);
+	int e = pthread_once(&hwcaps_once, &initcaps);
+	if (UNLIKELY(e))
+		hebi_error_raise(HEBI_ERRDOM_ERRNO, e);
 #else
 	if (!hwcaps_once) {
 		initcaps();
