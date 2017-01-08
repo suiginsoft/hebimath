@@ -50,7 +50,6 @@ Other:
 	* rewrite generic kernels to just use 64-bit limbs, change
 	  hebi_packet to a struct instead of a union, would also let the
 	  library support big-endian machines as a consequence
-	* add configuration macro to enable error-checking mutex/rwlocks
 	* add configuration macro for strict MISRA compliance? need to figure
 	  out a way to work around lack of abort/setjmp/longjmp error handling.
 	  maybe just use hebi_error_last in the same way glGetError is

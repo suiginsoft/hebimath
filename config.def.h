@@ -135,7 +135,7 @@
  * allocators to (MAX_PAGES * PAGE_SIZE) % MAX_ALLOCATORS where
  * MAX_ALLOCATORS is the number of unique allocator handles that can
  * be stored in a hebi_integer. On 32-bit platforms MAX_ALLOCATORS is
- * 1024, on 64-bit platforms, MAX_ALLOCATORS is 65536.
+ * 2^24-2 and on 64-bit platforms MAX_ALLOCATORS is INT_MAX-1.
  *
  * These values must be powers of 2.
  */
@@ -157,7 +157,7 @@
  * in cache before it resets itself, whereas MAX_SIZE controls
  * total number of slots and slot distribution.
  *
- * MAX_SIZE must be a power of 2, and MAX_USED < MAX_SIZE.
+ * MAX_SIZE must be a power of 2 and MAX_USED < MAX_SIZE.
  */
 #define ALLOC_CACHE_MAX_SIZE 32
 #define ALLOC_CACHE_MAX_USED 21

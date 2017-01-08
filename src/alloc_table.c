@@ -165,8 +165,8 @@ MULTILINEEND
 
 static once_flag tonce;
 static mtx_t tmutex;
-static volatile int tactive;
-static volatile int terror;
+static int tactive;
+static int terror;
 
 static void
 inittable(void)
@@ -209,8 +209,8 @@ MULTILINEEND
 
 static pthread_once_t tonce;
 static pthread_mutex_t tmutex;
-static volatile int tactive;
-static volatile int terror;
+static int tactive;
+static int terror;
 
 static void
 inittable(void)
