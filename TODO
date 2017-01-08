@@ -57,8 +57,6 @@ Other:
 	  used in OpenGL?
 	* add assertion checks for NULL pointers and audit how we compare to
 	  NULL to make sure we are consistent throughout the code base
-* either get rid of the error domain, or add a C11 threads error domain, need
-  to investigate what's best after implementing random functions
 * more testing on other Linux and BSD distributions
 * more testing with different C compilers and with older versions of compilers
 * perform an audit on floating-point values, make sure we aren't using any

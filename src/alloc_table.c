@@ -23,6 +23,8 @@ STATIC_ASSERT(ALLOC_CACHE_MAX_USED > 0, "must be non-zero");
 STATIC_ASSERT((ALLOC_CACHE_MAX_SIZE & (ALLOC_CACHE_MAX_SIZE - 1)) == 0, "must be a power of two");
 STATIC_ASSERT(ALLOC_CACHE_MAX_USED < ALLOC_CACHE_MAX_SIZE, "MAX_USED must be less than MAX_SIZE");
 
+#define ALLOC_CACHE_MASK ((unsigned int)(ALLOC_CACHE_MAX_SIZE - 1))
+
 #if SIZE_MAX >= UINT64_MAX
 #define KEY_GENR_SHFT 16
 #define KEY_GENR_MASK 0x00007FFF
@@ -397,6 +399,7 @@ hebi_alloc_query(hebi_allocid *rid, hebi_allocid id)
 #ifdef USE_ALLOC_CACHE
 	unsigned int i;
 	unsigned int used;
+	unsigned int tested;
 	unsigned int hashcode;
 #endif
 
@@ -426,7 +429,7 @@ hebi_alloc_query(hebi_allocid *rid, hebi_allocid id)
 
 	/* compute hashcode from slot with a simple bit mix */
 	hashcode = (slot * 23131) + (slot >> 5);
-	hashcode &= (unsigned int)(ALLOC_CACHE_MAX_SIZE - 1);
+	hashcode &= ALLOC_CACHE_MASK;
 
 	/* check thread-local cache for allocator entry */
 	if (!ctx)
@@ -434,12 +437,18 @@ hebi_alloc_query(hebi_allocid *rid, hebi_allocid id)
 
 	used = ctx->allocused;
 	if (used) {
-		for (i = hashcode; ctx->allockeys[i] > 0; i++) {
-			if (ctx->allockeys[i] == key) {
-				if (rid)
-					*rid = id;
-				return ctx->allocvalues[i];
-			}
+		i = hashcode;
+		tested = 0;
+		while (ctx->allockeys[i] > 0 && tested < used) {
+			if (ctx->allockeys[i] == key)
+				break;
+			i = (i + 1) & ALLOC_CACHE_MASK;
+			tested++;
+		}
+		if (tested < used) {
+			if (rid)
+				*rid = id;
+			return ctx->allocvalues[i];
 		}
 		if (used >= ALLOC_CACHE_MAX_USED)
 			used = 0;
