@@ -19,22 +19,23 @@ main(int argc, char *argv[])
 	z = hebi_palloc(HEBI_ALLOC_DEFAULT, MAX_PACKETS);
 	assert(x && y && z);
 
-	for (n = 1; n < MAX_PACKETS; n++) {
+	for (i = 0; i < MAX_ITERATIONS * MAX_PACKETS; i++) {
+		/* get size of arguments from iteration counter */
+		n = (i / MAX_ITERATIONS) + 1;
 		nbits = n * HEBI_PACKET_BIT;
-		for (i = 0; i < MAX_ITERATIONS; i++) {
-			/* generate random value */
-			hebi_prand_kiss(z, MAX_PACKETS, nbits, &kiss);
 
-			/* negation */
-			c = hebi_pneg(x, z, n);
+		/* generate random value */
+		hebi_prand_kiss(z, MAX_PACKETS, nbits, &kiss);
 
-			/* two's complement */
-			hebi_pnot(y, z, n);
-			d = !hebi_paddu(y, y, 1, n);
+		/* negation */
+		c = hebi_pneg(x, z, n);
 
-			assert(hebi_pcmp(x, y, n) == 0);
-			assert(c == d);
-		}
+		/* two's complement */
+		hebi_pnot(y, z, n);
+		d = !hebi_paddu(y, y, 1, n);
+
+		assert(hebi_pcmp(x, y, n) == 0);
+		assert(c == d);
 	}
 
 	hebi_pfree(HEBI_ALLOC_DEFAULT, x, MAX_PACKETS);
