@@ -300,10 +300,10 @@ typedef const struct hebi_integer *hebi_zsrcptr;
 
 #define HEBI_Z_INIT {{NULL,0,0,0,HEBI_ALLOC_DEFAULT}}
 
-HEBI_API void hebi_zinit_buffer(hebi_zptr HEBI_RESTRICT r__, void *HEBI_RESTRICT p__, size_t n__);
+HEBI_API void hebi_zinit_fixed(hebi_zptr HEBI_RESTRICT r__, void *HEBI_RESTRICT p__, size_t n__);
 HEBI_API void hebi_zinit_reserve(hebi_zptr r__, size_t n__, hebi_allocid i__);
 HEBI_API void hebi_zinit_copy(hebi_zptr HEBI_RESTRICT r__, hebi_zsrcptr HEBI_RESTRICT a__);
-HEBI_API void hebi_zinit_copy_buffer(hebi_zptr HEBI_RESTRICT r__, hebi_zsrcptr HEBI_RESTRICT a__, void *HEBI_RESTRICT p__, size_t n__);
+HEBI_API void hebi_zinit_copy_fixed(hebi_zptr HEBI_RESTRICT r__, hebi_zsrcptr HEBI_RESTRICT a__, void *HEBI_RESTRICT p__, size_t n__);
 HEBI_API void hebi_zinit_copy_reserve(hebi_zptr HEBI_RESTRICT r__, hebi_zsrcptr HEBI_RESTRICT a__, size_t n__, hebi_allocid i__);
 HEBI_API void hebi_zinitn(size_t count__, HEBI_VLA(struct hebi_integer, r__, count__));
 HEBI_API void hebi_zinitv(size_t count__, HEBI_VLA(const hebi_zptr, r__, count__));

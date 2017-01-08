@@ -7,9 +7,9 @@
 
 HEBI_API
 void
-hebi_zinit_buffer(hebi_zptr restrict r, void *restrict buffer, size_t n)
+hebi_zinit_fixed(hebi_zptr restrict r, void *restrict buffer, size_t n)
 {
-	if (UNLIKELY((buffer == NULL && n) ||
+	if (UNLIKELY((!buffer && n) ||
 			((uintptr_t)buffer & (HEBI_PACKET_ALIGNMENT - 1))))
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
 	else if (UNLIKELY(n > HEBI_PACKET_MAXLEN))
@@ -19,5 +19,5 @@ hebi_zinit_buffer(hebi_zptr restrict r, void *restrict buffer, size_t n)
 	r->hz_resv = n;
 	r->hz_used = 0;
 	r->hz_sign = 0;
-	r->hz_allocid = HEBI_ALLOC_INVALID;
+	r->hz_allocid = HEBI_ALLOC_FIXED;
 }

@@ -23,7 +23,8 @@ Hebimath has the following design features:
 - Ability to override the memory allocator for each high-level number primitive.
 - Can override the default memory allocator for each thread.
 - Can use fixed-size buffers instead of an allocator when initializing
-  a primitive, useful for fast ad-hoc memory allocations on the stack.
+  a primitive, useful when using statically allocated memory or fast ad-hoc
+  memory allocations on the stack.
 - Can setup a separate allocator for internal temporary/scratchpad allocations.
 - Smallest unit size for natural numbers and integers is 16 bytes. This
   larger unit size aids in shrinking the amount of code bloat for unrolled

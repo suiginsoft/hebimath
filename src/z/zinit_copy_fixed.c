@@ -7,7 +7,7 @@
 
 HEBI_API
 void
-hebi_zinit_copy_buffer(
+hebi_zinit_copy_fixed(
 		hebi_zptr restrict r,
 		hebi_zsrcptr restrict a,
 		void *restrict buffer,
@@ -15,7 +15,7 @@ hebi_zinit_copy_buffer(
 {
 	size_t u;
 
-	if (UNLIKELY((buffer == NULL && n) ||
+	if (UNLIKELY((!buffer && n) ||
 			((uintptr_t)buffer & (HEBI_PACKET_ALIGNMENT - 1))))
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
 
@@ -30,5 +30,5 @@ hebi_zinit_copy_buffer(
 	r->hz_resv = n;
 	r->hz_used = u;
 	r->hz_sign = a->hz_sign;
-	r->hz_allocid = HEBI_ALLOC_INVALID;
+	r->hz_allocid = HEBI_ALLOC_FIXED;
 }
