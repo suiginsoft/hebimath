@@ -12,7 +12,7 @@
 
 #define COUNTOF(X) (long)(sizeof(X) / sizeof((X)[0]))
 #define IGNORE(...) ((void)sizeof(ignore(0, __VA_ARGS__)))
-extern int ignore(int, ...);
+extern int ignore(int x, ...);
 
 const int64_t check_i64values[] =
 {
@@ -86,16 +86,10 @@ checkalloc(void *ctx, size_t alignment, size_t size)
 	if (alignment < sizeof(void*))
 		alignment = sizeof(void*);
 
-	if (size & (alignment - 1)) {
-		errno = EINVAL;
-		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
-	}
-
+	p = NULL;
 	e = posix_memalign(&p, alignment, size);
-	if (e) {
-		errno = e;
-		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
-	}
+	if (e)
+		return NULL;
 
 	memset(p, 0xDC, size);
 	return p;
@@ -112,21 +106,21 @@ checkfree(void *ctx, void *p, size_t size)
 	}
 }
 
-static const struct hebi_allocfnptrs checkfp =
+static const struct hebi_allocfnptrs checkallocfp =
 {
-	.ha_alloc = checkalloc,
-	.ha_free = checkfree,
+	.ha_alloc = &checkalloc,
+	.ha_free = &checkfree,
 	.ha_arg = NULL
 };
 	
-static hebi_allocid checkid = HEBI_ALLOC_INVALID;
+static hebi_allocid checkallocid = HEBI_ALLOC_INVALID;
 
 static void
 checkshut(void)
 {
-	if (checkid != HEBI_ALLOC_INVALID) {
-		hebi_alloc_remove(checkid);
-		checkid = HEBI_ALLOC_INVALID;
+	if (checkallocid != HEBI_ALLOC_INVALID) {
+		hebi_alloc_remove(checkallocid);
+		checkallocid = HEBI_ALLOC_INVALID;
 	}
 }
 
@@ -175,13 +169,13 @@ checkinit(int argc, char *argv[])
 		}
 	}
 
-	if (atexit(checkshut)) {
+	if (atexit(&checkshut)) {
 		perror("unable to register atexit handler");
 		abort();
 	}
 
-	checkid = hebi_alloc_add(&checkfp);
-	hebi_alloc_set_default(checkid);
+	checkallocid = hebi_alloc_add(&checkallocfp);
+	hebi_alloc_set_default(checkallocid);
 }
 
 HEBI_NORETURN
