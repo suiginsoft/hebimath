@@ -54,7 +54,7 @@
  *     USE_POSIX_THREADS
  *         pthreads library (pthreads.h)
  */
-/* #define USE_C11_THREADS */
+/*#define USE_C11_THREADS*/
 #define USE_POSIX_THREADS
 
 /*
@@ -75,6 +75,15 @@
  */
 #define USE_C11_THREAD_LOCAL
 #define USE_GNUC_THREAD_LOCAL
+
+/*
+ * Enables the use of error-checking or recursive mutex/rwlocks depending
+ * on the selected threading library in accordance with SEI CERT C
+ * recommendation REC.50.POS04-C to avoid normal mutexes. Commenting
+ * this out will use normal/plain mutexes yielding a small performance
+ * boost, but will sacrifice security.
+ */
+#define USE_SECURE_MUTEXES
 
 /*
  * Select and enable support for different atomic memory access backends.

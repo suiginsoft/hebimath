@@ -142,12 +142,14 @@ invalidfree(void *arg, void *ptr, size_t size)
 
 #if defined USE_C11_THREADS
 
-#define TABLE_LOCK(RW, E) \
+#define TABLE_LOCK(E) \
 MULTILINEBEGIN \
 	if (UNLIKELY(!tactive)) { \
-		call_once(&tonce, inittable) \
+		call_once(&tonce, &inittable); \
 		if (UNLIKELY(terror != thrd_success)) \
 			hebi_error_raise(HEBI_ERRDOM_THRD, terror); \
+		if (UNLIKELY(!tactive)) \
+			hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADSTATE); \
 	} \
 	E = mtx_lock(&tmutex); \
 	if (UNLIKELY(E != thrd_success)) \
@@ -169,31 +171,92 @@ static volatile int terror;
 static void
 inittable(void)
 {
+#ifdef USE_SECURE_MUTEXES
+	const int type = mtx_recursive;
+#else
+	const int type = mtx_plain;
+#endif
 	terror = mtx_init(&tmutex, mtx_plain);
 	tactive = terror == thrd_success;
 }
 
 #elif defined USE_POSIX_THREADS
 
-#define TABLE_LOCK(RW, E) \
-MULTILINEBEGIN \
-	E = CONCAT(CONCAT(pthread_rwlock_,RW),lock)(&trwlock); \
-	if (UNLIKELY(E)) \
-	 	hebi_error_raise(HEBI_ERRDOM_ERRNO, E); \
-MULTILINEEND
-
 #define TABLE_UNLOCK(E) \
 MULTILINEBEGIN \
-	E = pthread_rwlock_unlock(&trwlock); \
+	E = pthread_mutex_unlock(&tmutex); \
 	if (UNLIKELY(E)) \
 		hebi_error_raise(HEBI_ERRDOM_ERRNO, E); \
 MULTILINEEND
 
-static pthread_rwlock_t trwlock = PTHREAD_RWLOCK_INITIALIZER;
+#ifdef USE_SECURE_MUTEXES
 
-#else /* !defined USE_THREADS */
+#define TABLE_LOCK(E) \
+MULTILINEBEGIN \
+	if (UNLIKELY(!tactive)) { \
+		E = pthread_once(&tonce, &inittable); \
+		if (UNLIKELY(E)) \
+			hebi_error_raise(HEBI_ERRDOM_ERRNO, E); \
+		if (UNLIKELY(terror)) \
+			hebi_error_raise(HEBI_ERRDOM_ERRNO, terror); \
+		if (UNLIKELY(!tactive)) \
+			hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADSTATE); \
+	} \
+	E = pthread_mutex_lock(&tmutex); \
+	if (UNLIKELY(E)) \
+	 	hebi_error_raise(HEBI_ERRDOM_ERRNO, E); \
+MULTILINEEND
 
-#define TABLE_LOCK(RW, E) IGNORE(E)
+static pthread_once_t tonce;
+static pthread_mutex_t tmutex;
+static volatile int tactive;
+static volatile int terror;
+
+static void
+inittable(void)
+{
+	pthread_mutexattr_t attr;
+
+	terror = pthread_mutexattr_init(&attr);
+	if (UNLIKELY(terror)) {
+		tactive = 0;
+		return;
+	}
+
+	terror = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK);
+	if (UNLIKELY(terror)) {
+		(void)pthread_mutexattr_destroy(&attr);
+		tactive = 0;
+		return;
+	}
+
+	terror = pthread_mutex_init(&tmutex, &attr);
+	if (UNLIKELY(terror)) {
+		(void)pthread_mutexattr_destroy(&attr);
+		tactive = 0;
+		return;
+	}
+
+	(void)pthread_mutexattr_destroy(&attr);
+	tactive = 1;
+}
+
+#else /* USE_SECURE_MUTEXES */
+
+#define TABLE_LOCK(E) \
+MULTILINEBEGIN \
+	E = pthread_mutex_lock(&tmutex); \
+	if (UNLIKELY(E)) \
+	 	hebi_error_raise(HEBI_ERRDOM_ERRNO, E); \
+MULTILINEEND
+
+static pthread_mutex_t tmutex = PTHREAD_MUTEX_INITIALIZER;
+
+#endif /* USE_SECURE_MUTEXES */
+
+#else /* USE_THREADS */
+
+#define TABLE_LOCK(E) IGNORE(E)
 #define TABLE_UNLOCK(E) IGNORE(E)
 
 #endif
@@ -261,16 +324,34 @@ hebi_alloc_table_shut__(void)
 #ifdef ALLOC_TABLE_DYNAMIC
 	unsigned int i;
 
-	for (i = 0; i < tresv; ++i) {
+	for (i = 0; i < tresv / ALLOC_TABLE_PAGE_SIZE; ++i) {
 		free(generationpages[i]);
+		generationpages[i] = NULL;
 		free(fnptrpages[i]);
+		fnptrpages[i] = NULL;
 	}
+
+	tresv = 0;
 #endif
 
+	tfreelist = UINTPTR_MAX;
+	tsize = 0;
+	tused = 0;
+
 #if defined USE_C11_THREADS
-	mtx_destroy(&tmutex);
+	if (tactive) {
+		mtx_destroy(&tmutex);
+		tactive = 0;
+	}
 #elif defined USE_POSIX_THREADS
-	(void)pthread_rwlock_destroy(&trwlock);
+#ifdef USE_SECURE_MUTEXES
+	if (tactive) {
+		(void)pthread_mutex_destroy(&tmutex);
+		tactive = 0;
+	}
+#else
+	(void)pthread_mutex_destroy(&tmutex);
+#endif
 #endif
 }
 
@@ -292,7 +373,7 @@ hebi_alloc_add(const struct hebi_allocfnptrs *srcfp)
 	if (UNLIKELY(!srcfp))
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
 
-	TABLE_LOCK(wr, err);
+	TABLE_LOCK(err);
 
 	if (tfreelist < tsize) {
 		ASSERT(tfreelist <= UINT_MAX);
@@ -361,7 +442,7 @@ hebi_alloc_remove(hebi_allocid id)
 	/* lookup the allocator, if it is valid remove it */
 	gp = NULL;
 
-	TABLE_LOCK(wr, err);
+	TABLE_LOCK(err);
 
 	if (slot < tsize) {
 		TABLE_INDEX(gp, fp, slot, page, offs);
@@ -435,9 +516,9 @@ hebi_alloc_query(hebi_allocid *rid, hebi_allocid id)
 	if (!ctx)
 		ctx = hebi_context_get__();
 
+	i = hashcode;
 	used = ctx->allocused;
 	if (used) {
-		i = hashcode;
 		tested = 0;
 		while (ctx->allockeys[i] > 0 && tested < used) {
 			if (ctx->allockeys[i] == key)
@@ -459,7 +540,7 @@ hebi_alloc_query(hebi_allocid *rid, hebi_allocid id)
 	/* fetch fnptrs pointer from the global allocator table */
 	fp = NULL;
 
-	TABLE_LOCK(rd, err);
+	TABLE_LOCK(err);
 
 	if (slot < tsize) {
 #ifdef ALLOC_TABLE_DYNAMIC
@@ -530,7 +611,7 @@ hebi_alloc_valid(hebi_allocid id)
 	/* check if allocator entry exists in global table */
 	retval = 0;
 
-	TABLE_LOCK(rd, err);
+	TABLE_LOCK(err);
 
 	if (slot < tsize) {
 #ifdef ALLOC_TABLE_DYNAMIC
