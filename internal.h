@@ -307,185 +307,6 @@ hebi_error_assert__(const char *expr, const char *func, const char *file, long l
 #define hz_sign hebi_sign__
 #define hz_allocid hebi_allocator__
 
-#ifdef USE_THREAD_LOCAL
-
-/*
- * the shadow context is for tracking thread-specific resources to be
- * released on thread exit when the main context object is implemented
- * as a TLS variable and doesn't have a destructor of its own
- */
-struct hebi_shadow_context {
-	/* pointer to active scratch/temporary memory */
-	const struct hebi_allocfnptrs *scratchfp;
-	void *scratch;
-	size_t scratchsize;
-
-#ifdef USE_ASSERTIONS
-	/* internal stack counters tracked for debugging purposes */
-	unsigned int zstackused;
-#endif
-};
-
-#endif /* USE_THREAD_LOCAL */
-
-/* arguments for longjmp */
-struct hebi_longjmparg {
-	jmp_buf env;
-	int val;
-};
-
-/* internal thread-local context */
-struct hebi_context {
-	/*
-	 * error handler callback and data, where errarg may point
-	 * to errjmpargs in case hebi_error_jmp was invoked
-	 */
-	hebi_errhandler errhandler;
-	void *errarg;
-	struct hebi_longjmparg errjmparg;
-	struct hebi_error errlast;
-
-#ifdef USE_THREAD_LOCAL
-
-	/* pointer to shadow context, duplicated here for quick access */
-	struct hebi_shadow_context *shadow;
-
-#endif
-
-	/* pointer to active scratch/temporary memory */
-	const struct hebi_allocfnptrs *scratchfp;
-	void *scratch;
-	size_t scratchsize;
-
-	/*
-	 * stack of temporary integer objects to track and release
-	 * if an error is raised
-	 */
-	unsigned int zstackused;
-	hebi_zptr zstack[ZSTACK_MAX_SIZE];
-
-	/* current default & scratch allocator handles for thread */
-	hebi_allocid allocids[2];
-
-#ifdef USE_ALLOC_CACHE
-
-	/*
-	 * small hash table using linear chaining that provides
-	 * a thread-local cache of allocator pointers
-	 */
-	unsigned int allocused;
-	int allockeys[ALLOC_CACHE_MAX_SIZE];
-	const struct hebi_allocfnptrs *allocvalues[ALLOC_CACHE_MAX_SIZE];
-
-#endif
-};
-
-/* gets or creates the thread-specific context */
-#if defined USE_C11_THREAD_LOCAL
-EXTENSION extern HEBI_HIDDEN _Thread_local struct hebi_context hebi_context__;
-#elif defined USE_GNUC_THREAD_LOCAL
-EXTENSION extern HEBI_HIDDEN __thread struct hebi_context hebi_context__;
-#elif defined USE_THREADS
-HEBI_HIDDEN HEBI_PURE HEBI_WARNUNUSED
-struct hebi_context *
-hebi_context_get_or_create__(hebi_errhandler handler, void *arg);
-#else
-extern HEBI_HIDDEN struct hebi_context hebi_context__;
-#endif
-
-/* gets a pointer to the thread-specific context */
-static inline HEBI_ALWAYSINLINE HEBI_PURE HEBI_WARNUNUSED
-struct hebi_context *
-hebi_context_get__(void)
-{
-#if defined USE_THREAD_LOCAL || !defined USE_THREADS
-	return &hebi_context__;
-#else
-	return hebi_context_get_or_create__(NULL, NULL);
-#endif
-}
-
-#ifdef USE_THREAD_LOCAL
-
-/* gets or creates the thread-specific shadow context */
-HEBI_HIDDEN HEBI_PURE HEBI_WARNUNUSED
-struct hebi_shadow_context *
-hebi_shadow_context_get_or_create__(struct hebi_context *ctx);
-
-/* gets a pointer to thread-specific shadow context */
-static inline HEBI_ALWAYSINLINE HEBI_PURE HEBI_WARNUNUSED
-struct hebi_shadow_context *
-hebi_shadow_context_get__(struct hebi_context *ctx)
-{
-	if (ctx->shadow)
-		return ctx->shadow;
-	return hebi_shadow_context_get_or_create__(ctx);
-}
-
-#endif /* USE_THREAD_LOCAL */
-
-/*
- * permanently shuts down the global allocator tables, should only be
- * called by the global library destructor in src/context.c
- */
-HEBI_HIDDEN
-void
-hebi_alloc_table_shut__(void);
-
-#ifdef HEBI_MULTI_VERSIONING
-
-/* hwcaps flags for function multi-versioning */
-enum {
-#if defined __i386__ || defined __x86_64__
-	hebi_hwcap_sse          = 0x00000001,
-	hebi_hwcap_sse2         = 0x00000002,
-	hebi_hwcap_sse3         = 0x00000004,
-	hebi_hwcap_ssse3        = 0x00000008,
-	hebi_hwcap_sse4_1       = 0x00000010,
-	hebi_hwcap_sse4_2       = 0x00000020,
-	hebi_hwcap_aesni        = 0x00000040,
-	hebi_hwcap_clmul        = 0x00000080,
-	hebi_hwcap_popcnt       = 0x00000100,
-	hebi_hwcap_lzcnt        = 0x00000200,
-	hebi_hwcap_f16c         = 0x00000400,
-	hebi_hwcap_fma          = 0x00000800,
-	hebi_hwcap_avx          = 0x00001000,
-	hebi_hwcap_avx2         = 0x00002000,
-	hebi_hwcap_bmi          = 0x00004000,
-	hebi_hwcap_bmi2         = 0x00008000,
-	hebi_hwcap_ermsb        = 0x00010000,
-	hebi_hwcap_adx          = 0x00020000,
-	hebi_hwcap_sha          = 0x00040000,
-	hebi_hwcap_avx512f      = 0x00080000,
-	hebi_hwcap_avx512bw     = 0x00100000,
-	hebi_hwcap_avx512cd     = 0x00200000,
-	hebi_hwcap_avx512dq     = 0x00400000,
-	hebi_hwcap_avx512er     = 0x00800000,
-	hebi_hwcap_avx512pf     = 0x01000000,
-	hebi_hwcap_avx512vl     = 0x02000000,
-	hebi_hwcap_avx512ifma   = 0x04000000,
-	hebi_hwcap_avx512vbmi   = 0x08000000
-#elif defined __arm__ || defined __aarch64__
-	hebi_hwcap_neon         = 0x00000001,
-	hebi_hwcap_crc          = 0x00000002,
-	hebi_hwcap_crypto       = 0x00000004,
-	hebi_hwcap_fp16         = 0x00000008,
-	hebi_hwcap_rdma         = 0x00000010
-#endif
-};
-
-/* retreives the hwcaps flags for the current process */
-HEBI_HIDDEN HEBI_PURE
-unsigned long
-hebi_hwcaps__(void);
-
-/* ease-of-use wrapper that raises the HEBI_ENOHWCAPS error */
-HEBI_HIDDEN HEBI_NORETURN
-void
-hebi_hwcaps_fatal__(void);
-
-#endif /* HEBI_MULTI_VERSIONING */
-
 /* ⌈log2(x)⌉ */
 static inline HEBI_ALWAYSINLINE HEBI_CONST
 size_t
@@ -621,6 +442,244 @@ hebi_umad128__(
 	*lo += z;
 	*hi += *lo < z;
 #endif
+}
+
+#ifdef HEBI_MULTI_VERSIONING
+
+/* hwcaps flags for function multi-versioning */
+enum {
+#if defined __i386__ || defined __x86_64__
+	hebi_hwcap_sse          = 0x00000001,
+	hebi_hwcap_sse2         = 0x00000002,
+	hebi_hwcap_sse3         = 0x00000004,
+	hebi_hwcap_ssse3        = 0x00000008,
+	hebi_hwcap_sse4_1       = 0x00000010,
+	hebi_hwcap_sse4_2       = 0x00000020,
+	hebi_hwcap_aesni        = 0x00000040,
+	hebi_hwcap_clmul        = 0x00000080,
+	hebi_hwcap_popcnt       = 0x00000100,
+	hebi_hwcap_lzcnt        = 0x00000200,
+	hebi_hwcap_f16c         = 0x00000400,
+	hebi_hwcap_fma          = 0x00000800,
+	hebi_hwcap_avx          = 0x00001000,
+	hebi_hwcap_avx2         = 0x00002000,
+	hebi_hwcap_bmi          = 0x00004000,
+	hebi_hwcap_bmi2         = 0x00008000,
+	hebi_hwcap_ermsb        = 0x00010000,
+	hebi_hwcap_adx          = 0x00020000,
+	hebi_hwcap_sha          = 0x00040000,
+	hebi_hwcap_avx512f      = 0x00080000,
+	hebi_hwcap_avx512bw     = 0x00100000,
+	hebi_hwcap_avx512cd     = 0x00200000,
+	hebi_hwcap_avx512dq     = 0x00400000,
+	hebi_hwcap_avx512er     = 0x00800000,
+	hebi_hwcap_avx512pf     = 0x01000000,
+	hebi_hwcap_avx512vl     = 0x02000000,
+	hebi_hwcap_avx512ifma   = 0x04000000,
+	hebi_hwcap_avx512vbmi   = 0x08000000
+#elif defined __arm__ || defined __aarch64__
+	hebi_hwcap_neon         = 0x00000001,
+	hebi_hwcap_crc          = 0x00000002,
+	hebi_hwcap_crypto       = 0x00000004,
+	hebi_hwcap_fp16         = 0x00000008,
+	hebi_hwcap_rdma         = 0x00000010
+#endif
+};
+
+/* retreives the hwcaps flags for the current process */
+HEBI_HIDDEN HEBI_PURE
+unsigned long
+hebi_hwcaps__(void);
+
+/* ease-of-use wrapper that raises the HEBI_ENOHWCAPS error */
+HEBI_HIDDEN HEBI_NORETURN
+void
+hebi_hwcaps_fatal__(void);
+
+#endif /* HEBI_MULTI_VERSIONING */
+
+/* allocator alias limits */
+enum { ALLOC_ALIAS_COUNT = -HEBI_ALLOC_STDLIB };
+
+STATIC_ASSERT(
+	0 <= -HEBI_ALLOC_DEFAULT && -HEBI_ALLOC_DEFAULT < ALLOC_ALIAS_COUNT,
+	"default allocator alias requirement");
+
+STATIC_ASSERT(
+	0 <= -HEBI_ALLOC_SCRATCH && -HEBI_ALLOC_SCRATCH < ALLOC_ALIAS_COUNT,
+	"scratch allocator alias requirement");
+
+STATIC_ASSERT(
+	0 <= -HEBI_ALLOC_FIXED && -HEBI_ALLOC_FIXED > ALLOC_ALIAS_COUNT,
+	"fixed allocator alias requirement");
+
+STATIC_ASSERT(
+	0 <= -HEBI_ALLOC_INVALID && -HEBI_ALLOC_INVALID > ALLOC_ALIAS_COUNT,
+	"invalid allocator alias requirement");
+
+#ifdef USE_THREAD_LOCAL
+
+/*
+ * the shadow context is for tracking thread-specific resources to be
+ * released on thread exit when the main context object is implemented
+ * as a TLS variable and doesn't have a destructor of its own
+ */
+struct hebi_shadow_context {
+	/* pointer to active scratch/temporary memory */
+	const struct hebi_allocfnptrs *scratchfp;
+	void *scratch;
+	size_t scratchsize;
+
+#ifdef USE_ASSERTIONS
+	/* internal stack counters tracked for debugging purposes */
+	unsigned int zstackused;
+#endif
+};
+
+#endif /* USE_THREAD_LOCAL */
+
+/* arguments for longjmp */
+struct hebi_longjmparg {
+	jmp_buf env;
+	int val;
+};
+
+/* internal thread-local context */
+struct hebi_context {
+	/*
+	 * error handler callback and data, where errarg may point
+	 * to errjmpargs in case hebi_error_jmp was invoked
+	 */
+	hebi_errhandler errhandler;
+	void *errarg;
+	struct hebi_longjmparg errjmparg;
+	struct hebi_error errlast;
+
+#ifdef USE_THREAD_LOCAL
+
+	/* pointer to shadow context, duplicated here for quick access */
+	struct hebi_shadow_context *shadow;
+
+#endif
+
+	/* pointer to active scratch/temporary memory */
+	const struct hebi_allocfnptrs *scratchfp;
+	void *scratch;
+	size_t scratchsize;
+
+	/*
+	 * stack of temporary integer objects to track and release
+	 * if an error is raised
+	 */
+	unsigned int zstackused;
+	hebi_zptr zstack[ZSTACK_MAX_SIZE];
+
+	/* current default & scratch allocator keys */
+	int allocaliaskeys[ALLOC_ALIAS_COUNT];
+
+#ifdef USE_ALLOC_CACHE
+
+	/*
+	 * small hash table using linear chaining that provides
+	 * a thread-local cache of allocator pointers
+	 */
+	unsigned int allocused;
+	int allockeys[ALLOC_CACHE_MAX_SIZE];
+	const struct hebi_allocfnptrs *allocvalues[ALLOC_CACHE_MAX_SIZE];
+
+#endif
+};
+
+/* gets or creates the thread-specific context */
+#if defined USE_C11_THREAD_LOCAL
+EXTENSION extern HEBI_HIDDEN _Thread_local struct hebi_context hebi_context__;
+#elif defined USE_GNUC_THREAD_LOCAL
+EXTENSION extern HEBI_HIDDEN __thread struct hebi_context hebi_context__;
+#elif defined USE_THREADS
+HEBI_HIDDEN HEBI_PURE HEBI_WARNUNUSED
+struct hebi_context *
+hebi_context_get_or_create__(hebi_errhandler handler, void *arg);
+#else
+extern HEBI_HIDDEN struct hebi_context hebi_context__;
+#endif
+
+/* gets a pointer to the thread-specific context */
+static inline HEBI_ALWAYSINLINE HEBI_PURE HEBI_WARNUNUSED
+struct hebi_context *
+hebi_context_get__(void)
+{
+#if defined USE_THREAD_LOCAL || !defined USE_THREADS
+	return &hebi_context__;
+#else
+	return hebi_context_get_or_create__(NULL, NULL);
+#endif
+}
+
+#ifdef USE_THREAD_LOCAL
+
+/* gets or creates the thread-specific shadow context */
+HEBI_HIDDEN HEBI_PURE HEBI_WARNUNUSED
+struct hebi_shadow_context *
+hebi_shadow_context_get_or_create__(struct hebi_context *ctx);
+
+/* gets a pointer to thread-specific shadow context */
+static inline HEBI_ALWAYSINLINE HEBI_PURE HEBI_WARNUNUSED
+struct hebi_shadow_context *
+hebi_shadow_context_get__(struct hebi_context *ctx)
+{
+	if (ctx->shadow)
+		return ctx->shadow;
+	return hebi_shadow_context_get_or_create__(ctx);
+}
+
+#endif /* USE_THREAD_LOCAL */
+
+/*
+ * permanently shuts down the global allocator tables, should only be
+ * called by the global library destructor in src/context.c
+ */
+HEBI_HIDDEN
+void
+hebi_alloc_table_shut__(void);
+
+/*
+ * gets an index into the context allocator alias table for the
+ * given allocator alias id
+ */
+static inline HEBI_ALWAYSINLINE HEBI_PURE
+size_t
+hebi_alloc_alias_index__(hebi_allocid aliasid)
+{
+	ASSERT(-ALLOC_ALIAS_COUNT < aliasid && aliasid <= 0);
+	return (size_t)((aliasid + ALLOC_ALIAS_COUNT) % ALLOC_ALIAS_COUNT);
+}
+
+/*
+ * looks up the allocator key from an allocator id, resolving
+ * any allocator aliases. if the given context pointer referenced by
+ * ctx is NULL, it will retrieve the context pointer and store it back
+ * into the ctx variable* on output. a return value of zero indicates
+ * HEBI_ALLOC_STDLIB, a value of -1 indicates HEBI_ALLOC_FIXED,
+ * otherwise the value is a key into the global allocator table.
+ */
+static inline HEBI_ALWAYSINLINE
+int
+hebi_alloc_query_key__(struct hebi_context **ctx, hebi_allocid id)
+{
+	int key = (int)id;
+	if (LIKELY(id <= 0)) {
+		key += ALLOC_ALIAS_COUNT;
+		if (key > 0) {
+			if (!*ctx)
+				*ctx = hebi_context_get__();
+			key = (*ctx)->allocaliaskeys[key % ALLOC_ALIAS_COUNT];
+			if (UNLIKELY(key < 0))
+				hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADSTATE);
+		} else if (UNLIKELY(key < -1)) {
+			hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
+		}
+	}
+	return key;
 }
 
 /* reallocates the internal thread-specific scratchpad buffer */

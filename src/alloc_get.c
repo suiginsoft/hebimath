@@ -5,27 +5,29 @@
 
 #include "../internal.h"
 
-static hebi_allocid
-getallocidx(int index)
+static inline hebi_allocid
+getallocalias(hebi_allocid aliasid)
 {
-	struct hebi_context *ctx;
-	hebi_allocid id;
-	
-	ctx = hebi_context_get__();
-	id = ctx->allocids[index];
-	return id > 0 ? id : HEBI_ALLOC_STDLIB;
+	const size_t aliasindex = hebi_alloc_alias_index__(aliasid);
+	struct hebi_context *ctx = hebi_context_get__();
+	int key = ctx->allocaliaskeys[aliasindex];
+	if (key == 0)
+		return HEBI_ALLOC_STDLIB;
+	else if (UNLIKELY(key < 0))
+		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADSTATE);
+	return (hebi_allocid)key;
 }
 
 HEBI_API
 hebi_allocid
 hebi_alloc_get_default(void)
 {
-	return getallocidx(0);
+	return getallocalias(HEBI_ALLOC_DEFAULT);
 }
 
 HEBI_API
 hebi_allocid
 hebi_alloc_get_scratch(void)
 {
-	return getallocidx(1);
+	return getallocalias(HEBI_ALLOC_SCRATCH);
 }

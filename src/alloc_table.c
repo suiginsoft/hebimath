@@ -33,29 +33,6 @@ STATIC_ASSERT(ALLOC_CACHE_MAX_USED < ALLOC_CACHE_MAX_SIZE, "MAX_USED must be les
 #define KEY_SLOT_MASK 0x00000FFF
 #endif
 
-HEBI_NORETURN
-static void
-raisebadalloc(void)
-{
-	hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADALLOCID);
-}
-
-HEBI_NORETURN
-static void *
-invalidalloc(void *arg, size_t alignment, size_t size)
-{
-	IGNORE(arg, alignment, size);
-	raisebadalloc();
-}
-
-HEBI_NORETURN
-static void
-invalidfree(void *arg, void *p, size_t size)
-{
-	IGNORE(arg, p, size);
-	raisebadalloc();
-}
-
 static void *
 stdliballoc(void *arg, size_t alignment, size_t size)
 {
@@ -121,24 +98,61 @@ stdliballoc(void *arg, size_t alignment, size_t size)
 }
 
 static void
-stdlibfree(void *arg, void *p, size_t size)
+stdlibfree(void *arg, void *ptr, size_t size)
 {
 	IGNORE(arg, size);
 
 #if defined USE_C11_ALIGNED_ALLOC || defined USE_POSIX_MEMALIGN
-	free(p);
+	free(ptr);
 #else
-	if (LIKELY(p))
-		free(((void **)p)[-1]);
+	if (LIKELY(ptr))
+		free(((void **)ptr)[-1]);
 #endif
 }
 
-static const struct hebi_allocfnptrs stdlibfp =
+static const struct hebi_allocfnptrs stdliballocfp =
 {
 	.ha_alloc = &stdliballoc,
 	.ha_free = &stdlibfree,
 	.ha_arg = NULL
 };
+
+HEBI_NORETURN
+static void *
+fixedalloc(void *arg, size_t alignment, size_t size)
+{
+	IGNORE(arg, alignment, size);
+	hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
+}
+
+static void
+fixedfree(void *arg, void *ptr, size_t size)
+{
+	IGNORE(arg, ptr, size);
+}
+
+static const struct hebi_allocfnptrs fixedallocfp =
+{
+	.ha_alloc = &fixedalloc,
+	.ha_free = &fixedfree,
+	.ha_arg = NULL
+};
+
+HEBI_NORETURN
+static void *
+invalidalloc(void *arg, size_t alignment, size_t size)
+{
+	IGNORE(arg, alignment, size);
+	hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADSTATE);
+}
+
+HEBI_NORETURN
+static void
+invalidfree(void *arg, void *ptr, size_t size)
+{
+	IGNORE(arg, ptr, size);
+	hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADSTATE);
+}
 
 #if defined USE_C11_THREADS
 
@@ -281,21 +295,23 @@ hebi_alloc_table_shut__(void)
 
 HEBI_API
 hebi_allocid
-hebi_alloc_add(const struct hebi_allocfnptrs *newfp)
+hebi_alloc_add(const struct hebi_allocfnptrs *srcfp)
 {
+	int err;
 	unsigned short *gp;
 	struct hebi_allocfnptrs *fp;
 	unsigned int slot;
 	unsigned int genr;
-	unsigned int key;
-	int el;
 #ifdef ALLOC_TABLE_DYNAMIC
 	unsigned int page;
 	unsigned int offs;
-	int es;
+	int expanderr;
 #endif
 
-	TABLE_LOCK(wr, el);
+	if (UNLIKELY(!srcfp))
+		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
+
+	TABLE_LOCK(wr, err);
 
 	if (tfreelist < tsize) {
 		ASSERT(tfreelist <= UINT_MAX);
@@ -304,35 +320,43 @@ hebi_alloc_add(const struct hebi_allocfnptrs *newfp)
 		tfreelist = (uintptr_t)fp->ha_arg;
 	} else {
 #ifdef ALLOC_TABLE_DYNAMIC
-		if (UNLIKELY(tsize >= tresv && (es = expandtable()))) {
-			TABLE_UNLOCK(el);
-			hebi_error_raise(HEBI_ERRDOM_HEBI, es);
+		if (UNLIKELY(tsize >= tresv)) {
+			expanderr = expandtable();
+			if (UNLIKELY(expanderr)) {
+				TABLE_UNLOCK(err);
+				hebi_error_raise(HEBI_ERRDOM_HEBI, expanderr);
+			}
 		}
 #else
 		if (UNLIKELY(tsize >= TABLE_CAPACITY)) {
-			TABLE_UNLOCK(el);
+			TABLE_UNLOCK(err);
 			hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOSLOTS);
 		}
 #endif
+
 		slot = tsize;
 		++tsize;
+
 		TABLE_INDEX(gp, fp, slot, page, offs);
 	}
 
-	memcpy(fp, newfp, sizeof(*newfp));
 	genr = *gp;
 	++tused;
 
-	TABLE_UNLOCK(el);
+	fp->ha_alloc = srcfp->ha_alloc;
+	fp->ha_free = srcfp->ha_free;
+	fp->ha_arg = srcfp->ha_arg;
 
-	key = (genr << KEY_GENR_SHFT) | (slot + 1);
-	return (hebi_allocid)key;
+	TABLE_UNLOCK(err);
+
+	return (hebi_allocid)((genr << KEY_GENR_SHFT) | (slot + 1));
 }
 
 HEBI_API
 void
 hebi_alloc_remove(hebi_allocid id)
 {
+	int err;
 	unsigned short *gp;
 	struct hebi_allocfnptrs *fp;
 	unsigned int genr;
@@ -341,22 +365,23 @@ hebi_alloc_remove(hebi_allocid id)
 	unsigned int page;
 	unsigned int offs;
 #endif
-	int e;
 
 	/* can't remove predefined allocator ids */
 	if (UNLIKELY(id <= 0))
-		raisebadalloc();
+		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
 
 	/* extract allocator slot & generation */
 	slot = (unsigned int)id & KEY_SLOT_MASK;
 	genr = (unsigned int)id >> KEY_GENR_SHFT;
-	if (UNLIKELY(!slot--))
-		raisebadalloc();
-
-	TABLE_LOCK(wr, e);
+	if (UNLIKELY(!slot))
+		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
+	slot--;
 
 	/* lookup the allocator, if it is valid remove it */
 	gp = NULL;
+
+	TABLE_LOCK(wr, err);
+
 	if (slot < tsize) {
 		TABLE_INDEX(gp, fp, slot, page, offs);
 		if (*gp == genr) {
@@ -369,18 +394,20 @@ hebi_alloc_remove(hebi_allocid id)
 		}
 	}
 
-	TABLE_UNLOCK(e);
+	TABLE_UNLOCK(err);
 
 	/* no matching allocator entry, invalid allocator id */
 	if (!UNLIKELY(gp))
-		raisebadalloc();
+		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
 }
 
 HEBI_API
 const struct hebi_allocfnptrs *
 hebi_alloc_query(hebi_allocid *rid, hebi_allocid id)
 {
-	struct hebi_context *ctx = NULL;
+	int err;
+	int key;
+	struct hebi_context *ctx;
 	const struct hebi_allocfnptrs *fp;
 	unsigned int slot;
 	unsigned int genr;
@@ -393,62 +420,59 @@ hebi_alloc_query(hebi_allocid *rid, hebi_allocid id)
 	unsigned int used;
 	unsigned int hashcode;
 #endif
-	int e;
-	int key;
 
-	/* fast path for predefined allocators */
-	key = id;
-	if (LIKELY(key <= 0)) {
-		key += 2;
-		if (key > 0) {
-			ctx = hebi_context_get__();
-			key = ctx->allocids[(unsigned int)key & 1];
-		}
-		if (!key) {
-			if (rid)
-				*rid = HEBI_ALLOC_STDLIB;
-			return &stdlibfp;
-		} else if (UNLIKELY(key < 0)) {
-			raisebadalloc();
-		}
+	/* query the allocator key and handle builtin allocators */
+	ctx = NULL;
+	key = hebi_alloc_query_key__(&ctx, id);
+	ASSERT(key >= -1);
+
+	if (key == 0) {
+		if (rid)
+			*rid = HEBI_ALLOC_STDLIB;
+		return &stdliballocfp;
+	} else if (key == -1) {
+		if (rid)
+			*rid = HEBI_ALLOC_FIXED;
+		return &fixedallocfp;
 	}
 
 	/* extract allocator slot & generation */
 	slot = (unsigned int)key & KEY_SLOT_MASK;
 	genr = (unsigned int)key >> KEY_GENR_SHFT;
-	if (UNLIKELY(!slot--))
-		raisebadalloc();
+	if (UNLIKELY(!slot))
+		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
+	slot--;
 
 #ifdef USE_ALLOC_CACHE
 
-	/* compute hashcode */
+	/* compute hashcode from slot with a simple bit mix */
 	hashcode = (slot * 23131) + (slot >> 5);
 	hashcode &= (unsigned int)(ALLOC_CACHE_MAX_SIZE - 1);
 
 	/* check thread-local cache for allocator entry */
 	if (!ctx)
 		ctx = hebi_context_get__();
+
 	used = ctx->allocused;
 	if (used) {
-		for (i = hashcode; ctx->allockeys[i] != 0; i++)
-			if (ctx->allockeys[i] == key)
+		for (i = hashcode; ctx->allockeys[i] > 0; i++) {
+			if (ctx->allockeys[i] == key) {
+				if (rid)
+					*rid = id;
 				return ctx->allocvalues[i];
+			}
+		}
 		if (used >= ALLOC_CACHE_MAX_USED)
 			used = 0;
 	}
 
-	/* reset the cache's key lookup */
-	if (!used) {
-		memset(ctx->allockeys, 0, sizeof(ctx->allockeys));
-		i = hashcode;
-	}
-
 #endif
-
-	TABLE_LOCK(rd, e);
 
 	/* fetch fnptrs pointer from the global allocator table */
 	fp = NULL;
+
+	TABLE_LOCK(rd, err);
+
 	if (slot < tsize) {
 #ifdef ALLOC_TABLE_DYNAMIC
 		page = slot / ALLOC_TABLE_PAGE_SIZE;
@@ -461,18 +485,23 @@ hebi_alloc_query(hebi_allocid *rid, hebi_allocid id)
 #endif
 	}
 
-	TABLE_UNLOCK(e);
+	TABLE_UNLOCK(err);
 
 	/* no matching allocator entry, invalid allocator id */
 	if (!UNLIKELY(fp))
-		raisebadalloc();
+		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
 
 #ifdef USE_ALLOC_CACHE
 
+	/* reset the cache if all slots are used */
+	if (!used) {
+		memset(ctx->allockeys, 0, sizeof(ctx->allockeys));
+		i = hashcode;
+	}
+
 	/*
-	 * store pointer to fnptrs in thread-local cache for
-	 * quick retrieval on the next query. note that 'i' indexes
-	 * the correct location in cache to insert the new entry
+	 * store pointer to allocfnptrs in thread-local cache for
+	 * quick retrieval on the next query
 	 */
 	++used;
 	ctx->allocused = used;
@@ -490,8 +519,8 @@ HEBI_API
 int
 hebi_alloc_valid(hebi_allocid id)
 {
-	int e;
-	int ret;
+	int err;
+	int retval;
 	unsigned int slot;
 	unsigned int genr;
 #ifdef ALLOC_TABLE_DYNAMIC
@@ -499,32 +528,35 @@ hebi_alloc_valid(hebi_allocid id)
 	unsigned int offs;
 #endif
 
-	/* fast path for predefined allocators */
+	/* fast path for allocator aliases */
 	if (LIKELY(id <= 0))
-		return id >= HEBI_ALLOC_STDLIB;
+		return id >= HEBI_ALLOC_FIXED;
 
 	/* extract allocator slot & generation */
 	slot = (unsigned int)id & KEY_SLOT_MASK;
 	genr = (unsigned int)id >> KEY_GENR_SHFT;
-	if (UNLIKELY(!slot--))
+	if (UNLIKELY(!slot))
 		return 0;
-
-	TABLE_LOCK(rd, e);
+	slot--;
 
 	/* check if allocator entry exists in global table */
-	ret = 0;
+	retval = 0;
+
+	TABLE_LOCK(rd, err);
+
 	if (slot < tsize) {
 #ifdef ALLOC_TABLE_DYNAMIC
 		page = slot / ALLOC_TABLE_PAGE_SIZE;
 		offs = slot % ALLOC_TABLE_PAGE_SIZE;
 		if (LIKELY(genr == generationpages[page][offs]))
-			ret = 1;
+			retval = 1;
 #else
 		if (LIKELY(genr == generations[slot]))
-			ret = 1;
+			retval = 1;
 #endif
 	}
 
-	TABLE_UNLOCK(e);
-	return ret;
+	TABLE_UNLOCK(err);
+
+	return retval;
 }

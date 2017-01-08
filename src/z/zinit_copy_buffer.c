@@ -20,7 +20,7 @@ hebi_zinit_copy_buffer(
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
 
 	u = hebi_zused(a);
-	if (UNLIKELY(n < u || n > HEBI_PACKET_MAXLEN))
+	if (UNLIKELY(n < u || HEBI_PACKET_MAXLEN < n))
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADLENGTH);
 
 	if (LIKELY(u))

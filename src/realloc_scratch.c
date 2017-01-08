@@ -12,17 +12,14 @@ hebi_realloc_scratch__(struct hebi_context *ctx, size_t newsize)
 #ifdef USE_THREAD_LOCAL
 	struct hebi_shadow_context *shadow = NULL;
 #endif
-
-	const struct hebi_allocfnptrs *fp;
 	void *p;
 	size_t n;
-
-	ASSERT(ctx);
+	const struct hebi_allocfnptrs *fp;
 
 	p = ctx->scratch;
 	if (p) {
-		fp = ctx->scratchfp;
 		n = ctx->scratchsize;
+		fp = ctx->scratchfp;
 		ASSERT(fp);
 
 		ctx->scratchfp = NULL;
@@ -42,9 +39,9 @@ hebi_realloc_scratch__(struct hebi_context *ctx, size_t newsize)
 	}
 
 	if (newsize > 0) {
-		fp = hebi_alloc_query(NULL, ctx->allocids[1]);
+		fp = hebi_alloc_query(NULL, HEBI_ALLOC_SCRATCH);
 		p = hebi_allocfp(fp, HEBI_PACKET_ALIGNMENT, newsize);
-	
+
 		ctx->scratchfp = fp;
 		ctx->scratch = p;
 		ctx->scratchsize = newsize;
