@@ -133,14 +133,6 @@ HEBI_API void hebi_error_restore(const struct hebi_errstate *state__);
 HEBI_API HEBI_NOTHROW int hebi_error_last(struct hebi_error *err__);
 HEBI_API HEBI_NORETURN void hebi_error_raise(enum hebi_errdom domain__, int code__);
 
-struct hebi_allocfnptrs {
-	void *(* ha_alloc)(void *, size_t, size_t);
-	void (* ha_free)(void *, void *, size_t);
-	void *ha_arg;
-};
-
-typedef int hebi_allocid;
-
 enum {
 	HEBI_ALLOC_DEFAULT = 0,
 	HEBI_ALLOC_SCRATCH = -1,
@@ -149,6 +141,18 @@ enum {
 	HEBI_ALLOC_INVALID = -4
 };
 
+typedef int hebi_allocid;
+
+struct hebi_allocfnptrs {
+	void *(* ha_alloc)(void *, size_t, size_t);
+	void (* ha_free)(void *, void *, size_t);
+	void *ha_arg;
+};
+
+HEBI_API HEBI_ALLOC HEBI_WARNUNUSED void *hebi_alloc(hebi_allocid i__, size_t a__, size_t s__);
+HEBI_API void hebi_free(hebi_allocid i__, void *p__, size_t s__);
+HEBI_API HEBI_ALLOC HEBI_WARNUNUSED void *hebi_allocfp(const struct hebi_allocfnptrs *f__, size_t a__, size_t s__);
+HEBI_API void hebi_freefp(const struct hebi_allocfnptrs *f__, void *p__, size_t s__);
 HEBI_API HEBI_NOTHROW int hebi_alloc_valid(hebi_allocid i__);
 HEBI_API const struct hebi_allocfnptrs *hebi_alloc_query(hebi_allocid *p__, hebi_allocid i__);
 HEBI_API hebi_allocid hebi_alloc_add(const struct hebi_allocfnptrs *f__);
@@ -158,34 +162,6 @@ HEBI_API hebi_allocid hebi_alloc_set_default(hebi_allocid i__);
 HEBI_API hebi_allocid hebi_alloc_get_scratch(void);
 HEBI_API hebi_allocid hebi_alloc_set_scratch(hebi_allocid i__);
 HEBI_API void hebi_free_scratch(void);
-
-HEBI_INLINE HEBI_ALLOC HEBI_WARNUNUSED
-void *
-hebi_allocfp(const struct hebi_allocfnptrs *f__, size_t a__, size_t s__)
-{
-	return (*f__->ha_alloc)(f__->ha_arg, a__, s__);
-}
-
-HEBI_INLINE
-void
-hebi_freefp(const struct hebi_allocfnptrs *f__, void *p__, size_t s__)
-{
-	(*f__->ha_free)(f__->ha_arg, p__, s__);
-}
-
-HEBI_INLINE HEBI_ALLOC HEBI_WARNUNUSED
-void *
-hebi_alloc(hebi_allocid i__, size_t a__, size_t s__)
-{
-	return hebi_allocfp(hebi_alloc_query(NULL, i__), a__, s__);
-}
-
-HEBI_INLINE
-void
-hebi_free(hebi_allocid i__, void *p__, size_t s__)
-{
-	hebi_freefp(hebi_alloc_query(NULL, i__), p__, s__);
-}
 
 struct hebi_kiss {
 	uint64_t hebi_xorshift__;
@@ -276,6 +252,10 @@ HEBI_API HEBI_CONST size_t hebi_psqr_karatsuba_space(size_t n__);
 HEBI_API void hebi_prand_kiss(hebi_packet *HEBI_RESTRICT r__, size_t n__, size_t bits__, struct hebi_kiss *HEBI_RESTRICT k__);
 HEBI_API size_t hebi_pgetstr(char *HEBI_RESTRICT str__, size_t len__, hebi_packet *HEBI_RESTRICT w__, size_t n__, int base__);
 HEBI_API size_t hebi_pgetstrlen(const hebi_packet *a__, size_t n__, int base__);
+HEBI_API HEBI_ALLOC HEBI_WARNUNUSED hebi_packet *hebi_palloc(hebi_allocid i__, size_t n__);
+HEBI_API void hebi_pfree(hebi_allocid i__, hebi_packet *p__, size_t n__);
+HEBI_API HEBI_ALLOC HEBI_WARNUNUSED hebi_packet *hebi_pallocfp(const struct hebi_allocfnptrs *f__, size_t n__);
+HEBI_API void hebi_pfreefp(const struct hebi_allocfnptrs *f__, hebi_packet *p__, size_t n__);
 
 HEBI_INLINE
 void
@@ -299,38 +279,6 @@ hebi_psetzero(hebi_packet *r__)
 {
 	r__->hp_limbs64[0] = 0;
 	r__->hp_limbs64[1] = 0;
-}
-
-HEBI_INLINE HEBI_ALLOC HEBI_WARNUNUSED
-hebi_packet *
-hebi_pallocfp(const struct hebi_allocfnptrs *f__, size_t n__)
-{
-	size_t s__;
-	if (HEBI_UNLIKELY(n__ > HEBI_PACKET_MAXLEN))
-		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADLENGTH);
-	s__ = n__ * sizeof(hebi_packet);
-	return hebi_allocfp(f__, HEBI_PACKET_ALIGNMENT, s__);
-}
-
-HEBI_INLINE
-void
-hebi_pfreefp(const struct hebi_allocfnptrs *f__, hebi_packet *p__, size_t n__)
-{
-	hebi_freefp(f__, p__, n__ * sizeof(hebi_packet));
-}
-
-HEBI_INLINE HEBI_ALLOC HEBI_WARNUNUSED
-hebi_packet *
-hebi_palloc(hebi_allocid i__, size_t n__)
-{
-	return hebi_pallocfp(hebi_alloc_query(NULL, i__), n__);
-}
-
-HEBI_INLINE
-void
-hebi_pfree(hebi_allocid i__, hebi_packet *p__, size_t n__)
-{
-	hebi_pfreefp(hebi_alloc_query(NULL, i__), p__, n__);
 }
 
 struct hebi_integer {

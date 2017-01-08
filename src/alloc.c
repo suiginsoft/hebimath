@@ -5,6 +5,9 @@
 
 #include "../internal.h"
 
-extern HEBI_API HEBI_ALLOC HEBI_WARNUNUSED
+HEBI_API HEBI_ALLOC HEBI_WARNUNUSED
 void *
-hebi_alloc(hebi_allocid id, size_t alignment, size_t size);
+hebi_alloc(hebi_allocid id, size_t alignment, size_t size)
+{
+	return hebi_allocfp(hebi_alloc_query(NULL, id), alignment, size);
+}

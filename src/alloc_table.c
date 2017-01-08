@@ -38,63 +38,47 @@ stdliballoc(void *arg, size_t alignment, size_t size)
 {
 	IGNORE(arg);
 
-	void *p;
-
 #if defined USE_C11_ALIGNED_ALLOC
 
-	p = aligned_alloc(alignment, size);
-	if (UNLIKELY(!p)) {
-		errno = ENOMEM;
-		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
-	}
+	return aligned_alloc(alignment, size);
 
 #elif defined USE_POSIX_MEMALIGN
 
 	size_t align;
+	void *p;
 	int e;
 
 	align = alignment;
-	if (UNLIKELY(align < sizeof(void*)))
-		align = sizeof(void*);
+	if (UNLIKELY(align < sizeof(void *)))
+		align = sizeof(void *);
 
-	if (UNLIKELY(size & (align - 1))) {
-		errno = EINVAL;
-		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
-	}
-
+	p = NULL;
 	e = posix_memalign(&p, align, size);
-	if (UNLIKELY(e)) {
-		errno = e;
-		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
-	}
+	if (UNLIKELY(e))
+		return NULL;
+
+	return p;
 
 #else
 
-	size_t align, mask;
-	char *q;
+	size_t mask;
+	void *p;
+	void *q;
 
-	align = alignment;
-	if (UNLIKELY(align < sizeof(void*)))
-		align = sizeof(void*);
-
-	mask = align - 1;
-	if (UNLIKELY((align & mask) || (size & mask))) {
-		errno = EINVAL;
-		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
-	}
+	if (UNLIKELY(alignment < sizeof(void *)))
+		mask = sizeof(void *) - 1;
+	else
+		mask = alignment - 1;
 
 	q = malloc(size + mask + sizeof(void *));
-	if (UNLIKELY(!q)) {
-		errno = ENOMEM;
-		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_ENOMEM);
-	}
+	if (UNLIKELY(!q))
+		return NULL;
 
 	p = (void *)(((uintptr_t)q + mask) & mask);
 	((void **)p)[-1] = q;
+	return p;
 
 #endif
-
-	return p;
 }
 
 static void

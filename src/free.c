@@ -5,6 +5,9 @@
 
 #include "../internal.h"
 
-extern HEBI_API
+HEBI_API
 void
-hebi_free(hebi_allocid id, void *ptr, size_t size);
+hebi_free(hebi_allocid id, void *ptr, size_t size)
+{
+	hebi_freefp(hebi_alloc_query(NULL, id), ptr, size);
+}

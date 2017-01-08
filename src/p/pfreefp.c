@@ -5,6 +5,10 @@
 
 #include "pcommon.h"
 
-extern HEBI_API
+HEBI_API
 void
-hebi_pfreefp(const struct hebi_allocfnptrs *fp, hebi_packet *p, size_t n);
+hebi_pfreefp(const struct hebi_allocfnptrs *fp, hebi_packet *p, size_t n)
+{
+	ASSERT(n <= HEBI_PACKET_MAXLEN);
+	(*fp->ha_free)(fp->ha_arg, p, n * sizeof(hebi_packet));
+}
