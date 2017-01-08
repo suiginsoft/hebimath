@@ -260,6 +260,12 @@ BENCH_BIN := $(BENCH_P_BIN)
 BENCH_OBJ := bench/bench.o
 BENCH_DEPS := $(DEPS) bench/bench.h
 
+CHECK_ALLOC := \
+	valid \
+	query \
+	addremove \
+	fixed \
+
 CHECK_P := \
 	pcmp \
 	pcopy \
@@ -312,9 +318,10 @@ CHECK_SRC := \
 	zdirty \
 	zpermutation
 
+CHECK_ALLOC_BIN := $(CHECK_ALLOC:%=check/alloc/%)
 CHECK_P_BIN := $(CHECK_P:%=check/p/%)
 CHECK_Z_BIN := $(CHECK_Z:%=check/z/%)
-CHECK_BIN := $(CHECK_P_BIN) $(CHECK_Z_BIN)
+CHECK_BIN := $(CHECK_ALLOC_BIN) $(CHECK_P_BIN) $(CHECK_Z_BIN)
 CHECK_OBJ := $(CHECK_SRC:%=check/%.o)
 CHECK_DEPS := $(DEPS) check/check.h
 
@@ -325,7 +332,7 @@ Q := $(Q_$(V))
 .SUFFIXES:
 .SUFFIXES: .c .s .o .po
 
-.PHONY: all config check check/p check/z \
+.PHONY: all config check check/alloc check/p check/z \
 	clean scrub dist install uninstall options
 
 all: $(LIBS)
@@ -376,6 +383,9 @@ bench/libbench.a: $(BENCH_DEPS) $(BENCH_OBJ)
 
 check: $(CHECK_BIN)
 	@sh runtests.sh "check" $(CHECK_BIN)
+
+check/alloc: $(CHECK_ALLOC_BIN)
+	@sh runtests.sh "check/alloc" $(CHECK_ALLOC_BIN)
 
 check/p: $(CHECK_P_BIN)
 	@sh runtests.sh "check/p" $(CHECK_P_BIN)

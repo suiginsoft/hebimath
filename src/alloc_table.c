@@ -482,6 +482,7 @@ hebi_alloc_query(hebi_allocid *rid, hebi_allocid id)
 	unsigned int used;
 	unsigned int tested;
 	unsigned int hashcode;
+	int found;
 #endif
 
 	/* query the allocator key and handle builtin allocators */
@@ -520,13 +521,16 @@ hebi_alloc_query(hebi_allocid *rid, hebi_allocid id)
 	used = ctx->allocused;
 	if (used) {
 		tested = 0;
+		found = 0;
 		while (ctx->allockeys[i] > 0 && tested < used) {
-			if (ctx->allockeys[i] == key)
+			if (ctx->allockeys[i] == key) {
+				found = 1;
 				break;
+			}
 			i = (i + 1) & ALLOC_CACHE_MASK;
 			tested++;
 		}
-		if (tested < used) {
+		if (found) {
 			if (rid)
 				*rid = id;
 			return ctx->allocvalues[i];
