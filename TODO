@@ -56,6 +56,8 @@ Other:
 	  used in OpenGL?
 	* add assertion checks for NULL pointers and audit how we compare to
 	  NULL to make sure we are consistent throughout the code base
+	* add USE_SECURE_ALLOC_CACHE configuration macro and implement
+	  local cache invalidation with an atomic counter
 * more testing on other Linux and BSD distributions
 * more testing with different C compilers and with older versions of compilers
 * perform an audit on floating-point values, make sure we aren't using any
