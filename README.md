@@ -60,4 +60,4 @@ What's with the name?
 2. *Extreme. Intense. Scary. Tough. "A heavy drinker."*
 3. *Applying power; a final burst of energy.*
 
-[![Hebimath](https://my.mixtape.moe/rybgzh.png)](https://my.mixtape.moe/onybql.webm "Computing beyond your dreams. Bignums beyond your imagination.")
+[![Hebimath](https://my.mixtape.moe/pzsegc.png)](https://my.mixtape.moe/onybql.webm "Computing beyond your dreams. Bignums beyond your imagination.")
