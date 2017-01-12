@@ -1,3 +1,7 @@
+**/*.o
+**/*.po
+**/*.lst
+**/*.log
 .sonar
 bench/libbench.a
 bench/p/padd
@@ -20,6 +24,10 @@ bench/p/psqr_karatsuba
 bench/p/psub
 bench/p/psubu
 bench/p/pzero
+check/alloc/addremove
+check/alloc/fixed
+check/alloc/query
+check/alloc/valid
 check/libcheck.a
 check/p/negnot
 check/p/pcmp
@@ -63,7 +71,3 @@ config.inc
 hebimath.h
 libhebimath.a
 libhebimath.so
-**/*.o
-**/*.po
-**/*.lst
-**/*.log

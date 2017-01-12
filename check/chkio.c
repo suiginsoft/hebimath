@@ -70,7 +70,7 @@ vsnchkprintf(char *restrict s, size_t n, const char *restrict fmt, va_list ap)
 		case 'Z':
 			if (ll != 0)
 				fail("bad format string");
-			j = (int)hebi_zgetstr(s+i, k, va_arg(ap, hebi_zsrcptr), 10);
+			j = (int)hebi_zgetstr(s+i, k, va_arg(ap, hebi_zsrcptr), 10, 0);
 			break;
 		default:
 			fail("bad format string");

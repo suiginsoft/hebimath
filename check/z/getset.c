@@ -88,10 +88,10 @@ int main(int argc, char *argv[])
 	assert(hebi_zgetu(a) == 0);
 	assert(hebi_zgetsi(a) == 0);
 	assert(hebi_zgetsu(a) == 0);
-	assert(hebi_zgetstr(buf, sizeof(buf), a, 10) < sizeof(buf));
+	assert(hebi_zgetstr(buf, sizeof(buf), a, 10, 0) < sizeof(buf));
 	assert(strcmp(buf, s0) == 0);
 
-	assert(hebi_zsetstr(a, s1, NULL, 10) > 0);
+	assert(hebi_zsetstr(a, s1, NULL, 10, 0) > 0);
 	assert(hebi_zsign(a) > 0);
 	assert(hebi_zused(a) == 2);
 	assert(hebi_zeven(a));
@@ -99,10 +99,10 @@ int main(int argc, char *argv[])
 	assert(!hebi_zzero(a));
 	assert(hebi_zgetsi(a) == INT64_MAX);
 	assert(hebi_zgetsu(a) == UINT64_MAX);
-	assert(hebi_zgetstr(buf, sizeof(buf), a, 10) < sizeof(buf));
+	assert(hebi_zgetstr(buf, sizeof(buf), a, 10, 0) < sizeof(buf));
 	assert(strcmp(buf, s1) == 0);
 
-	assert(hebi_zsetstr(a, s2, NULL, 0) > 0);
+	assert(hebi_zsetstr(a, s2, NULL, 0, 0) > 0);
 	assert(hebi_zsign(a) < 0);
 	assert(hebi_zused(a) == 6);
 	assert(!hebi_zeven(a));
@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
 	assert(!hebi_zzero(a));
 	assert(hebi_zgetsi(a) == INT64_MIN);
 	assert(hebi_zgetsu(a) == 0);
-	assert(hebi_zgetstr(buf, sizeof(buf), a, 10) < sizeof(buf));
+	assert(hebi_zgetstr(buf, sizeof(buf), a, 10, 0) < sizeof(buf));
 	assert(strcmp(buf, s2) == 0);
 
 	hebi_zdestroy(a);

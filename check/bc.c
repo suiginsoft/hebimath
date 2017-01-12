@@ -281,7 +281,7 @@ zcheckbc(hebi_zsrcptr restrict actual, const char *bcopfmt, ...)
 			actualbufsz = MAX(n + 1, actualbufsz * 2);
 			actualbuf = realloc(actualbuf, actualbufsz);
 		}
-		n = hebi_zgetstr(actualbuf, actualbufsz, actual, 10);
+		n = hebi_zgetstr(actualbuf, actualbufsz, actual, 10, 0);
 	} while (n >= actualbufsz);
 
 	va_start(ap, bcopfmt);
@@ -303,7 +303,7 @@ zcheckstr(hebi_zsrcptr restrict actual, const char *expected, const char* operat
 			actualbufsz = MAX(n + 1, actualbufsz * 2);
 			actualbuf = realloc(actualbuf, actualbufsz);
 		}
-		n = hebi_zgetstr(actualbuf, actualbufsz, actual, 10);
+		n = hebi_zgetstr(actualbuf, actualbufsz, actual, 10, 0);
 	} while (n >= actualbufsz);
 
 	checkresults(actualbuf, expected, operation);

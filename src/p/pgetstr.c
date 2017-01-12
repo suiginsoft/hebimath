@@ -5,8 +5,7 @@
 
 #include "pcommon.h"
 
-static inline
-char
+static inline char
 digtochar(int digit, int lettering, unsigned int base)
 {
 	int c;
@@ -23,8 +22,7 @@ digtochar(int digit, int lettering, unsigned int base)
 	return (char)c;
 }
 
-static inline
-int
+static inline int
 divrem(hebi_packet *w, size_t *n, unsigned int bits, MLIMB d, MLIMB v)
 {
 	MLIMB *wl;
@@ -43,8 +41,7 @@ divrem(hebi_packet *w, size_t *n, unsigned int bits, MLIMB d, MLIMB v)
 	return rem;
 }
 
-static inline
-void
+static inline void
 reverse(char *str, size_t first, size_t last)
 {
 	size_t i = first;
@@ -57,8 +54,7 @@ reverse(char *str, size_t first, size_t last)
 	}
 }
 
-static inline
-size_t
+static inline size_t
 write(char *str, size_t cur, size_t end, char c)
 {
 	if (LIKELY(cur < end)) {
@@ -76,13 +72,11 @@ hebi_pgetstr(
 		size_t len,
 		hebi_packet *restrict w,
 		size_t n,
-		int base )
+		unsigned int base,
+		unsigned int flags )
 {
-	const unsigned int flags = (unsigned int)base;
-	const unsigned int ubase = flags & HEBI_STR_BASEMASK;
-
-	unsigned int bits;      /* leading zero bits of ubase */
-	MLIMB d;                /* ubase normalized for division */
+	unsigned int bits;      /* leading zero bits of base */
+	MLIMB d;                /* base normalized for division */
 	MLIMB v;                /* reciprocal estimate of d */
 	size_t wn;
 	size_t rlen;
@@ -93,7 +87,7 @@ hebi_pgetstr(
 	int lettering;
 
 	ASSERT(n <= HEBI_PACKET_MAXLEN);
-	ASSERT(2 <= ubase && ubase <= 62);
+	ASSERT(2 <= base && base <= 64);
 
 	/* setup result length and indices */
 	rlen = 0;
@@ -101,15 +95,15 @@ hebi_pgetstr(
 	end = len - (len > 0);
 
 	/* write out optional radix prefix */
-	if (flags & HEBI_STR_PREFIX) {
-		if (ubase == 16) {
+	if (flags & HEBI_STR_RADIX) {
+		if (base == 16) {
 			cur = write(str, cur, end, '0');
 			cur = write(str, cur, end, 'x');
 			rlen += 2;
-		} else if (ubase == 8) {
+		} else if (base == 8) {
 			cur = write(str, cur, end, '0');
 			rlen++;
-		} else if (ubase == 2) {
+		} else if (base == 2) {
 			cur = write(str, cur, end, '0');
 			cur = write(str, cur, end, 'b');
 			rlen += 2;
@@ -118,7 +112,7 @@ hebi_pgetstr(
 
 	/* special case for zero-length input packet sequence */
 	if (UNLIKELY(!n)) {
-		if (LIKELY(!rlen || ubase != 8)) {
+		if (LIKELY(!rlen || base != 8)) {
 			cur = write(str, cur, end, '0');
 			rlen++;
 		}
@@ -133,7 +127,7 @@ hebi_pgetstr(
 		lettering = 'A' - 10;
 
 	/* compute reciprocal and normalized divisor */
-	d = (MLIMB)ubase;
+	d = (MLIMB)base;
 	bits = MLIMB_CLZ(d);
 	d = d << bits;
 	v = RECIPU_2X1(d);
@@ -163,7 +157,7 @@ hebi_pgetstr(
 	do {
 		for (cur = start; cur < end && wn > 0; cur++) {
 			digit = divrem(w, &wn, bits, d, v);
-			str[cur] = digtochar(digit, lettering, ubase);
+			str[cur] = digtochar(digit, lettering, base);
 			rlen++;
 		}
 	} while (UNLIKELY(wn > 0));

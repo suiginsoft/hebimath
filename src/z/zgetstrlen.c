@@ -7,18 +7,15 @@
 
 HEBI_API
 size_t
-hebi_zgetstrlen(hebi_zsrcptr a, int base)
+hebi_zgetstrlen(hebi_zsrcptr a, unsigned int base, unsigned int flags)
 {
-	const unsigned int flags = (unsigned int)base;
-	const unsigned int ubase = flags & HEBI_STR_BASEMASK;
-
 	const hebi_packet *p;
 	size_t n;
 	size_t rlen;
 	int s;
 
-	/* validate base */
-	if (UNLIKELY(ubase < 2 || 36 < ubase))
+	/* validate input arguments */
+	if (UNLIKELY(base < 2 || 64 < base))
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
 
 	/* reserve space for sign */
@@ -35,5 +32,5 @@ hebi_zgetstrlen(hebi_zsrcptr a, int base)
 		p = a->hz_packs;
 	}
 
-	return hebi_pgetstrlen(p, n, base) + rlen;
+	return rlen + hebi_pgetstrlen(p, n, base, flags);
 }

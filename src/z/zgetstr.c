@@ -7,11 +7,13 @@
 
 HEBI_API
 size_t
-hebi_zgetstr(char *restrict str, size_t len, hebi_zsrcptr restrict a, int base)
+hebi_zgetstr(
+		char *restrict str,
+		size_t len,
+		hebi_zsrcptr restrict a,
+		unsigned int base,
+		unsigned int flags )
 {
-	const unsigned int flags = (unsigned int)base;
-	const unsigned int ubase = flags & HEBI_STR_BASEMASK;
-
 	char *ptr;              /* pointer to after sign character in output */
 	char *end;              /* pointer to null-terminator of output */
 	size_t rlen;            /* result length of string */
@@ -20,8 +22,8 @@ hebi_zgetstr(char *restrict str, size_t len, hebi_zsrcptr restrict a, int base)
 	size_t n;               /* number of packets in 'a' */
 	int s;                  /* sign flag of 'a' */
 
-	/* validate base */
-	if (UNLIKELY(ubase < 2 || 36 < ubase))
+	/* validate input arguments */
+	if (UNLIKELY(base < 2 || 64 < base))
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
 
 	/* setup pointers and result length */
@@ -59,5 +61,5 @@ hebi_zgetstr(char *restrict str, size_t len, hebi_zsrcptr restrict a, int base)
 	}
 
 	/* determine string from packet sequence */
-	return hebi_pgetstr(ptr, slen, w, n, base) + rlen;
+	return rlen + hebi_pgetstr(ptr, slen, w, n, base, flags);
 }

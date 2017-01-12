@@ -65,7 +65,7 @@ zpermutation(long x, long n, int p, ...)
 			y -= check_num_i64values + check_num_u64values - 3;
 			y *= check_scale_perm;
 			s = bcprintf("zrand(%d,%ld)", seeds[i%4], y);
-			hebi_zsetstr(z, s, NULL, 10);
+			hebi_zsetstr(z, s, NULL, 10, 0);
 			free(s);
 		}
 	}

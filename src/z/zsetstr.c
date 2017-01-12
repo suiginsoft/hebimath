@@ -12,18 +12,19 @@ hebi_zsetstr(
 		hebi_zptr restrict r,
 		const char *restrict str,
 		char **restrict endptr,
-		int base )
+		unsigned int base,
+		unsigned int flags )
 {
+	IGNORE(flags);
+
 	const char *ptr;
 	const char *startptr;
-	unsigned int ubase;
 	unsigned int digit;
 	unsigned int digit_range;
 	unsigned int letter_range;
 	int neg;
 
-	ubase = (unsigned int)base & HEBI_STR_BASEMASK;
-	if (UNLIKELY(ubase && (ubase < 2 || 36 < ubase)))
+	if (UNLIKELY(base && (base < 2 || 36 < base)))
 		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
 
 	/* skip whitespace */
@@ -41,27 +42,26 @@ hebi_zsetstr(
 	}
 
 	/* determine base and skip base prefix */
-	if (ubase == 0) {
-		ubase = 10;
+	if (base == 0) {
+		base = 10;
 		if (ptr[0] == '0') {
-			ubase -= 2;
+			base -= 2;
 			if (ptr[1] == 'x' || ptr[1] == 'X') {
-				ubase <<= 1;
+				base <<= 1;
 				ptr += 2;
 			}
 		}
-	}
-	else if (ubase == 16 && ptr[0] == '0' &&
+	} else if (base == 16 && ptr[0] == '0' &&
 			(ptr[1] == 'x' || ptr[1] == 'X')) {
 		ptr += 2;
 	}
 
 	/* determine allowed character ranges for base */
-	digit_range = ubase;
+	digit_range = base;
 	letter_range = 0;
-	if (ubase > 10) {
+	if (base > 10) {
 		digit_range = 10;
-		letter_range = ubase - 10;
+		letter_range = base - 10;
 	}
 
 	/* read in the digits and accumulate result */
@@ -74,7 +74,7 @@ hebi_zsetstr(
 				break;
 			digit += 10;
 		}
-		hebi_zmulu(r, r, ubase);
+		hebi_zmulu(r, r, base);
 		hebi_zaddu(r, r, digit);
 	}
 

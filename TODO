@@ -8,7 +8,6 @@ Low-level Functions:
 	* create addua/subua to add in carry for larger ops?
 * port remainder of division implementation to x86-64 assembly
 * optimize pclz, almost always called on normalized input
-* move most of zsetstr into psetstr backend?
 
 Integer Functions:
 
@@ -50,14 +49,14 @@ Other:
 	* rewrite generic kernels to just use 64-bit limbs, change
 	  hebi_packet to a struct instead of a union, would also let the
 	  library support big-endian machines as a consequence
-	* add configuration macro for strict MISRA compliance? need to figure
-	  out a way to work around lack of abort/setjmp/longjmp error handling.
-	  maybe just use hebi_error_last in the same way glGetError is
-	  used in OpenGL?
 	* add assertion checks for NULL pointers and audit how we compare to
 	  NULL to make sure we are consistent throughout the code base
 	* add USE_SECURE_ALLOC_CACHE configuration macro and implement
 	  local cache invalidation with an atomic counter
+	* add secure versions of functions for explicitly clearing memory
+	  and constant-time comparison
+* add support for non-ASCII/UTF-8 character sets to pgetstr/psetstr
+* add base32/base64 alphabet support
 * more testing on other Linux and BSD distributions
 * more testing with different C compilers and with older versions of compilers
 * perform an audit on floating-point values, make sure we aren't using any

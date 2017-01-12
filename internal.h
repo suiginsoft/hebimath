@@ -395,19 +395,45 @@ hebi_ctz64__(uint64_t x)
 #endif
 }
 
+/* 32-bit unsigned integer power by squaring */
+static inline HEBI_ALWAYSINLINE HEBI_CONST
+uint32_t
+hebi_powu32__(uint32_t base, unsigned int exp)
+{
+	uint32_t r = 1;
+	while (exp) {
+		if (exp & 1)
+			r *= base;
+		exp >>= 1;
+		base *= base;
+	}
+	return r;
+}
+
+/* 64-bit unsigned integer power by squaring */
+static inline HEBI_ALWAYSINLINE HEBI_CONST
+uint64_t
+hebi_powu64__(uint64_t base, unsigned int exp)
+{
+	uint64_t r = 1;
+	while (exp) {
+		if (exp & 1)
+			r *= base;
+		exp >>= 1;
+		base *= base;
+	}
+	return r;
+}
+
 /* 64-bit x 64-bit -> 128-bit unsigned multiply */
 static inline HEBI_ALWAYSINLINE
-void
-hebi_umul128__(
-		uint64_t *restrict lo,
-		uint64_t *restrict hi,
-		uint64_t x,
-		uint64_t y )
+uint64_t
+hebi_mulu128__(uint64_t *hi, uint64_t x, uint64_t y)
 {
 #ifdef USE_INT128
 	hebi_uint128 p = (hebi_uint128)x * y;
 	*hi = (uint64_t)(p >> 64);
-	*lo = (uint64_t)(p & UINT64_MAX);
+	return (uint64_t)(p & UINT64_MAX);
 #else
 	uint64_t a = x >> 32;
 	uint64_t b = x & UINT32_MAX;
@@ -419,28 +445,24 @@ hebi_umul128__(
 	uint64_t bd = b * d;
 	uint64_t mid34 = (bd >> 32) + (bc & UINT32_MAX) + (ad & UINT32_MAX);
 	*hi = ac + (bc >> 32) + (ad >> 32) + (mid34 >> 32);
-	*lo = (mid34 << 32) | (bd & UINT32_MAX);
+	return (mid34 << 32) | (bd & UINT32_MAX);
 #endif
 }
 
 /* 64-bit x 64-bit + 64-bit -> 128-bit unsigned multiply & addition */
 static inline HEBI_ALWAYSINLINE
-void
-hebi_umad128__(
-		uint64_t *restrict lo,
-		uint64_t *restrict hi,
-		uint64_t x,
-		uint64_t y,
-		uint64_t z )
+uint64_t
+hebi_madu128__(uint64_t *hi, uint64_t x, uint64_t y, uint64_t z)
 {
 #ifdef USE_INT128
 	hebi_uint128 p = (hebi_uint128)x * y + z;
 	*hi = (uint64_t)(p >> 32);
-	*lo = (uint64_t)(p & UINT64_MAX);
+	return (uint64_t)(p & UINT64_MAX);
 #else
-	hebi_umul128__(lo, hi, x, y);
-	*lo += z;
-	*hi += *lo < z;
+	uint64_t lo = hebi_mulu128__(hi, x, y);
+	lo += z;
+	*hi += lo < z;
+	return lo;
 #endif
 }
 

@@ -85,6 +85,7 @@ PFUNCTIONS := \
 	prand_kiss \
 	pgetstr \
 	pgetstrlen \
+	psetstr \
 	psetu \
 	psetu2 \
 	psetzero \
