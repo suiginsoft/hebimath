@@ -275,14 +275,14 @@ static const unsigned char classic36digitlut[256] = {
 	['K'] = 21, ['L'] = 22, ['M'] = 23, ['N'] = 24,
 	['O'] = 25, ['P'] = 26, ['Q'] = 27, ['R'] = 28,
 	['S'] = 29, ['T'] = 30, ['U'] = 31, ['V'] = 32,
-	['W'] = 33, ['Y'] = 34, ['X'] = 35, ['Z'] = 36,
+	['W'] = 33, ['X'] = 34, ['Y'] = 35, ['Z'] = 36,
 	['a'] = 11, ['b'] = 12, ['c'] = 13, ['d'] = 14,
 	['e'] = 15, ['f'] = 16, ['g'] = 17, ['h'] = 18,
 	['i'] = 19, ['j'] = 20, ['k'] = 21, ['l'] = 22,
 	['m'] = 23, ['n'] = 24, ['o'] = 25, ['p'] = 26,
 	['q'] = 27, ['r'] = 28, ['s'] = 29, ['t'] = 30,
-	['u'] = 31, ['v'] = 32, ['w'] = 33, ['y'] = 34,
-	['x'] = 35, ['z'] = 36
+	['u'] = 31, ['v'] = 32, ['w'] = 33, ['x'] = 34,
+	['y'] = 35, ['z'] = 36
 };
 
 static const unsigned char classic64digitlut[256] = {
@@ -294,14 +294,14 @@ static const unsigned char classic64digitlut[256] = {
 	['K'] = 21, ['L'] = 22, ['M'] = 23, ['N'] = 24,
 	['O'] = 25, ['P'] = 26, ['Q'] = 27, ['R'] = 28,
 	['S'] = 29, ['T'] = 30, ['U'] = 31, ['V'] = 32,
-	['W'] = 33, ['Y'] = 34, ['X'] = 35, ['Z'] = 36,
+	['W'] = 33, ['X'] = 34, ['Y'] = 35, ['Z'] = 36,
 	['a'] = 37, ['b'] = 38, ['c'] = 39, ['d'] = 40,
 	['e'] = 41, ['f'] = 42, ['g'] = 43, ['h'] = 44,
 	['i'] = 45, ['j'] = 46, ['k'] = 47, ['l'] = 48,
 	['m'] = 49, ['n'] = 50, ['o'] = 51, ['p'] = 52,
 	['q'] = 53, ['r'] = 54, ['s'] = 55, ['t'] = 56,
-	['u'] = 57, ['v'] = 58, ['w'] = 59, ['y'] = 60,
-	['x'] = 61, ['z'] = 62, ['$'] = 63, ['@'] = 64
+	['u'] = 57, ['v'] = 58, ['w'] = 59, ['x'] = 60,
+	['y'] = 61, ['z'] = 62, ['$'] = 63, ['@'] = 64
 };
 
 static inline unsigned int
@@ -382,8 +382,17 @@ outofspace(
 }
 
 #define ENSURE_SPACE_AVAILABLE(SIZE) \
-if (UNLIKELY((SIZE) > n)) \
-	return outofspace((SIZE), str, cur, len, radix)
+	if (UNLIKELY((SIZE) > n)) \
+		return outofspace((SIZE), str, cur, len, radix)
+
+#define PUSH_LIMB(VAL) \
+	MULTILINEBEGIN \
+	if (VAL) { \
+		size++; \
+		ENSURE_SPACE_AVAILABLE(size); \
+		hebi_psetu(r + size - 1, (VAL)); \
+	} \
+	MULTILINEEND
 
 static size_t
 readshift(
@@ -445,6 +454,7 @@ readmultiply(
 		const unsigned char *restrict digitlut )
 {
 	uint64_t limb;
+	uint64_t overflow;
 	uint64_t scale;
 	uint64_t maxscale;
 	unsigned int digit;
@@ -471,21 +481,14 @@ readmultiply(
 			numdigits++;
 		}
 		if (size > 0) {
-			size++;
-			ENSURE_SPACE_AVAILABLE(size);
 			scale = maxscale;
 			if (numdigits != maxdigits)
 				scale = hebi_powu64__(radix, numdigits);
-			hebi_pmulu(r, r, scale, size - 1);
+			overflow = hebi_pmulu(r, r, scale, size);
+			PUSH_LIMB(overflow);
 			limb = hebi_paddu(r, r, limb, size);
 		}
-		if (limb) {
-			size++;
-			ENSURE_SPACE_AVAILABLE(size);
-			hebi_psetu(r + size - 1, limb);
-		} else {
-			size = hebi_pnorm(r, size);
-		}
+		PUSH_LIMB(limb);
 	} while (cur < len);
 
 	return size;

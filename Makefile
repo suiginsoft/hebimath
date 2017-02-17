@@ -273,7 +273,8 @@ CHECK_P := \
 	pmove \
 	pnorm \
 	pzero \
-	negnot
+	negnot \
+	strings
 
 CHECK_Z := \
 	getset \

@@ -30,6 +30,7 @@ check/alloc/query
 check/alloc/valid
 check/libcheck.a
 check/p/negnot
+check/p/strings
 check/p/pcmp
 check/p/pcopy
 check/p/pmove

@@ -8,6 +8,8 @@ Low-level Functions:
 	* create addua/subua to add in carry for larger ops?
 * port remainder of division implementation to x86-64 assembly
 * optimize pclz, almost always called on normalized input
+* add ptrunc and reimplement ztrunc in terms of it
+* get rid of bit-level truncation in prand_kiss, truncation only in zrand***
 
 Integer Functions:
 
