@@ -105,6 +105,7 @@ enum {
 	HEBI_EASSERTION,
 	HEBI_EBADLENGTH,
 	HEBI_EBADSTATE,
+	HEBI_EBADSYNTAX,
 	HEBI_EBADVALUE,
 	HEBI_ENOHWCAPS,
 	HEBI_ENOMEM,
@@ -164,11 +165,30 @@ HEBI_API hebi_allocid hebi_alloc_set_scratch(hebi_allocid i__);
 HEBI_API void hebi_free_scratch(void);
 
 enum {
-	HEBI_STR_CLASSIC_ALPHABET = 0x00,
-	HEBI_STR_ALPHABET_MASK = 0x07,
+	HEBI_STR_BASE36 = 0x00,
+	HEBI_STR_BASE36_UPPER = 0x01,
+	HEBI_STR_BASE36_LOWER = 0x02,
+	HEBI_STR_BASE62 = 0x03,
+	HEBI_STR_RFC4648_BASE32 = 0x04,
+	HEBI_STR_RFC4648_BASE64 = 0x05,
+	HEBI_STR_ALPHABET_COUNT = 0x06,
+	HEBI_STR_ALPHABET_MASK = 0x0F,
 	HEBI_STR_RADIX = 0x10,
 	HEBI_STR_SIGN = 0x20,
-	HEBI_STR_UPPER = 0x40
+	HEBI_STR_TRIM = 0x40
+};
+
+struct hebi_psetstrstate
+{
+	const char* hm_str;
+	size_t hm_len;
+	size_t hm_start;
+	size_t hm_end;
+	size_t hm_cur;
+	struct hebi_error hm_error;
+	unsigned int hm_alphabet;
+	unsigned int hm_radix;
+	int hm_sign;
 };
 
 struct hebi_kiss {
@@ -256,8 +276,8 @@ HEBI_API void hebi_psqr_karatsuba(hebi_packet *HEBI_RESTRICT r__, hebi_packet *H
 HEBI_API HEBI_CONST size_t hebi_psqr_karatsuba_space(size_t n__);
 HEBI_API size_t hebi_pgetstr(char *HEBI_RESTRICT str__, size_t len__, hebi_packet *HEBI_RESTRICT w__, size_t n__, unsigned int base__, unsigned int flags__);
 HEBI_API size_t hebi_pgetstrlen(const hebi_packet *a__, size_t n__, unsigned int base__, unsigned int flags__);
-HEBI_API size_t hebi_psetstr(hebi_packet *HEBI_RESTRICT r__, size_t n__, const char *HEBI_RESTRICT str__, size_t len__, unsigned int base__, unsigned int flags__);
-HEBI_API size_t hebi_psetstrspace(const char *str__, size_t len__, unsigned int base__, unsigned int flags__);
+HEBI_API size_t hebi_psetstr(hebi_packet *HEBI_RESTRICT r__, size_t n__, struct hebi_psetstrstate *HEBI_RESTRICT state__);
+HEBI_API size_t hebi_psetstrprepare(struct hebi_psetstrstate* HEBI_RESTRICT state__, const char *HEBI_RESTRICT str__, size_t len__, unsigned int base__, unsigned int flags__);
 HEBI_API void hebi_prand_kiss(hebi_packet *HEBI_RESTRICT r__, size_t n__, size_t bits__, struct hebi_kiss *HEBI_RESTRICT k__);
 
 HEBI_INLINE

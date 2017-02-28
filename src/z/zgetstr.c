@@ -51,13 +51,13 @@ hebi_zgetstr(
 	}
 
 	/* copy integer data into scratch-pad buffer if non-zero */
-	n = 0;
-	w = NULL;
-
 	if (LIKELY(s)) {
 		n = a->hz_used;
 		w = hebi_pscratch__(n);
 		hebi_pcopy(w, a->hz_packs, n);
+	} else {
+		n = 0;
+		w = NULL;
 	}
 
 	/* determine string from packet sequence */

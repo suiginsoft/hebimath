@@ -123,7 +123,7 @@ hebi_pgetstr(
 
 	/* determine lowercase or uppercase letters */
 	lettering = 'a' - 10;
-	if (flags & HEBI_STR_UPPER)
+	if ((flags & HEBI_STR_ALPHABET_MASK) == HEBI_STR_BASE36_UPPER)
 		lettering = 'A' - 10;
 
 	/* compute reciprocal and normalized divisor */

@@ -4,14 +4,18 @@
  */
 
 #include "pcommon.h"
+#include <ctype.h>
 
-STATIC_ASSERT(UCHAR_MAX <= UINT8_MAX, "unsigned char must be 8-bits or less");
-STATIC_ASSERT(UINT_MAX <= MLIMB_MAX, "MLIMB should be at least as large as unsigned int");
+/* hebi_psetstr requires the following constraints from the language & libraries */
+STATIC_ASSERT(UCHAR_MAX <= UINT8_MAX, "uchar must be 8-bits or less");
+STATIC_ASSERT(UINT_MAX <= MLIMB_MAX, "MLIMB should be at least as large as uint");
 
 /*
- * Lookup tables for converting from number of digits in a given base to
- * number of packets, represented as 64-bit or 32-bit fixed-point
- * approximation. Both tables are generated with the program fragment below.
+ * lookup tables for converting from number of digits in a given base
+ * to number of packets, represented as 64-bit or 32-bit fixed-point
+ * approximation
+ *
+ * both tables are generated with the program fragment below
  */
 
 #if 0
@@ -257,16 +261,93 @@ static const uint64_t maxscalelut[64] = {
 };
 
 /*
- * character to digit conversion tables for different base ranges
- * and digit encodings
- *
- * here we rely on unsigned integer wrapping of the value fetched
- * from the lookup table by subtracting one, resulting in invalid
- * characters yielding a return value greater than the allowed
- * digit range
+ * functions for reading optional radix prefix and determining
+ * the default radix if no prefix exists for different alphabets
  */
 
-static const unsigned char classic36digitlut[256] = {
+static inline int
+peek(const char *str, size_t cur, size_t len, char c)
+{
+	if (LIKELY(cur < len))
+		return str[cur] == c;
+	return 0;
+}
+
+static inline int
+peekcase(const char *str, size_t cur, size_t len, char c0, char c1)
+{
+	if (LIKELY(cur < len))
+		return str[cur] == c0 || str[cur] == c1;
+	return 0;
+}
+
+static inline int
+peekradix(const char *str, size_t cur, size_t len, char c0, char c1)
+{
+	return peek(str, cur, len, '0') && peekcase(str, cur + 1, len, c0, c1);
+}
+
+static unsigned int
+defaultreadradix(
+		const char *restrict str,
+		size_t *restrict cur,
+		size_t len,
+		unsigned int base )
+{
+	unsigned int radix = base;
+
+	if (!radix) {
+		radix = 10;
+		if (peek(str, *cur, len, '0')) {
+			radix -= 2;
+			(*cur)++;
+			if (peekcase(str, *cur, len, 'x', 'X')) {
+				radix *= 2;
+				(*cur)++;
+			} else if (peekcase(str, *cur, len, 'b', 'B')) {
+				radix /= 4;
+				(*cur)++;
+			}
+		}
+	} else if ((radix == 16 && peekradix(str, *cur, len, 'x', 'X')) ||
+			(radix == 2 && peekradix(str, *cur, len, 'b', 'B'))) {
+		*cur += 2;
+	}
+
+	return radix;
+}
+
+static unsigned int
+rfc4648base32readradix(
+		const char *restrict str,
+		size_t *restrict cur,
+		size_t len,
+		unsigned int base )
+{
+	IGNORE(str, cur, len);
+	return base ? base : 32;
+}
+
+static unsigned int
+rfc4648base64readradix(
+		const char *restrict str,
+		size_t *restrict cur,
+		size_t len,
+		unsigned int base )
+{
+	IGNORE(str, cur, len);
+	return base ? base : 64;
+}
+
+/*
+ * character to digit conversion tables for different encoding alphabets
+ *
+ * here we rely on unsigned integer wrapping of the value fetched from
+ * the lookup table by subtracting one, resulting in invalid characters
+ * yielding a return value greater than the allowed digit range
+ */
+
+static const unsigned char base36digitlut[256] = {
 	['0'] = 1,  ['1'] = 2,  ['2'] = 3,  ['3'] = 4,
 	['4'] = 5,  ['5'] = 6,  ['6'] = 7,  ['7'] = 8,
 	['8'] = 9,  ['9'] = 10, ['A'] = 11, ['B'] = 12,
@@ -285,7 +366,31 @@ static const unsigned char classic36digitlut[256] = {
 	['y'] = 35, ['z'] = 36
 };
 
-static const unsigned char classic64digitlut[256] = {
+static const unsigned char base36upperdigitlut[256] = {
+	['0'] = 1,  ['1'] = 2,  ['2'] = 3,  ['3'] = 4,
+	['4'] = 5,  ['5'] = 6,  ['6'] = 7,  ['7'] = 8,
+	['8'] = 9,  ['9'] = 10, ['A'] = 11, ['B'] = 12,
+	['C'] = 13, ['D'] = 14, ['E'] = 15, ['F'] = 16,
+	['G'] = 17, ['H'] = 18, ['I'] = 19, ['J'] = 20,
+	['K'] = 21, ['L'] = 22, ['M'] = 23, ['N'] = 24,
+	['O'] = 25, ['P'] = 26, ['Q'] = 27, ['R'] = 28,
+	['S'] = 29, ['T'] = 30, ['U'] = 31, ['V'] = 32,
+	['W'] = 33, ['X'] = 34, ['Y'] = 35, ['Z'] = 36
+};
+
+static const unsigned char base36lowerdigitlut[256] = {
+	['0'] = 1,  ['1'] = 2,  ['2'] = 3,  ['3'] = 4,
+	['4'] = 5,  ['5'] = 6,  ['6'] = 7,  ['7'] = 8,
+	['8'] = 9,  ['9'] = 10, ['a'] = 11, ['b'] = 12,
+	['c'] = 13, ['d'] = 14, ['e'] = 15, ['f'] = 16,
+	['g'] = 17, ['h'] = 18, ['i'] = 19, ['j'] = 20,
+	['k'] = 21, ['l'] = 22, ['m'] = 23, ['n'] = 24,
+	['o'] = 25, ['p'] = 26, ['q'] = 27, ['r'] = 28,
+	['s'] = 29, ['t'] = 30, ['u'] = 31, ['v'] = 32,
+	['w'] = 33, ['x'] = 34, ['y'] = 35, ['z'] = 36
+};
+
+static const unsigned char base62digitlut[256] = {
 	['0'] = 1,  ['1'] = 2,  ['2'] = 3,  ['3'] = 4,
 	['4'] = 5,  ['5'] = 6,  ['6'] = 7,  ['7'] = 8,
 	['8'] = 9,  ['9'] = 10, ['A'] = 11, ['B'] = 12,
@@ -301,7 +406,58 @@ static const unsigned char classic64digitlut[256] = {
 	['m'] = 49, ['n'] = 50, ['o'] = 51, ['p'] = 52,
 	['q'] = 53, ['r'] = 54, ['s'] = 55, ['t'] = 56,
 	['u'] = 57, ['v'] = 58, ['w'] = 59, ['x'] = 60,
-	['y'] = 61, ['z'] = 62, ['$'] = 63, ['@'] = 64
+	['y'] = 61, ['z'] = 62
+};
+
+static const unsigned char rfc4648base32digitlut[256] = {
+	['A'] = 1,  ['B'] = 2,  ['C'] = 3,  ['D'] = 4,
+	['E'] = 5,  ['F'] = 6,  ['G'] = 7,  ['H'] = 8,
+	['I'] = 9,  ['J'] = 10, ['K'] = 11, ['L'] = 12,
+	['M'] = 13, ['N'] = 14, ['O'] = 15, ['P'] = 16,
+	['Q'] = 17, ['R'] = 18, ['S'] = 19, ['T'] = 20,
+	['U'] = 21, ['V'] = 22, ['W'] = 23, ['X'] = 24,
+	['Y'] = 25, ['Z'] = 26, ['2'] = 27, ['3'] = 28,
+	['4'] = 29, ['5'] = 30, ['6'] = 31, ['7'] = 32
+};
+
+static const unsigned char rfc4648base64digitlut[256] = {
+	['A'] = 1,  ['B'] = 2,  ['C'] = 3,  ['D'] = 4,
+	['E'] = 5,  ['F'] = 6,  ['G'] = 7,  ['H'] = 8,
+	['I'] = 9,  ['J'] = 10, ['K'] = 11, ['L'] = 12,
+	['M'] = 13, ['N'] = 14, ['O'] = 15, ['P'] = 16,
+	['Q'] = 17, ['R'] = 18, ['S'] = 19, ['T'] = 20,
+	['U'] = 21, ['V'] = 22, ['W'] = 23, ['X'] = 24,
+	['Y'] = 25, ['Z'] = 26, ['a'] = 27, ['b'] = 28,
+	['c'] = 29, ['d'] = 30, ['e'] = 31, ['f'] = 32,
+	['g'] = 33, ['h'] = 34, ['i'] = 35, ['j'] = 36,
+	['k'] = 37, ['l'] = 38, ['m'] = 39, ['n'] = 40,
+	['o'] = 41, ['p'] = 42, ['q'] = 43, ['r'] = 44,
+	['s'] = 45, ['t'] = 46, ['u'] = 47, ['v'] = 48,
+	['w'] = 49, ['y'] = 50, ['x'] = 51, ['z'] = 52,
+	['0'] = 53, ['1'] = 54, ['2'] = 55, ['3'] = 56,
+	['4'] = 57, ['5'] = 58, ['6'] = 59, ['7'] = 60,
+	['8'] = 61, ['9'] = 62, ['+'] = 63, ['/'] = 64
+};
+
+/* parameters that describe how to decode a number in a specific alphabet */
+struct alphabet_decoder {
+	unsigned int (* readradix)(const char *, size_t *, size_t, unsigned int);
+	const unsigned char* digitlut;
+	unsigned int maxradix;
+	char minus;
+	char plus;
+	char pad;
+	char zero;
+};
+
+/* table of decoding parameters for each alphabet */
+static const struct alphabet_decoder alphabets[HEBI_STR_ALPHABET_COUNT] = {
+	{ &defaultreadradix, base36digitlut, 36, '-', '+', '\0', '0' },
+	{ &defaultreadradix, base36upperdigitlut, 36, '-', '+', '\0', '0' },
+	{ &defaultreadradix, base36lowerdigitlut, 36, '-', '+', '\0', '0' },
+	{ &defaultreadradix, base62digitlut, 62, '-', '+', '\0', '0' },
+	{ &rfc4648base32readradix, rfc4648base32digitlut, 32, '-', '+', '=', 'A' },
+	{ &rfc4648base64readradix, rfc4648base64digitlut, 64, '-', '\0', '=', 'A' }
 };
 
 static inline unsigned int
@@ -310,67 +466,47 @@ chartodigit(const unsigned char *digitlut, char c)
 	return (unsigned int)digitlut[(unsigned char)c] - 1;
 }
 
-static inline int
-peek(const char *str, size_t cur, size_t len, char c)
+static size_t
+error(struct hebi_psetstrstate *state, size_t cur, int code)
 {
-	if (LIKELY(cur < len))
-		return str[cur] == c;
-	return 0;
-}
-
-static inline int
-peekcase(const char *str, size_t cur, size_t len, char c0, char c1)
-{
-	if (LIKELY(cur < len))
-		return str[cur] == c0 || str[cur] == c1;
-	return 0;
+	state->hm_cur = cur;
+	state->hm_error.he_code = code;
+	return SIZE_MAX;
 }
 
 static size_t
-readclassicradix(
-		const char *restrict str,
-		size_t cur,
-		size_t len,
-		unsigned int *restrict radix )
-{
-	unsigned int rdx = *radix;
-
-	if (rdx == 0) {
-		rdx = 10;
-		if (peek(str, cur, len, '0')) {
-			cur++;
-			rdx -= 2;
-			if (peekcase(str, cur, len, 'x', 'X')) {
-				rdx *= 2;
-				cur++;
-			} else if (peekcase(str, cur, len, 'b', 'B')) {
-				rdx /= 4;
-				cur++;
-			}
-		}
-	} else if (peek(str, cur, len, '0') &&
-			((rdx == 16 &&
-			  peekcase(str, cur + 1, len, 'x', 'X')) ||
-			((rdx == 2 &&
-			  peekcase(str, cur + 1, len, 'b', 'B'))))) {
-		cur += 2;
-	}
-
-	*radix = rdx;
-	return cur;
-}
-
-static size_t
-outofspace(
-		size_t sizethusfar,
-		const char *str,
-		size_t cur,
-		size_t len,
-		unsigned int radix )
+estimatespace(size_t cur, size_t end, unsigned int radix)
 {
 	size_t space;
-	
-	space = hebi_psetstrspace(str + cur, len - cur, radix, 0);
+
+#if SIZE_MAX == UINT64_MAX
+	uint64_t ratio;
+	uint64_t spacehi;
+#else
+	uint32_t ratio;
+#endif
+
+#if SIZE_MAX == UINT64_MAX
+	ratio = digittopacketlut64[radix - 1];
+	(void)hebi_mulu128__(&spacehi, ratio, (uint64_t)(end - cur));
+	space = (size_t)spacehi;
+#else
+	ratio = digittopacketlut32[radix - 1];
+	space = (size_t)(((uint64_t)ratio * (uint32_t)(end - cur)) >> 32);
+#endif
+
+	return space;
+}
+
+static size_t
+outofspace(struct hebi_psetstrstate *state, size_t cur, size_t sizethusfar)
+{
+	size_t space;
+
+	state->hm_cur = cur;
+	state->hm_error.he_code = HEBI_EBADLENGTH;
+
+	space = estimatespace(cur, state->hm_end, state->hm_radix);
 	if (UNLIKELY(space + sizethusfar < sizethusfar))
 		return SIZE_MAX;
 
@@ -382,8 +518,10 @@ outofspace(
 }
 
 #define ENSURE_SPACE_AVAILABLE(SIZE) \
+	MULTILINEBEGIN \
 	if (UNLIKELY((SIZE) > n)) \
-		return outofspace((SIZE), str, cur, len, radix)
+		return outofspace(state, cur, (SIZE)); \
+	MULTILINEEND
 
 #define PUSH_LIMB(VAL) \
 	MULTILINEBEGIN \
@@ -394,88 +532,68 @@ outofspace(
 	} \
 	MULTILINEEND
 
-static size_t
-readshift(
+HEBI_API
+size_t
+hebi_psetstr(
 		hebi_packet *restrict r,
 		size_t n,
-		const char *restrict str,
-		size_t cur,
-		size_t len,
-		unsigned int radix,
-		const unsigned char *restrict digitlut )
+		struct hebi_psetstrstate *restrict state )
 {
-	uint64_t limb;
-	unsigned int digit;
-	unsigned int numbits;
-	unsigned int maxbits;
-	unsigned int radixbits;
-	size_t size;
-
-	/* determine allowed digit ranges for base */
-	radixbits = (unsigned int)hebi_floorlog2sz__(radix);
-	maxbits = maxdigitslut[radix - 1];
-
-	/* read in the digits and accumulate result */
-	size = 0;
-
-	do {
-		limb = 0;
-		numbits = 0;
-		for ( ; cur < len && numbits < maxbits; cur++) {
-			digit = chartodigit(digitlut, str[cur]);
-			if (UNLIKELY(digit >= radix))
-				return SIZE_MAX;
-			limb <<= radixbits;
-			limb |= digit;
-			numbits += radixbits;
-		}
-		if (size > 0) {
-			ENSURE_SPACE_AVAILABLE(size + 1);
-			size = hebi_pshl(r, r, numbits, size);
-			r->hp_limbs64[0] |= limb;
-		} else if (limb) {
-			ASSERT(!size && n > 0);
-			hebi_psetu(r, limb);
-			size++;
-		}
-	} while (cur < len);
-
-	return size;
-}
-
-static size_t
-readmultiply(
-		hebi_packet *restrict r,
-		size_t n,
-		const char *restrict str,
-		size_t cur,
-		size_t len,
-		unsigned int radix,
-		const unsigned char *restrict digitlut )
-{
+	const char *str;
+	size_t cur;
+	size_t end;
+	const struct alphabet_decoder *alphabet;
+	const unsigned char *digitlut;
+	unsigned int radix;
 	uint64_t limb;
 	uint64_t overflow;
 	uint64_t scale;
 	uint64_t maxscale;
 	unsigned int digit;
-	unsigned int maxdigits;
 	unsigned int numdigits;
+	unsigned int maxdigits;
+	unsigned int radixbits;
 	size_t size;
 
-	/* determine allowed digit ranges for base */
+	ASSERT(0 < n && n <= HEBI_PACKET_MAXLEN);
+
+	/* read and validate state */
+	str = state->hm_str;
+	end = state->hm_end;
+	cur = state->hm_cur;
+	ASSERT(end <= state->hm_len && state->hm_start <= end);
+	ASSERT(cur < end);
+
+	ASSERT(state->hm_alphabet < HEBI_STR_ALPHABET_COUNT);
+	alphabet = &alphabets[state->hm_alphabet];
+
+	radix = state->hm_radix;
+	ASSERT(radix <= alphabet->maxradix);
+
+	/* setup to start reading digits */
+	size = 0;
+	digitlut = alphabet->digitlut;
 	maxdigits = maxdigitslut[radix - 1];
+
+	state->hm_error.he_domain = HEBI_ERRDOM_HEBI;
+	state->hm_error.he_code = HEBI_ENONE;
+
+	/*
+	 * check if base if power of two and use bit-shifting to accumulate
+	 * the result if this is the case, otherwise use multiplication
+	 */
+	if (!(radix & (radix - 1)))
+		goto POWER_OF_TWO;
+
 	maxscale = maxscalelut[radix - 1];
 
-	/* read in the digits and accumulate result */
-	size = 0;
-
-	do {
+	while (cur < end) {
 		limb = 0;
 		numdigits = 0;
-		for ( ; cur < len && numdigits < maxdigits; cur++) {
+		for ( ; cur < end && numdigits < maxdigits; cur++) {
 			digit = chartodigit(digitlut, str[cur]);
 			if (UNLIKELY(digit >= radix))
-				return SIZE_MAX;
+				return error(state, cur, HEBI_EBADSYNTAX);
 			limb *= radix;
 			limb += digit;
 			numdigits++;
@@ -489,131 +607,119 @@ readmultiply(
 			limb = hebi_paddu(r, r, limb, size);
 		}
 		PUSH_LIMB(limb);
-	} while (cur < len);
+	}
+
+	return size;
+
+POWER_OF_TWO:
+
+	radixbits = (unsigned int)hebi_floorlog2sz__(radix);
+
+	while (cur < end) {
+		limb = 0;
+		numdigits = 0;
+		for ( ; cur < end && numdigits < maxdigits; cur++) {
+			digit = chartodigit(digitlut, str[cur]);
+			if (UNLIKELY(digit >= radix))
+				return error(state, cur, HEBI_EBADSYNTAX);
+			limb <<= radixbits;
+			limb |= digit;
+			numdigits += radixbits;
+		}
+		if (size > 0) {
+			ENSURE_SPACE_AVAILABLE(size + 1);
+			size = hebi_pshl(r, r, numdigits, size);
+			r->hp_limbs64[0] |= limb;
+		} else if (limb) {
+			ASSERT(!size && n > 0);
+			hebi_psetu(r, limb);
+			size++;
+		}
+	}
 
 	return size;
 }
 
 HEBI_API
 size_t
-hebi_psetstr(
-		hebi_packet *restrict r,
-		size_t n,
+hebi_psetstrprepare(
+		struct hebi_psetstrstate *restrict state,
 		const char *restrict str,
 		size_t len,
 		unsigned int base,
 		unsigned int flags )
 {
-	char zerochar;
-	const unsigned char *digitlut;
+	const struct alphabet_decoder *alphabet;
 	unsigned int radix;
 	size_t cur;
-
-	ASSERT(0 < n && n <= HEBI_PACKET_MAXLEN);
-	ASSERT(!base || (base <= 2 && base <= 64));
-
-	/* determine alphabet and check for optional radix prefix if
-	 * supported by the alphabet
-	 *
-	 * if the alphabet value is invalid, set cur to len so it
-	 * will be handled below as a zero-length string
-	 */
-	radix = base;
-	cur = 0;
-
-	switch (flags & HEBI_STR_ALPHABET_MASK) {
-		case HEBI_STR_CLASSIC_ALPHABET:
-			if (flags & HEBI_STR_RADIX)
-				cur = readclassicradix(str, cur, len, &radix);
-			digitlut = classic36digitlut;
-			if (radix > 36)
-				digitlut = classic64digitlut;
-			zerochar = '0';
-			break;
-
-		default:
-			cur = len;
-			digitlut = NULL;
-			zerochar = '\0';
-			break;
-	}
-
-	/* treat zero-length or prefix-only string as malformed */
-	if (UNLIKELY(!radix || cur >= len))
-		return SIZE_MAX;
-
-	/*
-	 * consume leading zero characters. if we reach the end of
-	 * the string, this indicates a numeric value of zero.
-	 */
-	while (cur < len && str[cur] == zerochar)
-		cur++;
-	if (cur >= len)
-		return 0;
-
-	/* if base is power of two, decode digits and insert using bit-shift */
-	if (!(radix & (radix - 1)))
-		return readshift(r, n, str, cur, len, radix, digitlut);
-
-	/* otherwise decode digits and accumulate with scaling */
-	return readmultiply(r, n, str, cur, len, radix, digitlut);
-}
-
-HEBI_API
-size_t
-hebi_psetstrspace(
-		const char *str,
-		size_t len,
-		unsigned int base,
-		unsigned int flags )
-{
-	unsigned int radix;
-	size_t cur;
-	size_t remaining;
+	size_t end;
 	size_t space;
-#if SIZE_MAX == UINT64_MAX
-	uint64_t ratio;
-	uint64_t spacehi;
-#else
-	uint32_t ratio;
-#endif
 
 	ASSERT(!base || (2 <= base && base <= 64));
 
-	radix = base;
 	cur = 0;
+	end = len;
 
-	/* skip over optional radix prefix in string */
-	if (flags & HEBI_STR_RADIX) {
-		switch (flags & HEBI_STR_ALPHABET_MASK) {
-			case HEBI_STR_CLASSIC_ALPHABET:
-				cur = readclassicradix(str, cur, len, &radix);
-				break;
-			default:
-				cur = len;
-				break;
+	/* trim whitespace */
+	if (flags & HEBI_STR_TRIM) {
+		while (cur < end && isspace(str[cur]))
+			cur++;
+		while (cur < end && isspace(str[end - 1]))
+			end--;
+	}
+
+	/* setup state */
+	state->hm_str = str;
+	state->hm_len = len;
+	state->hm_start = cur;
+	state->hm_end = end;
+	state->hm_error.he_domain = HEBI_ERRDOM_HEBI;
+	state->hm_error.he_code = HEBI_ENONE;
+	state->hm_radix = 0;
+	state->hm_sign = 0;
+
+	/* determine alphabet index and make sure it's valid */
+	state->hm_alphabet = flags & HEBI_STR_ALPHABET_MASK;
+	if (UNLIKELY(state->hm_alphabet >= HEBI_STR_ALPHABET_COUNT))
+		return error(state, cur, HEBI_EBADVALUE);
+	alphabet = &alphabets[state->hm_alphabet];
+
+	/* read sign character */
+	if ((flags & HEBI_STR_SIGN) && cur < end) {
+		if (str[cur] == alphabet->minus &&
+			alphabet->minus != '\0') {
+			state->hm_sign = -1;
+			cur++;
+		} else if (str[cur] == alphabet->plus
+				&& alphabet->plus != '\0') {
+			state->hm_sign = 1;
+			cur++;
 		}
 	}
 
-	/* check if we have a good radix and remaining digits */
-	remaining = len - cur;
-	if (UNLIKELY(!radix || !remaining))
-		return SIZE_MAX;
+	/* determine radix, reading optional radix prefix if present */
+	radix = base;
+	if (!radix || (flags & HEBI_STR_RADIX))
+		radix = (*alphabet->readradix)(str, &cur, end, radix);
+	state->hm_radix = radix;
+	if (UNLIKELY(radix < 2 || alphabet->maxradix < radix))
+		return error(state, cur, HEBI_EBADVALUE);
 
-	/* determine packet space estimate */
-#if SIZE_MAX == UINT64_MAX
-	ratio = digittopacketlut64[base - 1];
-	(void)hebi_mulu128__(&spacehi, ratio, (uint64_t)remaining);
-	space = (size_t)spacehi;
-#else
-	ratio = digittopacketlut32[base - 1];
-	space = (size_t)(((uint64_t)ratio * (uint32_t)remaining) >> 32);
-#endif
+	/* treat zero length digit sequence as syntax error */
+	if (UNLIKELY(cur >= end))
+		return error(state, cur, HEBI_EBADSYNTAX);
 
-	/* adjust estimate to be at least one larger than needed */
-	space++;
-	if (space > HEBI_PACKET_MAXLEN)
-		return SIZE_MAX;
+	/* consume leading zero characters */
+	while (cur < end && str[cur] == alphabet->zero)
+		cur++;
+	state->hm_cur = cur;
 
-	return space;
+	/* determine packet space estimate for remaining digits */
+	if (LIKELY(cur < end)) {
+		space = estimatespace(cur, end, radix);
+		if (UNLIKELY(space >= HEBI_PACKET_MAXLEN))
+			return error(state, cur, HEBI_EBADLENGTH);
+		return space + 1;
+	}
+	return 0;
 }
