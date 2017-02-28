@@ -470,7 +470,7 @@ static size_t
 error(struct hebi_psetstrstate *state, size_t cur, int code)
 {
 	state->hm_cur = cur;
-	state->hm_error.he_code = code;
+	state->hm_errcode = code;
 	return SIZE_MAX;
 }
 
@@ -504,7 +504,7 @@ outofspace(struct hebi_psetstrstate *state, size_t cur, size_t sizethusfar)
 	size_t space;
 
 	state->hm_cur = cur;
-	state->hm_error.he_code = HEBI_EBADLENGTH;
+	state->hm_errcode = HEBI_EBADLENGTH;
 
 	space = estimatespace(cur, state->hm_end, state->hm_radix);
 	if (UNLIKELY(space + sizethusfar < sizethusfar))
@@ -570,13 +570,13 @@ hebi_psetstr(
 	radix = state->hm_radix;
 	ASSERT(radix <= decoder->maxradix);
 
+	ASSERT(state->hm_errcode == HEBI_ENONE);
+	state->hm_errcode = HEBI_ENONE;
+
 	/* setup to start reading digits */
 	size = 0;
 	digitlut = decoder->digitlut;
 	maxdigits = maxdigitslut[radix - 1];
-
-	state->hm_error.he_domain = HEBI_ERRDOM_HEBI;
-	state->hm_error.he_code = HEBI_ENONE;
 
 	/*
 	 * check if base if power of two and use bit-shifting to accumulate
@@ -673,10 +673,9 @@ hebi_psetstrprepare(
 	state->hm_len = len;
 	state->hm_start = cur;
 	state->hm_end = end;
-	state->hm_error.he_domain = HEBI_ERRDOM_HEBI;
-	state->hm_error.he_code = HEBI_ENONE;
 	state->hm_radix = 0;
-	state->hm_sign = 0;
+	state->hm_sign = 1;
+	state->hm_errcode = HEBI_ENONE;
 
 	/* determine alphabet index and make sure it's valid */
 	state->hm_alphabet = flags & HEBI_STR_ALPHABET_MASK;
@@ -705,21 +704,20 @@ hebi_psetstrprepare(
 	if (UNLIKELY(radix < 2 || decoder->maxradix < radix))
 		return error(state, cur, HEBI_EBADVALUE);
 
-	/* treat zero length digit sequence as syntax error */
+	/* consume leading zero characters and estimate remaining space */
 	if (UNLIKELY(cur >= end))
 		return error(state, cur, HEBI_EBADSYNTAX);
-
-	/* consume leading zero characters and estimate remaining space */
 	while (cur < end && str[cur] == decoder->zero)
 		cur++;
 	state->hm_cur = cur;
 
-	/* determine packet space estimate for remaining digits */
-	if (LIKELY(cur < end)) {
-		space = estimatespace(cur, end, radix);
-		if (UNLIKELY(space >= HEBI_PACKET_MAXLEN))
-			return error(state, cur, HEBI_EBADLENGTH);
-		return space + 1;
+	if (UNLIKELY(cur >= end)) {
+		state->hm_sign = 0;
+		return 0;
 	}
-	return 0;
+
+	space = estimatespace(cur, end, radix);
+	if (UNLIKELY(space >= HEBI_PACKET_MAXLEN))
+		return error(state, cur, HEBI_EBADLENGTH);
+	return space + 1;
 }

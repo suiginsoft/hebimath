@@ -4,10 +4,12 @@
  */
 
 #include "../../internal.h"
-#include <ctype.h>
+#include <string.h>
+
+enum { FLAGS = HEBI_STR_RADIX | HEBI_STR_SIGN | HEBI_STR_TRIM };
 
 HEBI_API
-size_t
+int
 hebi_zsetstr(
 		hebi_zptr restrict r,
 		const char *restrict str,
@@ -15,78 +17,35 @@ hebi_zsetstr(
 		unsigned int base,
 		unsigned int flags )
 {
-	IGNORE(flags);
+	struct hebi_psetstrstate state;
+	size_t len;
+	size_t space;
+	size_t used;
 
-	const char *ptr;
-	const char *startptr;
-	unsigned int digit;
-	unsigned int digit_range;
-	unsigned int letter_range;
-	int neg;
+	len = strlen(str);
+	space = hebi_psetstrprepare(&state, str, len, base, flags | FLAGS);
 
-	if (UNLIKELY(base && (base < 2 || 36 < base)))
-		hebi_error_raise(HEBI_ERRDOM_HEBI, HEBI_EBADVALUE);
-
-	/* skip whitespace */
-	ptr = str;
-	while (isspace(*ptr))
-		++ptr;
-
-	/* determine sign */
-	neg = 0;
-	if (*ptr == '-') {
-		neg = 1;
-		++ptr;
-	} else if (*ptr == '+') {
-		++ptr;
+	if (UNLIKELY(space == SIZE_MAX)) {
+		used = SIZE_MAX;
+	} else if (space > 0) {
+		hebi_zgrow__(r, space);
+		used = hebi_psetstr(r->hz_packs, space, &state);
+	} else {
+		used = 0;
 	}
-
-	/* determine base and skip base prefix */
-	if (base == 0) {
-		base = 10;
-		if (ptr[0] == '0') {
-			base -= 2;
-			if (ptr[1] == 'x' || ptr[1] == 'X') {
-				base <<= 1;
-				ptr += 2;
-			}
-		}
-	} else if (base == 16 && ptr[0] == '0' &&
-			(ptr[1] == 'x' || ptr[1] == 'X')) {
-		ptr += 2;
-	}
-
-	/* determine allowed character ranges for base */
-	digit_range = base;
-	letter_range = 0;
-	if (base > 10) {
-		digit_range = 10;
-		letter_range = base - 10;
-	}
-
-	/* read in the digits and accumulate result */
-	hebi_zsetzero(r);
-	for (startptr = ptr; ; ++ptr) {
-		digit = (unsigned int)*ptr - '0';
-		if (digit >= digit_range) {
-			digit = ((unsigned int)*ptr & 0xDF) - 'A';
-			if (digit >= letter_range)
-				break;
-			digit += 10;
-		}
-		hebi_zmulu(r, r, base);
-		hebi_zaddu(r, r, digit);
-	}
-
-	/* finalize result */
-	if (UNLIKELY(ptr <= startptr))
-		ptr = str;
 
 	if (endptr)
-		*endptr = (char *)ptr;
+		*endptr = (char *)str + state.hm_cur;
 
-	if (neg)
-		hebi_zneg(r, r);
+	if (UNLIKELY(used == SIZE_MAX)) {
+		hebi_zsetzero(r);
+		if (state.hm_errcode != HEBI_EBADSYNTAX)
+			hebi_error_raise(HEBI_ERRDOM_HEBI, state.hm_errcode);
+		return 0;
+	}
 
-	return (size_t)(ptr - str);
+	ASSERT(used <= space);
+	r->hz_used = used;
+	r->hz_sign = state.hm_sign;
+	return 1;
 }

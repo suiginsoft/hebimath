@@ -185,10 +185,10 @@ struct hebi_psetstrstate
 	size_t hm_start;
 	size_t hm_end;
 	size_t hm_cur;
-	struct hebi_error hm_error;
 	unsigned int hm_alphabet;
 	unsigned int hm_radix;
 	int hm_sign;
+	int hm_errcode;
 };
 
 struct hebi_kiss {
@@ -339,7 +339,7 @@ HEBI_API int64_t hebi_zgetsi(hebi_zsrcptr a__);
 HEBI_API uint64_t hebi_zgetsu(hebi_zsrcptr a__);
 HEBI_API size_t hebi_zgetstr(char *HEBI_RESTRICT str__, size_t len__, hebi_zsrcptr HEBI_RESTRICT a__, unsigned int base__, unsigned int flags__);
 HEBI_API size_t hebi_zgetstrlen(hebi_zsrcptr a__, unsigned int base__, unsigned int flags__);
-HEBI_API size_t hebi_zsetstr(hebi_zptr HEBI_RESTRICT r__, const char *HEBI_RESTRICT str__, char **HEBI_RESTRICT strptr__, unsigned int base__, unsigned int flags__);
+HEBI_API int hebi_zsetstr(hebi_zptr HEBI_RESTRICT r__, const char *HEBI_RESTRICT str__, char **HEBI_RESTRICT strptr__, unsigned int base__, unsigned int flags__);
 HEBI_API int hebi_zcmp(hebi_zsrcptr a__, hebi_zsrcptr b__);
 HEBI_API int hebi_zcmpmag(hebi_zsrcptr a__, hebi_zsrcptr b__);
 HEBI_API int hebi_zcmpi(hebi_zsrcptr a__, int64_t b__);
