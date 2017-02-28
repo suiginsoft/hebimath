@@ -433,7 +433,7 @@ static const unsigned char rfc4648base64digitlut[256] = {
 	['k'] = 37, ['l'] = 38, ['m'] = 39, ['n'] = 40,
 	['o'] = 41, ['p'] = 42, ['q'] = 43, ['r'] = 44,
 	['s'] = 45, ['t'] = 46, ['u'] = 47, ['v'] = 48,
-	['w'] = 49, ['y'] = 50, ['x'] = 51, ['z'] = 52,
+	['w'] = 49, ['x'] = 50, ['y'] = 51, ['z'] = 52,
 	['0'] = 53, ['1'] = 54, ['2'] = 55, ['3'] = 56,
 	['4'] = 57, ['5'] = 58, ['6'] = 59, ['7'] = 60,
 	['8'] = 61, ['9'] = 62, ['+'] = 63, ['/'] = 64
@@ -451,7 +451,7 @@ struct alphabet_decoder {
 };
 
 /* table of decoding parameters for each alphabet */
-static const struct alphabet_decoder alphabets[HEBI_STR_ALPHABET_COUNT] = {
+static const struct alphabet_decoder decoders[HEBI_STR_ALPHABET_COUNT] = {
 	{ &defaultreadradix, base36digitlut, 36, '-', '+', '\0', '0' },
 	{ &defaultreadradix, base36upperdigitlut, 36, '-', '+', '\0', '0' },
 	{ &defaultreadradix, base36lowerdigitlut, 36, '-', '+', '\0', '0' },
@@ -542,7 +542,7 @@ hebi_psetstr(
 	const char *str;
 	size_t cur;
 	size_t end;
-	const struct alphabet_decoder *alphabet;
+	const struct alphabet_decoder *decoder;
 	const unsigned char *digitlut;
 	unsigned int radix;
 	uint64_t limb;
@@ -565,14 +565,14 @@ hebi_psetstr(
 	ASSERT(cur < end);
 
 	ASSERT(state->hm_alphabet < HEBI_STR_ALPHABET_COUNT);
-	alphabet = &alphabets[state->hm_alphabet];
+	decoder = &decoders[state->hm_alphabet];
 
 	radix = state->hm_radix;
-	ASSERT(radix <= alphabet->maxradix);
+	ASSERT(radix <= decoder->maxradix);
 
 	/* setup to start reading digits */
 	size = 0;
-	digitlut = alphabet->digitlut;
+	digitlut = decoder->digitlut;
 	maxdigits = maxdigitslut[radix - 1];
 
 	state->hm_error.he_domain = HEBI_ERRDOM_HEBI;
@@ -649,7 +649,7 @@ hebi_psetstrprepare(
 		unsigned int base,
 		unsigned int flags )
 {
-	const struct alphabet_decoder *alphabet;
+	const struct alphabet_decoder *decoder;
 	unsigned int radix;
 	size_t cur;
 	size_t end;
@@ -682,16 +682,16 @@ hebi_psetstrprepare(
 	state->hm_alphabet = flags & HEBI_STR_ALPHABET_MASK;
 	if (UNLIKELY(state->hm_alphabet >= HEBI_STR_ALPHABET_COUNT))
 		return error(state, cur, HEBI_EBADVALUE);
-	alphabet = &alphabets[state->hm_alphabet];
+	decoder = &decoders[state->hm_alphabet];
 
 	/* read sign character */
 	if ((flags & HEBI_STR_SIGN) && cur < end) {
-		if (str[cur] == alphabet->minus &&
-			alphabet->minus != '\0') {
+		if (str[cur] == decoder->minus &&
+			decoder->minus != '\0') {
 			state->hm_sign = -1;
 			cur++;
-		} else if (str[cur] == alphabet->plus
-				&& alphabet->plus != '\0') {
+		} else if (str[cur] == decoder->plus
+				&& decoder->plus != '\0') {
 			state->hm_sign = 1;
 			cur++;
 		}
@@ -700,17 +700,17 @@ hebi_psetstrprepare(
 	/* determine radix, reading optional radix prefix if present */
 	radix = base;
 	if (!radix || (flags & HEBI_STR_RADIX))
-		radix = (*alphabet->readradix)(str, &cur, end, radix);
+		radix = (*decoder->readradix)(str, &cur, end, radix);
 	state->hm_radix = radix;
-	if (UNLIKELY(radix < 2 || alphabet->maxradix < radix))
+	if (UNLIKELY(radix < 2 || decoder->maxradix < radix))
 		return error(state, cur, HEBI_EBADVALUE);
 
 	/* treat zero length digit sequence as syntax error */
 	if (UNLIKELY(cur >= end))
 		return error(state, cur, HEBI_EBADSYNTAX);
 
-	/* consume leading zero characters */
-	while (cur < end && str[cur] == alphabet->zero)
+	/* consume leading zero characters and estimate remaining space */
+	while (cur < end && str[cur] == decoder->zero)
 		cur++;
 	state->hm_cur = cur;
 

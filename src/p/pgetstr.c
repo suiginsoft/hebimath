@@ -5,22 +5,152 @@
 
 #include "pcommon.h"
 
-static inline char
-digtochar(int digit, int lettering, unsigned int base)
+/*
+ * functions for writing optional radix prefix for the different
+ * alphabet encodings
+ */
+
+static inline size_t
+write(char *str, size_t cur, size_t end, char c)
 {
-	int c;
+	if (LIKELY(cur < end)) {
+		str[cur] = c;
+		return cur + 1;
+	}
 
-	if (digit < 10)
-		c = digit + '0';
-	else if (base <= 36)
-		c = digit + lettering;
-	else if (digit < 36)
-		c = digit + 'A' - 10;
-	else
-		c = digit + 'a' - 36;
-
-	return (char)c;
+	return cur;
 }
+
+static size_t
+defaultwriteradix(
+		char *restrict str,
+		size_t *restrict cur,
+		size_t end,
+		unsigned int base )
+{
+	size_t rlen;
+
+	if (base == 16) {
+		*cur = write(str, *cur, end, '0');
+		*cur = write(str, *cur, end, 'x');
+		rlen = 2;
+	} else if (base == 8) {
+		*cur = write(str, *cur, end, '0');
+		rlen = 1;
+	} else if (base == 2) {
+		*cur = write(str, *cur, end, '0');
+		*cur = write(str, *cur, end, 'b');
+		rlen = 2;
+	} else {
+		rlen = 0;
+	}
+
+	return rlen;
+}
+
+static size_t
+rfc4648writeradix(
+		char *restrict str,
+		size_t *restrict cur,
+		size_t end,
+		unsigned int base )
+{
+	IGNORE(str, cur, end, base);
+	return 0;
+}
+
+/* lookup tables for each alphabet for converting a digit to a character */
+static const char base36upperlut[36] = {
+	'0', '1', '2', '3',
+	'4', '5', '6', '7',
+	'8', '9', 'A', 'B',
+	'C', 'D', 'E', 'F',
+	'G', 'H', 'I', 'J',
+	'K', 'L', 'M', 'N',
+	'O', 'P', 'Q', 'R',
+	'S', 'T', 'U', 'V',
+	'W', 'X', 'Y', 'Z'
+};
+
+static const char base36lowerlut[36] = {
+	'0', '1', '2', '3',
+	'4', '5', '6', '7',
+	'8', '9', 'a', 'b',
+	'c', 'd', 'e', 'f',
+	'g', 'h', 'i', 'j',
+	'k', 'l', 'm', 'n',
+	'o', 'p', 'q', 'r',
+	's', 't', 'u', 'v',
+	'w', 'x', 'y', 'z'
+};
+
+static const char base62lut[62] = {
+	'0', '1', '2', '3',
+	'4', '5', '6', '7',
+	'8', '9', 'A', 'B',
+	'C', 'D', 'E', 'F',
+	'G', 'H', 'I', 'J',
+	'K', 'L', 'M', 'N',
+	'O', 'P', 'Q', 'R',
+	'S', 'T', 'U', 'V',
+	'W', 'X', 'Y', 'Z',
+	'a', 'b', 'c', 'd',
+	'e', 'f', 'g', 'h',
+	'i', 'j', 'k', 'l',
+	'm', 'n', 'o', 'p',
+	'q', 'r', 's', 't',
+	'u', 'v', 'w', 'x',
+	'y', 'z'
+};
+
+static const char rfc4648base32lut[32] = {
+	'A', 'B', 'C', 'D',
+	'E', 'F', 'G', 'H',
+	'I', 'J', 'K', 'L',
+	'M', 'N', 'O', 'P',
+	'Q', 'R', 'S', 'T',
+	'U', 'V', 'W', 'X',
+	'Y', 'Z', '2', '3',
+	'4', '5', '6', '7'
+};
+
+static const char rfc4648base64lut[64] = {
+	'A', 'B', 'C', 'D',
+	'E', 'F', 'G', 'H',
+	'I', 'J', 'K', 'L',
+	'M', 'N', 'O', 'P',
+	'Q', 'R', 'S', 'T',
+	'U', 'V', 'W', 'X',
+	'Y', 'Z', 'a', 'b',
+	'c', 'd', 'e', 'f',
+	'g', 'h', 'i', 'j',
+	'k', 'l', 'm', 'n',
+	'o', 'p', 'q', 'r',
+	's', 't', 'u', 'v',
+	'w', 'x', 'y', 'z',
+	'0', '1', '2', '3',
+	'4', '5', '6', '7',
+	'8', '9', '+', '/'
+};
+
+/* parameters to describe how to encode a number for a specific alphabet */
+struct alphabet_encoder {
+	size_t (* writeradix)(char *, size_t *, size_t, unsigned int);
+	const char *alphalut;
+	unsigned int maxradix;
+	char pad;
+	char zero;
+};
+
+/* table of encoding parameters for each alphabet */
+static const struct alphabet_encoder encoders[HEBI_STR_ALPHABET_COUNT] = {
+	{ &defaultwriteradix, base36upperlut, 36, '\0', '0' },
+	{ &defaultwriteradix, base36upperlut, 36, '\0', '0' },
+	{ &defaultwriteradix, base36lowerlut, 36, '\0', '0' },
+	{ &defaultwriteradix, base62lut, 62, '\0', '0' },
+	{ &rfc4648writeradix, rfc4648base32lut, 32, '=', 'A' },
+	{ &rfc4648writeradix, rfc4648base64lut, 64, '=', 'A' }
+};
 
 static inline int
 divrem(hebi_packet *w, size_t *n, unsigned int bits, MLIMB d, MLIMB v)
@@ -54,17 +184,6 @@ reverse(char *str, size_t first, size_t last)
 	}
 }
 
-static inline size_t
-write(char *str, size_t cur, size_t end, char c)
-{
-	if (LIKELY(cur < end)) {
-		str[cur] = c;
-		return cur + 1;
-	}
-
-	return cur;
-}
-
 HEBI_API
 size_t
 hebi_pgetstr(
@@ -75,6 +194,9 @@ hebi_pgetstr(
 		unsigned int base,
 		unsigned int flags )
 {
+	const struct alphabet_encoder *encoder;
+	const char *alphalut;   /* lookup tables for encoding */
+	unsigned int alphabet;  /* alphabet encoder index */
 	unsigned int bits;      /* leading zero bits of base */
 	MLIMB d;                /* base normalized for division */
 	MLIMB v;                /* reciprocal estimate of d */
@@ -84,10 +206,19 @@ hebi_pgetstr(
 	size_t end;
 	size_t cur;
 	int digit;
-	int lettering;
 
 	ASSERT(n <= HEBI_PACKET_MAXLEN);
 	ASSERT(2 <= base && base <= 64);
+
+	/* determine alphabet encoder */
+	alphabet = flags & HEBI_STR_ALPHABET_MASK;
+	if (UNLIKELY(alphabet >= HEBI_STR_ALPHABET_COUNT))
+		return SIZE_MAX;
+	encoder = &encoders[alphabet];
+
+	/* make sure radix is supported by encoding */
+	if (UNLIKELY(base < 2 || encoder->maxradix < base))
+		return SIZE_MAX;
 
 	/* setup result length and indices */
 	rlen = 0;
@@ -95,36 +226,19 @@ hebi_pgetstr(
 	end = len - (len > 0);
 
 	/* write out optional radix prefix */
-	if (flags & HEBI_STR_RADIX) {
-		if (base == 16) {
-			cur = write(str, cur, end, '0');
-			cur = write(str, cur, end, 'x');
-			rlen += 2;
-		} else if (base == 8) {
-			cur = write(str, cur, end, '0');
-			rlen++;
-		} else if (base == 2) {
-			cur = write(str, cur, end, '0');
-			cur = write(str, cur, end, 'b');
-			rlen += 2;
-		}
-	}
+	if (flags & HEBI_STR_RADIX)
+		rlen = (*encoder->writeradix)(str, &cur, end, base);
 
 	/* special case for zero-length input packet sequence */
 	if (UNLIKELY(!n)) {
 		if (LIKELY(!rlen || base != 8)) {
-			cur = write(str, cur, end, '0');
+			cur = write(str, cur, end, encoder->zero);
 			rlen++;
 		}
 		if (LIKELY(len > 0))
 			str[cur] = '\0';
 		return rlen;
 	}
-
-	/* determine lowercase or uppercase letters */
-	lettering = 'a' - 10;
-	if ((flags & HEBI_STR_ALPHABET_MASK) == HEBI_STR_BASE36_UPPER)
-		lettering = 'A' - 10;
 
 	/* compute reciprocal and normalized divisor */
 	d = (MLIMB)base;
@@ -154,10 +268,11 @@ hebi_pgetstr(
 	 * the correct sequence
 	 */
 	start = cur;
+	alphalut = encoder->alphalut;
 	do {
 		for (cur = start; cur < end && wn > 0; cur++) {
 			digit = divrem(w, &wn, bits, d, v);
-			str[cur] = digtochar(digit, lettering, base);
+			str[cur] = alphalut[digit];
 			rlen++;
 		}
 	} while (UNLIKELY(wn > 0));
@@ -171,7 +286,6 @@ hebi_pgetstr(
 		start = cur;
 		cur = len - 1;
 	}
-
 	str[cur] = '\0';
 	reverse(str, start, cur - 1);
 	return rlen;

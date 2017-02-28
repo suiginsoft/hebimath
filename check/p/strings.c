@@ -1,6 +1,4 @@
 #include "../check.h"
-#include <stdio.h>
-#include <stdlib.h>
 
 static struct hebi_kiss kiss = HEBI_KISS_INIT;
 
@@ -32,18 +30,16 @@ stresstest(unsigned int startbase, unsigned endbase, unsigned int flags)
 
 		/* test converting to string and back for each base */
 		for (base = startbase; base <= endbase; base++) {
-			hebi_pcopy(z, x, n);
-
+			hebi_pcopy(z, x, MAX_PACKETS + 1);
 			len = hebi_pgetstr(str, sizeof(str), z, n, base, flags);
 			assert(len > 0 && len < sizeof(str));
-
-			hebi_pzero(y, MAX_PACKETS + 1);
 
 			m = hebi_psetstrprepare(&state, str, len, base, flags);
 			assert(m <= MAX_PACKETS + 1);
 
+			hebi_pzero(y, MAX_PACKETS + 1);
 			m = hebi_psetstr(y, MAX_PACKETS + 1, &state);
-			assert(m == n && hebi_pcmp(x, y, m) == 0);
+			assert(m == n && (!m || hebi_pcmp(x, y, m) == 0));
 		}
 	}
 }
@@ -53,5 +49,12 @@ main(int argc, char *argv[])
 {
 	checkinit(argc, argv);
 	stresstest(2, 36, HEBI_STR_BASE36);
+	stresstest(2, 36, HEBI_STR_BASE36 | HEBI_STR_RADIX);
+	stresstest(2, 36, HEBI_STR_BASE36_UPPER);
+	stresstest(2, 36, HEBI_STR_BASE36_LOWER);
+	stresstest(2, 62, HEBI_STR_BASE62);
+	stresstest(2, 62, HEBI_STR_BASE62 | HEBI_STR_RADIX);
+	stresstest(2, 32, HEBI_STR_RFC4648_BASE32);
+	stresstest(2, 64, HEBI_STR_RFC4648_BASE64);
 	return 0;
 }
