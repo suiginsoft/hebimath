@@ -461,7 +461,7 @@ static const struct alphabet_decoder decoders[HEBI_STR_ALPHABET_COUNT] = {
 };
 
 static inline size_t
-trimleft(const char *restrict str, size_t start, size_t end, char c)
+trimleft(const char *str, size_t start, size_t end, char c)
 {
 	size_t i = start;
 
@@ -472,7 +472,7 @@ trimleft(const char *restrict str, size_t start, size_t end, char c)
 }
 
 static inline size_t
-trimright(const char *restrict str, size_t start, size_t end, char c)
+trimright(const char *str, size_t start, size_t end, char c)
 {
 	size_t i = end;
 
@@ -528,14 +528,6 @@ chartodigit(const unsigned char *digitlut, char c)
 }
 
 static size_t
-error(struct hebi_psetstrstate *state, size_t cur, int code)
-{
-	state->hm_cur = cur;
-	state->hm_errcode = code;
-	return SIZE_MAX;
-}
-
-static size_t
 estimatespace(size_t cur, size_t end, unsigned int radix)
 {
 	size_t space;
@@ -557,6 +549,14 @@ estimatespace(size_t cur, size_t end, unsigned int radix)
 #endif
 
 	return space;
+}
+
+static size_t
+error(struct hebi_psetstrstate *state, size_t cur, int code)
+{
+	state->hm_cur = cur;
+	state->hm_errcode = code;
+	return SIZE_MAX;
 }
 
 static size_t
@@ -709,7 +709,6 @@ hebi_psetstr(
 	const struct alphabet_decoder *decoder;
 	unsigned int radix;
 
-	/* validate arguments */
 	ASSERT(0 < n && n <= HEBI_PACKET_MAXLEN);
 
 	ASSERT(state->hm_end <= state->hm_len);
@@ -723,10 +722,6 @@ hebi_psetstr(
 	radix = state->hm_radix;
 	ASSERT(2 <= radix && radix <= decoder->maxradix);
 
-	/*
-	 * check if power of two base and use bit-shifting to accumulate
-	 * the result if this is the case, otherwise use multiplication
-	 */
 	if (radix & (radix - 1))
 		return readmultiply(r, n, state, decoder, radix);
 	else
@@ -769,7 +764,7 @@ hebi_psetstrprepare(
 	if (flags & (unsigned int)(HEBI_STR_TRIM | HEBI_STR_PAD)) {
 		if (flags & HEBI_STR_TRIM)
 			trimwhitespace(str, &cur, &end);
-		if ((flags & HEBI_STR_PAD) && decoder->pad != '\0')
+		if ((flags & HEBI_STR_PAD) && (decoder->pad != '\0'))
 			end = trimright(str, cur, end, decoder->pad);
 		state->hm_start = cur;
 		state->hm_end = len;
