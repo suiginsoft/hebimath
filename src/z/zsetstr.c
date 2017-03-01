@@ -6,7 +6,7 @@
 #include "../../internal.h"
 #include <string.h>
 
-enum { FLAGS = HEBI_STR_RADIX | HEBI_STR_SIGN | HEBI_STR_TRIM };
+enum { FLAGS = HEBI_STR_RADIX | HEBI_STR_SIGN };
 
 HEBI_API
 int
@@ -17,35 +17,38 @@ hebi_zsetstr(
 		unsigned int base,
 		unsigned int flags )
 {
+	hebi_z q;
 	struct hebi_psetstrstate state;
 	size_t len;
 	size_t space;
 	size_t used;
 
+	hebi_zinit_push__(q, hebi_zallocator(r));
+
 	len = strlen(str);
 	space = hebi_psetstrprepare(&state, str, len, base, flags | FLAGS);
-
-	if (UNLIKELY(space == SIZE_MAX)) {
-		used = SIZE_MAX;
-	} else if (space > 0) {
-		hebi_zgrow__(r, space);
-		used = hebi_psetstr(r->hz_packs, space, &state);
+	if (0 < space && space != SIZE_MAX) {
+		hebi_zexpand__(q, space, 0);
+		used = hebi_psetstr(q->hz_packs, space, &state);
 	} else {
-		used = 0;
+		used = space;
 	}
 
 	if (endptr)
 		*endptr = (char *)str + state.hm_cur;
 
 	if (UNLIKELY(used == SIZE_MAX)) {
-		hebi_zsetzero(r);
 		if (state.hm_errcode != HEBI_EBADSYNTAX)
 			hebi_error_raise(HEBI_ERRDOM_HEBI, state.hm_errcode);
+		hebi_zsetzero(r);
+		hebi_zdestroy_pop__(q);
 		return 0;
 	}
 
 	ASSERT(used <= space);
-	r->hz_used = used;
-	r->hz_sign = state.hm_sign;
+	q->hz_used = used;
+	q->hz_sign = state.hm_sign;
+	hebi_zswap(q, r);
+	hebi_zdestroy_pop__(q);
 	return 1;
 }

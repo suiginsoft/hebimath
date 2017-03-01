@@ -460,6 +460,67 @@ static const struct alphabet_decoder decoders[HEBI_STR_ALPHABET_COUNT] = {
 	{ &rfc4648base64readradix, rfc4648base64digitlut, 64, '-', '\0', '=', 'A' }
 };
 
+static inline size_t
+trimleft(const char *restrict str, size_t start, size_t end, char c)
+{
+	size_t i = start;
+
+	while (i < end && str[i] == c)
+		i++;
+
+	return i;
+}
+
+static inline size_t
+trimright(const char *restrict str, size_t start, size_t end, char c)
+{
+	size_t i = end;
+
+	while (start < i && str[i - 1] == c)
+		i--;
+
+	return i;
+}
+
+static inline void
+trimwhitespace(const char *restrict str, size_t *restrict start, size_t *restrict end)
+{
+	size_t first = *start;
+	size_t last = *end;
+
+	while (first < last && isspace(str[first]))
+		first++;
+
+	while (first < last && isspace(str[last - 1]))
+		last--;
+
+	*start = first;
+	*end = last;
+}
+
+static inline size_t
+readsign(
+		const struct alphabet_decoder *restrict decoder,
+		struct hebi_psetstrstate *restrict state,
+		const char *restrict str,
+		size_t start,
+		size_t end )
+{
+	size_t i = start;
+
+	if (i < end) {
+		if (decoder->minus != '\0' && str[i] == decoder->minus) {
+			state->hm_sign = -1;
+			i++;
+		} else if (decoder->plus != '\0' && str[i] == decoder->plus) {
+			state->hm_sign = 1;
+			i++;
+		}
+	}
+
+	return i;
+}
+
 static inline unsigned int
 chartodigit(const unsigned char *digitlut, char c)
 {
@@ -558,6 +619,9 @@ hebi_psetstr(
 	ASSERT(0 < n && n <= HEBI_PACKET_MAXLEN);
 
 	/* read and validate state */
+	if (state->hm_errcode != HEBI_ENONE)
+		return SIZE_MAX;
+
 	str = state->hm_str;
 	end = state->hm_end;
 	cur = state->hm_cur;
@@ -568,10 +632,7 @@ hebi_psetstr(
 	decoder = &decoders[state->hm_alphabet];
 
 	radix = state->hm_radix;
-	ASSERT(radix <= decoder->maxradix);
-
-	ASSERT(state->hm_errcode == HEBI_ENONE);
-	state->hm_errcode = HEBI_ENONE;
+	ASSERT(2 <= radix && radix <= decoder->maxradix);
 
 	/* setup to start reading digits */
 	size = 0;
@@ -655,27 +716,16 @@ hebi_psetstrprepare(
 	size_t end;
 	size_t space;
 
-	ASSERT(!base || (2 <= base && base <= 64));
+	/* setup initial state */
+	state->hm_str = str;
+	state->hm_len = len;
+	state->hm_start = 0;
+	state->hm_end = len;
+	state->hm_radix = 0;
+	state->hm_sign = 1;
 
 	cur = 0;
 	end = len;
-
-	/* trim whitespace */
-	if (flags & HEBI_STR_TRIM) {
-		while (cur < end && isspace(str[cur]))
-			cur++;
-		while (cur < end && isspace(str[end - 1]))
-			end--;
-	}
-
-	/* setup state */
-	state->hm_str = str;
-	state->hm_len = len;
-	state->hm_start = cur;
-	state->hm_end = end;
-	state->hm_radix = 0;
-	state->hm_sign = 1;
-	state->hm_errcode = HEBI_ENONE;
 
 	/* determine alphabet index and make sure it's valid */
 	state->hm_alphabet = flags & HEBI_STR_ALPHABET_MASK;
@@ -683,18 +733,19 @@ hebi_psetstrprepare(
 		return error(state, cur, HEBI_EBADVALUE);
 	decoder = &decoders[state->hm_alphabet];
 
-	/* read sign character */
-	if ((flags & HEBI_STR_SIGN) && cur < end) {
-		if (str[cur] == decoder->minus &&
-			decoder->minus != '\0') {
-			state->hm_sign = -1;
-			cur++;
-		} else if (str[cur] == decoder->plus
-				&& decoder->plus != '\0') {
-			state->hm_sign = 1;
-			cur++;
-		}
+	/* trim whitespace & padding, adjust start & end positions */
+	if (flags & (HEBI_STR_TRIM | HEBI_STR_PAD)) {
+		if (flags & HEBI_STR_TRIM)
+			trimwhitespace(str, &cur, &end);
+		if ((flags & HEBI_STR_PAD) && decoder->pad != '\0')
+			end = trimright(str, cur, end, decoder->pad);
+		state->hm_start = cur;
+		state->hm_end = len;
 	}
+
+	/* read sign character */
+	if ((flags & HEBI_STR_SIGN) && cur < end)
+		cur = readsign(decoder, state, str, cur, end);
 
 	/* determine radix, reading optional radix prefix if present */
 	radix = base;
@@ -704,20 +755,25 @@ hebi_psetstrprepare(
 	if (UNLIKELY(radix < 2 || decoder->maxradix < radix))
 		return error(state, cur, HEBI_EBADVALUE);
 
-	/* consume leading zero characters and estimate remaining space */
+	/* check for empty digit sequence */
 	if (UNLIKELY(cur >= end))
 		return error(state, cur, HEBI_EBADSYNTAX);
-	while (cur < end && str[cur] == decoder->zero)
-		cur++;
-	state->hm_cur = cur;
 
+	/* consume leading zero characters and estimate remaining space */
+	cur = trimleft(str, cur, end, decoder->zero);
 	if (UNLIKELY(cur >= end)) {
+		state->hm_cur = end;
 		state->hm_sign = 0;
+		state->hm_errcode = HEBI_ENONE;
 		return 0;
 	}
 
+	/* estimate space needed for packet sequence */
 	space = estimatespace(cur, end, radix);
 	if (UNLIKELY(space >= HEBI_PACKET_MAXLEN))
 		return error(state, cur, HEBI_EBADLENGTH);
+
+	state->hm_cur = cur;
+	state->hm_errcode = HEBI_ENONE;
 	return space + 1;
 }

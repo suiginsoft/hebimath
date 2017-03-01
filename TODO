@@ -57,8 +57,6 @@ Other:
 	  local cache invalidation with an atomic counter
 	* add secure versions of functions for explicitly clearing memory
 	  and constant-time comparison
-* add support for non-ASCII/UTF-8 character sets to pgetstr/psetstr
-* add base32/base64 alphabet support
 * more testing on other Linux and BSD distributions
 * more testing with different C compilers and with older versions of compilers
 * perform an audit on floating-point values, make sure we aren't using any
