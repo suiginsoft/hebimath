@@ -593,19 +593,18 @@ outofspace(struct hebi_psetstrstate *state, size_t cur, size_t sizethusfar)
 	} \
 	MULTILINEEND
 
-HEBI_API
-size_t
-hebi_psetstr(
+static size_t
+readmultiply(
 		hebi_packet *restrict r,
 		size_t n,
-		struct hebi_psetstrstate *restrict state )
+		struct hebi_psetstrstate *restrict state,
+		const struct alphabet_decoder *restrict decoder,
+		unsigned int radix )
 {
 	const char *str;
 	size_t cur;
 	size_t end;
-	const struct alphabet_decoder *decoder;
 	const unsigned char *digitlut;
-	unsigned int radix;
 	uint64_t limb;
 	uint64_t overflow;
 	uint64_t scale;
@@ -613,40 +612,15 @@ hebi_psetstr(
 	unsigned int digit;
 	unsigned int numdigits;
 	unsigned int maxdigits;
-	unsigned int radixbits;
 	size_t size;
 
-	ASSERT(0 < n && n <= HEBI_PACKET_MAXLEN);
-
-	/* read and validate state */
-	if (state->hm_errcode != HEBI_ENONE)
-		return SIZE_MAX;
-
 	str = state->hm_str;
-	end = state->hm_end;
 	cur = state->hm_cur;
-	ASSERT(end <= state->hm_len && state->hm_start <= end);
-	ASSERT(cur < end);
-
-	ASSERT(state->hm_alphabet < HEBI_STR_ALPHABET_COUNT);
-	decoder = &decoders[state->hm_alphabet];
-
-	radix = state->hm_radix;
-	ASSERT(2 <= radix && radix <= decoder->maxradix);
-
-	/* setup to start reading digits */
-	size = 0;
+	end = state->hm_end;
 	digitlut = decoder->digitlut;
 	maxdigits = maxdigitslut[radix - 1];
-
-	/*
-	 * check if base if power of two and use bit-shifting to accumulate
-	 * the result if this is the case, otherwise use multiplication
-	 */
-	if (!(radix & (radix - 1)))
-		goto POWER_OF_TWO;
-
 	maxscale = maxscalelut[radix - 1];
+	size = 0;
 
 	while (cur < end) {
 		limb = 0;
@@ -671,10 +645,34 @@ hebi_psetstr(
 	}
 
 	return size;
+}
 
-POWER_OF_TWO:
+static size_t
+readshift(
+		hebi_packet *restrict r,
+		size_t n,
+		struct hebi_psetstrstate *restrict state,
+		const struct alphabet_decoder *restrict decoder,
+		unsigned int radix )
+{
+	const char *str;
+	size_t cur;
+	size_t end;
+	const unsigned char *digitlut;
+	uint64_t limb;
+	unsigned int digit;
+	unsigned int numdigits;
+	unsigned int maxdigits;
+	unsigned int radixbits;
+	size_t size;
 
+	str = state->hm_str;
+	cur = state->hm_cur;
+	end = state->hm_end;
+	digitlut = decoder->digitlut;
+	maxdigits = maxdigitslut[radix - 1];
 	radixbits = (unsigned int)hebi_floorlog2sz__(radix);
+	size = 0;
 
 	while (cur < end) {
 		limb = 0;
@@ -699,6 +697,40 @@ POWER_OF_TWO:
 	}
 
 	return size;
+}
+
+HEBI_API
+size_t
+hebi_psetstr(
+		hebi_packet *restrict r,
+		size_t n,
+		struct hebi_psetstrstate *restrict state )
+{
+	const struct alphabet_decoder *decoder;
+	unsigned int radix;
+
+	/* validate arguments */
+	ASSERT(0 < n && n <= HEBI_PACKET_MAXLEN);
+
+	ASSERT(state->hm_end <= state->hm_len);
+	ASSERT(state->hm_start <= state->hm_end);
+	ASSERT(state->hm_cur < state->hm_end);
+	ASSERT(state->hm_errcode == HEBI_ENONE);
+
+	ASSERT(state->hm_alphabet < HEBI_STR_ALPHABET_COUNT);
+	decoder = &decoders[state->hm_alphabet];
+
+	radix = state->hm_radix;
+	ASSERT(2 <= radix && radix <= decoder->maxradix);
+
+	/*
+	 * check if power of two base and use bit-shifting to accumulate
+	 * the result if this is the case, otherwise use multiplication
+	 */
+	if (radix & (radix - 1))
+		return readmultiply(r, n, state, decoder, radix);
+	else
+		return readshift(r, n, state, decoder, radix);
 }
 
 HEBI_API
@@ -734,7 +766,7 @@ hebi_psetstrprepare(
 	decoder = &decoders[state->hm_alphabet];
 
 	/* trim whitespace & padding, adjust start & end positions */
-	if (flags & (HEBI_STR_TRIM | HEBI_STR_PAD)) {
+	if (flags & (unsigned int)(HEBI_STR_TRIM | HEBI_STR_PAD)) {
 		if (flags & HEBI_STR_TRIM)
 			trimwhitespace(str, &cur, &end);
 		if ((flags & HEBI_STR_PAD) && decoder->pad != '\0')
@@ -744,7 +776,7 @@ hebi_psetstrprepare(
 	}
 
 	/* read sign character */
-	if ((flags & HEBI_STR_SIGN) && cur < end)
+	if (flags & HEBI_STR_SIGN)
 		cur = readsign(decoder, state, str, cur, end);
 
 	/* determine radix, reading optional radix prefix if present */
