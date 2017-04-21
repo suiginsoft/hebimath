@@ -1,5 +1,6 @@
 hebimath - arbitrary precision arithmetic library
 -------------------------------------------------------------------------------
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/294421b48f7241c1940f0c260633215e)](https://www.codacy.com/app/suigin/hebimath?utm_source=github.com&utm_medium=referral&utm_content=suiginsoft/hebimath&utm_campaign=badger)
 [![Build Status](https://travis-ci.org/suiginsoft/hebimath.svg?branch=master)](https://travis-ci.org/suiginsoft/hebimath)
 [![Coverity Scan](https://img.shields.io/coverity/scan/11311.svg)](https://scan.coverity.com/projects/suiginsoft-hebimath)
 [![Quality Gate](https://sonarqube.com/api/badges/gate?key=hebimath)](https://sonarqube.com/dashboard/index/hebimath)
