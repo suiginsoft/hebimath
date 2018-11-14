@@ -61,7 +61,8 @@ hebi_prand_kiss(
 		data[index] = mwc;
 
 		/* update next sample index */
-		if (++index >= length)
+		++index;
+		if (index >= length)
 			index = 0;
 
 		/* linear congruential generator */
