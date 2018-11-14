@@ -29,7 +29,11 @@ PDIVREMRU_3X2_IMPL(
 		MLIMB d0,
 		MLIMB v)
 {
-	MLIMB a1, a0, u2, u1, u0;
+	MLIMB a1;
+	MLIMB a0;
+	MLIMB u2;
+	MLIMB u1;
+	MLIMB u0;
 	size_t i;
 
 	ASSERT(n >= 2);
@@ -44,11 +48,11 @@ PDIVREMRU_3X2_IMPL(
 		u1 = (a1 << bits) | (a0 >> (MLIMB_BIT - bits));
 		a1 = a0;
 		q[n-1] = 0;
-		for (i = n-2; i--; ) {
-			a0 = a[i];
+		for (i = n-2; i != 0; i--) {
+			a0 = a[i-1];
 			u0 = (a1 << bits) | (a0 >> (MLIMB_BIT - bits));
 			a1 = a0;
-			DIVREMRU_3X2(q+i+1, &u2, &u1, u0, d1, d0, v);
+			DIVREMRU_3X2(q+i, &u2, &u1, u0, d1, d0, v);
 		}
 		u0 = a1 << bits;
 		DIVREMRU_3X2(q, &u2, &u1, u0, d1, d0, v);
@@ -63,9 +67,9 @@ PDIVREMRU_3X2_IMPL(
 		}
 		q[n-1] = 0;
 		q[n-2] = u0;
-		for (i = n-2; i--; ) {
-			u0 = a[i];
-			DIVREMRU_3X2(q+i, &u2, &u1, u0, d1, d0, v);
+		for (i = n-2; i != 0; i--) {
+			u0 = a[i-1];
+			DIVREMRU_3X2(q+i-1, &u2, &u1, u0, d1, d0, v);
 		}
 	}
 
