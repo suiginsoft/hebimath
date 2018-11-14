@@ -218,6 +218,8 @@ DEPS := \
 	hebimath.h \
 	config.h \
 	internal.h \
+	src/z/zaddsub.h \
+	src/z/zaddsubu.h \
 	src/p/pcommon.h \
 	$(DEPS_$(DRIVER_selected))
 
