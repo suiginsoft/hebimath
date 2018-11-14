@@ -11,13 +11,18 @@ hebi_zadd(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 {
 	hebi_packet *rp;
 	uint64_t carry;
-	size_t au, bu;
-	int as, bs, c;
+	size_t au;
+	size_t bu;
+	int as;
+	int bs;
+	int c;
 
 	if (UNLIKELY(!(as = a->hz_sign))) {
 		hebi_zset(r, b);
 		return;
-	} else if (UNLIKELY(!(bs = b->hz_sign))) {
+	}
+
+	if (UNLIKELY(!(bs = b->hz_sign))) {
 		hebi_zset(r, a);
 		return;
 	}
@@ -38,16 +43,18 @@ hebi_zadd(hebi_zptr r, hebi_zsrcptr a, hebi_zsrcptr b)
 			rp = hebi_zgrowcopyif__(r, au + 1, r == b);
 			carry = hebi_padd(rp, a->hz_packs, b->hz_packs, au, bu);
 		}
-		if (carry)
-			hebi_psetu(rp + au++, carry);
+		if (carry != 0) {
+			hebi_psetu(rp + au, carry);
+			au++;
+		}
 	} else {
 		if (au == bu) {
 			c = hebi_pcmp(a->hz_packs, b->hz_packs, au);
-			if (c <= 0) {
-				if (UNLIKELY(!c)) {
-					hebi_zsetzero(r);
-					return;
-				}
+			if (UNLIKELY(!c)) {
+				hebi_zsetzero(r);
+				return;
+			}
+			if (c < 0) {
 				SWAP(hebi_zsrcptr, a, b);
 				as = -as;
 			}

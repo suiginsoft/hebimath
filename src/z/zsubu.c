@@ -18,7 +18,9 @@ hebi_zsubu(hebi_zptr r, hebi_zsrcptr a, uint64_t b)
 	if (UNLIKELY(!b)) {
 		hebi_zset(r, a);
 		return;
-	} else if (UNLIKELY(!(s = a->hz_sign))) {
+	}
+
+	if (UNLIKELY(!(s = a->hz_sign))) {
 		hebi_zsetu(r, b);
 		hebi_zneg(r, r);
 		return;

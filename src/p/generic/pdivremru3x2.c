@@ -5,13 +5,15 @@
 
 #include "generic.h"
 
-/* TODO: remove these macros after porting to x86-64 assembly */
+/* TODO: remove these macros after porting this to x86-64 assembly */
 #ifdef HEBI_MULTI_VERSIONING
 #define STATIC static
 #ifdef USE_LIMB64_MULDIV
 #define PDIVREMRU_3X2_IMPL hebi_pdivremru64_3x2_impl__
+#define PDIVREMRU_3X2_PTR hebi_pdivremru64_3x2_ptr__
 #else
 #define PDIVREMRU_3X2_IMPL hebi_pdivremru32_3x2_impl__
+#define PDIVREMRU_3X2_PTR hebi_pdivremru32_3x2_ptr__
 #endif
 #else
 #define STATIC HEBI_HIDDEN
@@ -48,7 +50,7 @@ PDIVREMRU_3X2_IMPL(
 		u1 = (a1 << bits) | (a0 >> (MLIMB_BIT - bits));
 		a1 = a0;
 		q[n-1] = 0;
-		for (i = n-2; i != 0; i--) {
+		for (i = n - 2; i != 0; i--) {
 			a0 = a[i-1];
 			u0 = (a1 << bits) | (a0 >> (MLIMB_BIT - bits));
 			a1 = a0;
@@ -67,7 +69,7 @@ PDIVREMRU_3X2_IMPL(
 		}
 		q[n-1] = 0;
 		q[n-2] = u0;
-		for (i = n-2; i != 0; i--) {
+		for (i = n - 2; i != 0; i--) {
 			u0 = a[i-1];
 			DIVREMRU_3X2(q+i-1, &u2, &u1, u0, d1, d0, v);
 		}
@@ -77,9 +79,13 @@ PDIVREMRU_3X2_IMPL(
 }
 
 #ifdef HEBI_MULTI_VERSIONING
-#ifdef USE_LIMB64_MULDIV
-HEBI_HIDDEN DLIMB (*hebi_pdivremru64_3x2_ptr__)(MLIMB*, const MLIMB *, size_t, unsigned int, MLIMB, MLIMB, MLIMB) = hebi_pdivremru64_3x2_impl__;
-#else
-HEBI_HIDDEN DLIMB (*hebi_pdivremru32_3x2_ptr__)(MLIMB*, const MLIMB *, size_t, unsigned int, MLIMB, MLIMB, MLIMB) = hebi_pdivremru32_3x2_impl__;
-#endif
+HEBI_HIDDEN DLIMB
+(*PDIVREMRU_3X2_PTR)(
+		MLIMB*,
+		const MLIMB *,
+		size_t,
+		unsigned int,
+		MLIMB,
+		MLIMB,
+		MLIMB) = PDIVREMRU_3X2_IMPL;
 #endif
