@@ -32,7 +32,7 @@ hebi_prand_kiss(
 		hebi_pzero(r, n);
 		return;
 	}
-	limbs = r->hp_limbs64;
+	limbs = (uint64_t *)r;
 
 	ASSERT(limbs && 0 < nlimbs && nlimbs * HEBI_PACKET_LIMBS64 <= n);
 
