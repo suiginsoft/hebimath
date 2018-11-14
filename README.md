@@ -2,7 +2,7 @@ hebimath - arbitrary precision arithmetic library
 -------------------------------------------------------------------------------
 [![Build Status](https://travis-ci.org/suiginsoft/hebimath.svg?branch=master)](https://travis-ci.org/suiginsoft/hebimath)
 [![Coverity Scan](https://img.shields.io/coverity/scan/11311.svg)](https://scan.coverity.com/projects/suiginsoft-hebimath)
-[![Quality Gate](https://sonarqube.com/api/badges/gate?key=hebimath)](https://sonarqube.com/dashboard/index/hebimath)
+[![Quality Gate](https://sonarcloud.io/api/badges/gate?key=hebimath)](https://sonarcloud.io/dashboard?id=hebimath)
 [![License](https://img.shields.io/packagist/l/doctrine/orm.svg)](https://github.com/suiginsoft/hebimath/raw/master/LICENSE)
 
 Overview

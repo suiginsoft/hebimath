@@ -6,12 +6,13 @@ before_install:
   - sudo apt-get install bc
   - sudo apt-get install bmake
 addons:
-  sonarqube:
+  sonarcloud:
+    organization: "suiginsoft-github"
     token:
-      secure: "BJOC+5F4ClAyhxi2GbpJYbWz294+L5PoiwyELVP4SI/hW3K722fcMbqD6YOsG3OT/sMS4b3D56wFhcnQI818Fwl7CIc1RjM8ScssQ9iXSdyp7A+EdIs9DtMSgSnMlLL/qVZQFvpybLiLodSs7n6wWfomVEdECe2BbaqKp+bC32FTtTasdD7AoTII0BWhj97M9mgdB58LBVcDKzg0HGacMbcpH4k0q/ZaObZaoYd06L6EbasOBeDu7ZRst1nkgfsZe6zXhQLpKVDI4iO/msS9XFjyyaRGYjBXLbrPNa+OEBcuue1Q01gwmlkyJrVExBfcNe+X8wvVm/xCFqai/H0bG1pbZLXjYH4GWZK0iubhqBDS9628MhYGa7sBoctYto0xUPeslVkHzHDxklNH3zzIQzksN5v4ROFMww1Z8id8odSvfRke5AVmSixbZuDVdHDsAtIOQruYzzCOxDsETseUnHNj0oi7/IT+jZQwIh/bJtHqwf6P1Lsc8a6BHPne//iPr6EEjnPZXr4ikw32BSofKqxZ9teMWAU97vLF7T787SYPFL6GHh6SWWhuUj35KdBgDLwGdSaS8c0JUKDrRq/lzD3DYRbXqS50ZWonQrxsgRD6zse4Bx0fSWk/gEZiuM5UA8reUpNjx1iyVy6MmfvGS64D/jTt1KU51o/hHU5+GQo="
+      secure: "DSDafuEk//kxto6aPJ6JUb0tCephcxjqF9cdfiTvcK12YSY6aa4aOaGe1YGrngXa2bzbG5qE0NGA7k0n/rppqdAxDxu6tokimeG2Nj0jo1Mf33GXfeigTBydv6GIBjXcaHQafBdWd6StY6TJPzwpQwxVn8l8BFCQkvHEv/b/pv2t2TtqnALjQREJ06pRsy+ANcJQJ4DQuFcxNK1cK5cLL9enQfWvMpxGWIF9YRcF+IwGB0PqRkfWZymsn8bYtyyj5/2kfVZB/R2Yo/g/QOQeM1KC8yxiIBKxf7pckQYPi/EVh2yzJZ4CPV57YPec6Tjks466EHhs/HCA7T6DgzLruy4sKHLWpuzq/vRdw7zKtmhk8ScM9VHvS3aC1lB0D/eMaJFsz5aaaGB33xkBi3wSZgw1kzgi4jhc4renY7dVITYq/8UzBwq2q56TaVjPCFMbYh9AtGDJZz7u8uWQYL4nXczOqBkqb0HLNjakNT+17ZUzxjMpt0nx8XBCYSDvI2nD/KRxKVDibP6sjIiMjwkTmc3ZaJK+SBIBQqknpy2srF9sb8b+poZXh5weNmq4Dy66lbUscHBeLIguQS1H3VvhyG9jc191Ltk4LdaN1wYHR7nnwihbxEPSL+MV/53EjtAI8vY7fut0L5FRDGXZUkS3HjO2uLrQPDDooLpwyujnQBc="
 script:
   - build-wrapper-linux-x86-64 --out-dir bw-output bmake clean check
-  - sonar-scanner -Dsonar.projectKey=hebimath -Dsonar.sources=src -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.cfamily.gcov.reportsPath=. -Dsonar.host.url="https://sonarqube.com"
+  - sonar-scanner -Dsonar.projectKey=hebimath -Dsonar.organization=suiginsoft-github -Dsonar.sources=src -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.cfamily.gcov.reportsPath=. -Dsonar.host.url="https://sonarcloud.io"
 cache:
   directories:
     - '$HOME/.sonar/cache'
