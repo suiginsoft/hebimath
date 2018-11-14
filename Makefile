@@ -439,11 +439,11 @@ scrub: clean
 	$(Q)find bench -type f -name "*.o" -exec rm -f {} \;
 	$(Q)find bench -type f -name "*.po" -exec rm -f {} \;
 	$(Q)find bench -type f -name "*.lst" -exec rm -f {} \;
-	$(Q)find bench -type f -perm -0100 -exec rm -f {} \;
+	$(Q)find bench -type f -name "*.[!ch]" -perm -0100 -exec rm -f {} \;
 	$(Q)find check -type f -name "*.o" -exec rm -f {} \;
 	$(Q)find check -type f -name "*.po" -exec rm -f {} \;
 	$(Q)find check -type f -name "*.lst" -exec rm -f {} \;
-	$(Q)find check -type f -perm -0100 -exec rm -f {} \;
+	$(Q)find check -type f -name "*.[!ch]" -perm -0100 -exec rm -f {} \;
 	$(Q)find src -type f -name "*.o" -exec rm -f {} \;
 	$(Q)find src -type f -name "*.po" -exec rm -f {} \;
 	$(Q)find src -type f -name "*.lst" -exec rm -f {} \;
