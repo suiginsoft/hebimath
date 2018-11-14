@@ -1,7 +1,7 @@
 # customize below to fit your system
 
 # VERSION sets the hebimath release version
-VERSION = 0.6
+VERSION = 0.5
 
 # LINKAGE controls the type of libraries to build
 #   both    - builds both shared and static libraries
