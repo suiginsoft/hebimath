@@ -34,6 +34,8 @@ hebi_prand_kiss(
 	}
 	limbs = r->hp_limbs64;
 
+	ASSERT(limbs && 0 < nlimbs && nlimbs * HEBI_PACKET_LIMBS64 <= n);
+
 	/* load PRNG state */
 	xs = k->hk_xorshift;
 	cng = k->hk_congruential;
@@ -48,6 +50,8 @@ hebi_prand_kiss(
 		length = 1;
 	}
 
+	ASSERT(data && index < length);
+
 	/* generate random limbs */
 	for (i = 0; i < nlimbs; i++) {
 		/* multiply-with-carry generator */
@@ -57,8 +61,8 @@ hebi_prand_kiss(
 		data[index] = mwc;
 
 		/* update next sample index */
-		index += 1;
-		index &= (index < length ? SIZE_MAX : 0u);
+		if (++index >= length)
+			index = 0;
 
 		/* linear congruential generator */
 		cng *= UINT64_C(6906969069);
@@ -69,6 +73,7 @@ hebi_prand_kiss(
 		xs ^= xs << 17;
 		xs ^= xs << 43;
 
+		/* store random limb */
 		limbs[i] = mwc + cng + xs;
 	}
 
