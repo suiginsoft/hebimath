@@ -24,7 +24,7 @@ hebi_prand_kiss(
 	size_t nlimbs;
 	size_t i;
 
-	ASSERT(n > 0);
+	ASSERT(0 < n && (bits + HEBI_PACKET_BIT - 1) / HEBI_PACKET_BIT <= n);
 
 	/* determine number of 64-bit limbs to randomly generate */
 	nlimbs = (bits + 63) / 64;
@@ -51,11 +51,14 @@ hebi_prand_kiss(
 	/* generate random limbs */
 	for (i = 0; i < nlimbs; i++) {
 		/* multiply-with-carry generator */
-		index = (index + 1) & (length - 1);
 		mwc = (data[index] << 28) + carry;
 		carry = (data[index] >> 36) - (mwc < data[index]);
 		mwc -= data[index];
 		data[index] = mwc;
+
+		/* update next sample index */
+		index += 1;
+		index &= (index < length ? SIZE_MAX : 0u);
 
 		/* linear congruential generator */
 		cng *= UINT64_C(6906969069);
